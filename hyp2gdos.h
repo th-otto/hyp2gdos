@@ -32,8 +32,12 @@
 #  endif
 #endif
 
+#ifndef UNUSED
+# define UNUSED(x) (void)(x)
+#endif
 
-#define MAXPATH 128
+
+#define MAXPATH 256
 #define LINEMAX 128
 
 struct file {
@@ -48,7 +52,7 @@ struct file {
 };
 
 typedef struct {
-	char buf[256];
+	char buf[MAXPATH];
 } Path;
 
 /* Valid values for INDEX_ENTRY->type */
@@ -81,10 +85,54 @@ typedef struct
 } INDEX_ENTRY;
 
 struct hypfile {
-	/* 270 */ short num_nodes;
+	/*   0 */ unsigned short flags;
+#define SCALE_IMAGES 0x02
+
+	/* 270 */ hyp_nodenr num_nodes;
 	/* 278 */ INDEX_ENTRY **nodes;
 };
 
+
+struct font {
+	_BOOL used;
+};
+
+struct x76 {
+	void *o0;
+	char o4[72];
+};
+
+struct options {
+	_WORD x1a02a;
+	long border_left;
+	long border_top;
+	long border_right;
+	long border_bottom;
+	_BOOL add_head;
+	char *head_left_str;
+	char *head_center_str;
+	char *head_right_str;
+	_BOOL head_sep;
+	_BOOL add_foot;
+	char *foot_left_str;
+	char *foot_center_str;
+	char *foot_right_str;
+	_BOOL foot_sep;
+	_BOOL swap_layout;
+	_BOOL skip_udo_header;
+	int show_borders;
+	int first_page_num;
+	int first_page;
+	int last_page;
+	int skip_pages;
+	long first_line;
+	long last_line;
+};
+
+extern struct font fonttable[8];
+extern _WORD x1d9c4;
+extern struct options options;
+extern char hypfold[MAXPATH];
 
 
 size_t conv_macroman(const char *src, char *dst);
@@ -126,3 +174,19 @@ _BOOL fexists(const char *filename);
 #ifndef __PORTVDI_H__
 void vq_scrninfo(_WORD handle, _WORD *workout);
 #endif
+
+
+struct hypfile *hyp_new(void);
+void hyp_delete(struct hypfile *hyp);
+void hyp_free(struct hypfile **hyp);
+int hyp_load(struct hypfile *hyp, const char *filename);
+int x16fd8(void);
+int x17008(int fontidx, _WORD font_id, _WORD size);
+_BOOL can_scale_bitmaps(_WORD handle);
+int x16734(struct x76 *p, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
+hyp_nodenr hyp_find_pagename(void *x, const char *pagename);
+int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int z, void *a);
+int x14db6(struct x76 *x, _WORD *page_num, int *font_idx);
+hyp_nodenr x16842(void *x, hyp_nodenr node, int direction);
+char *hyp_get_window_title(struct x76 *x, hyp_nodenr nodenr);
+void x16768(struct x76 *x);

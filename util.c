@@ -31,6 +31,7 @@ static int x185c8(void)
 	Malloc(0);
 	Mfree(0);
 	Supexec(0);
+	conv_macroman(0, 0);
 	
 	vdi(0);
 	v_updwk(0);

@@ -12,6 +12,11 @@ _BOOL pagename_is_title;
 _BOOL case_insensitive;
 _WORD vdihandle;
 _BOOL abort_flag;
+_BOOL scale_flag;
+char x19c22[258];
+_WORD x19d24;
+_WORD num_loaded_fonts;
+_WORD x19d28;
 
 char head_left[LINEMAX];
 char head_center[LINEMAX];
@@ -19,32 +24,25 @@ char head_right[LINEMAX];
 char foot_left[LINEMAX];
 char foot_center[LINEMAX];
 char foot_right[LINEMAX];
-long border_left;
-long border_top;
-long border_right;
-long border_bottom;
-_BOOL add_head;
-char *x1a03e;
-char *x1a042;
-char *x1a046;
-_BOOL head_sep;
-_BOOL add_foot;
-char *x1a04e;
-char *x1a052;
-char *x1a056;
-_BOOL foot_sep;
-_BOOL swap_layout;
-_BOOL skip_udo_header;
-int show_borders;
-int first_page_num;
-int first_page;
-int last_page;
-int skip_pages;
-long first_line;
-long last_line;
-char hypfold[MAXPATH];
-
+struct options options;
 static _BOOL mint_domain;
+
+static char const usage[] =
+	"Usage: hyp2gdos {-option} {file.hyp}\n"
+	"Prints the file file.hyp to GDOS.\n"
+	"-dN      device N (default 21)\n"
+	"-tT      print only page titled T\n"
+	"-nN      print only page internal named N\n"
+	"-i       case insensitive titles\n"
+	"-fFILE   load configuration from FILE\n"
+	"-pN      set number of start page to N\n"
+	"-bPAGE   first PAGE to print\n"
+	"-ePAGE   last PAGE to print\n"
+	"-sN      skip pages (N=1: odd, N=2: even)\n"
+	"-oN      set tab size to N\n"
+	"-gLINE   first LINE to print\n"
+	"-hLINE   last LINE to print\n"
+	"Press & hold SHIFT+SHIFT to cancel printing.\n";
 
 _WORD gdos_device = 21;
 long reserve_memory = 102400L;
@@ -57,7 +55,30 @@ _WORD pref_effects = TXT_THICKENED | TXT_UNDERLINED;
 _WORD xref_effects = TXT_THICKENED | TXT_UNDERLINED;
 int verbose = 1;
 static long magicmac = 0;
+static unsigned char const macroman_cset[256] = {
+	0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x09, 0x0a, 0x7f, 0x7f, 0x0d, 0x7f, 0x7f,
+	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x1b, 0x7f, 0x7f, 0x7f, 0x7f,
+	0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
+	0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+	0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
+	0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
+	0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f,
+	0x8e, 0x8f, 0x80, 0x90, 0xa5, 0x99, 0x9a, 0xa0, 0x85, 0x83, 0x84, 0xb0, 0x86, 0x87, 0x82, 0x8a,
+	0x88, 0x89, 0xa1, 0x8d, 0x8c, 0x8b, 0xa4, 0xa2, 0x95, 0x93, 0x94, 0xb1, 0xa3, 0x97, 0x96, 0x81,
+	0xbb, 0xf8, 0x9b, 0x9c, 0xdd, 0xf9, 0xbc, 0x9e, 0xbe, 0xbd, 0xbf, 0xba, 0xb9, 0x7f, 0x92, 0xb2,
+	0xdf, 0xf1, 0xf3, 0xf2, 0x9d, 0xe6, 0x7f, 0xe4, 0xe3, 0xe3, 0x7f, 0xa6, 0xa7, 0xea, 0x91, 0xb3,
+	0xa8, 0xad, 0xaa, 0xfb, 0x9f, 0xf7, 0x7f, 0xae, 0xaf, 0x7f, 0x20, 0xb6, 0xb7, 0xb8, 0xb5, 0xb4,
+	0x2d, 0x2d, 0x22, 0x22, 0x27, 0x27, 0xf6, 0x7f, 0x98, 0xf0, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 
+	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f
+};
+int x18b52 = 12;
+int x18b54 = 12;
+int x18b56 = 0;
+int x18b58 = 1;
 _BOOL expand_spaces = TRUE;
+_BOOL x18b5c = TRUE;
 _BOOL use_standard = TRUE;
 int tabsize = 4;
 
@@ -118,7 +139,7 @@ static void make_absolute(Path *filename, const char *cwd)
 __attribute__((format(printf, 1, 2)))
 static int debugout(const char *format, ...)
 {
-	(void) format;
+	UNUSED(format);
 	return 0;
 }
 
@@ -181,17 +202,17 @@ static void init_wk(_WORD handle)
 static void wk_info(void)
 {
 	_WORD workout[273];
-	_UWORD width; /* d3 */
-	_UWORD height; /* d4 */
-	_UWORD pix_width; /* o8 */
-	_UWORD pix_height; /* d5 */
-	long xfac; /* o4 */
-	long yfac; /* d6 */
-	_WORD hdpi; /* o2 */
-	_WORD vdpi; /* o0 */
-	long mult; /* d7 */
-	_WORD format; /* d7 */
-	unsigned long colors; /* d5 */
+	_UWORD width;
+	_UWORD height;
+	_UWORD pix_width;
+	_UWORD pix_height;
+	long xfac;
+	long yfac;
+	_WORD hdpi;
+	_WORD vdpi;
+	long mult;
+	_WORD format;
+	unsigned long colors;
 	
 	memset(workout, 0, sizeof(workout));
 	vq_extnd(vdihandle, 0, workout);
@@ -273,29 +294,11 @@ static void wk_info(void)
 
 size_t conv_macroman(const char *src, char *dst)
 {
-	static unsigned char const cset[256] = {
-		0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x09, 0x0a, 0x7f, 0x7f, 0x0d, 0x7f, 0x7f,
-		0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x1b, 0x7f, 0x7f, 0x7f, 0x7f,
-		0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
-		0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
-		0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
-		0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
-		0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
-		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f,
-		0x8e, 0x8f, 0x80, 0x90, 0xa5, 0x99, 0x9a, 0xa0, 0x85, 0x83, 0x84, 0xb0, 0x86, 0x87, 0x82, 0x8a,
-		0x88, 0x89, 0xa1, 0x8d, 0x8c, 0x8b, 0xa4, 0xa2, 0x95, 0x93, 0x94, 0xb1, 0xa3, 0x97, 0x96, 0x81,
-		0xbb, 0xf8, 0x9b, 0x9c, 0xdd, 0xf9, 0xbc, 0x9e, 0xbe, 0xbd, 0xbf, 0xba, 0xb9, 0x7f, 0x92, 0xb2,
-		0xdf, 0xf1, 0xf3, 0xf2, 0x9d, 0xe6, 0x7f, 0xe4, 0xe3, 0xe3, 0x7f, 0xa6, 0xa7, 0xea, 0x91, 0xb3,
-		0xa8, 0xad, 0xaa, 0xfb, 0x9f, 0xf7, 0x7f, 0xae, 0xaf, 0x7f, 0x20, 0xb6, 0xb7, 0xb8, 0xb5, 0xb4,
-		0x2d, 0x2d, 0x22, 0x22, 0x27, 0x27, 0xf6, 0x7f, 0x98, 0xf0, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 
-		0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-		0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f
-	};
 	char *start;
 	const unsigned char (*table)[256];
 	
 	start = dst;
-	table = &cset;
+	table = &macroman_cset;
 	while (*src != '\0')
 	{
 		*dst++ = (*table)[(unsigned char)*src++];
@@ -340,6 +343,15 @@ static void reset_abort(void)
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef __PUREC__
+void unused(void)
+{
+	printf("n");
+}
+#endif
+
+/* ---------------------------------------------------------------------- */
+
 _BOOL should_abort(void)
 {
 	if (abort_flag == FALSE)
@@ -353,10 +365,208 @@ _BOOL should_abort(void)
 
 /* ---------------------------------------------------------------------- */
 
-static int x128ae(const char *filename)
+static _WORD find_font(const char *fontname)
 {
-	(void) filename;
-	return 0;
+	char name[80];
+	char *end;
+	_WORD id;
+	_WORD idx;
+	
+	if (*fontname != '\0')
+	{
+		id = (_WORD)strtol(fontname, &end, 10);
+		while (*end == ' ' || *end == '\t')
+			end++;
+		if (id != 0 && *end == '\0')
+			return id;
+		for (idx = 1; idx <= num_loaded_fonts; idx++)
+		{
+			id = vqt_name(vdihandle, idx, name);
+			name[32] = '\0';
+			debugout("%d %s\n", id, name);
+			if (strnicmp(fontname, name, 16) == 0)
+			{
+				debugout("%s => %d\n", name, id);
+				return id;
+			}
+		}
+	}
+	return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+#ifdef __PUREC__
+void unused2(void)
+{
+	static const char *n = "n";
+	printf(n);
+	printf(" %d", 0);
+}
+int (*p_get_effects)(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effects) = get_effects;
+#endif
+
+/* ---------------------------------------------------------------------- */
+
+static int printfile(const char *filename)
+{
+	_WORD workin[11] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2 };
+	_WORD workout[57];
+	struct x76 o266;
+	struct hypfile *hyp;
+	char *title;
+	_WORD page_num;
+	Path pathbuf;
+	int retcode;
+	long memavail;
+	void *mem;
+	long node;
+	int d5;
+	
+	strmcpy(filename, pathbuf.buf, (int)sizeof(pathbuf.buf));
+	if ((hyp = hyp_new()) == NULL)
+	{
+		fprintf(stderr, "Not enough memory!\n");
+		retcode = 4;
+	} else
+	{
+		if ((retcode = hyp_load(hyp, filename)) != 0)
+		{
+			fprintf(stderr, "Can't load file \"%s\"!\n", pathbuf.buf);
+		} else
+		{
+			memavail = (long)Malloc(-1);
+			if (memavail > reserve_memory)
+				memavail = reserve_memory;
+			mem = (void *)Malloc(memavail);
+			workin[0] = gdos_device;
+			vdihandle = -1;
+			v_opnwk(workin, &vdihandle, workout);
+			if (mem)
+				Mfree(mem);
+			if (vdihandle <= 0)
+			{
+				fprintf(stderr, "Can't open printer %d!\n", gdos_device);
+				retcode = 1;
+			} else
+			{
+				x19d24 = 0;
+				num_loaded_fonts = workout[10];
+				num_loaded_fonts += vst_load_fonts(vdihandle, 0);
+				if (x19d28 == 0 && num_loaded_fonts == 0)
+				{
+					fprintf(stderr, "No fonts!\n");
+					retcode = 2;
+				} else
+				{
+					x18b52 = x16fd8();
+					x18b54 = x16fd8();
+					x17008(x18b52, find_font(standard_font), standard_font_size);
+					x17008(x18b54, find_font(typewriter_font), typewriter_font_size);
+					scale_flag = can_scale_bitmaps(vdihandle);
+					/* BUG: interrupted() only checks for shift */
+					verboseout("Hyp2GDOS: Hold %s to cancel printing.\n", magicmac && (((long *)magicmac)[1] & 2) == 0 ? "Command-B" : "SHIFT+SHIFT");
+					wk_info();
+					verboseout("print document \"%s\"\n", pathbuf.buf);
+					init_wk(vdihandle);
+					x1d9c4 = vdihandle;
+					reset_abort();
+					if (scale_images)
+					{
+						hyp->flags |= SCALE_IMAGES;
+					} else
+					{
+						hyp->flags &= ~SCALE_IMAGES;
+					}
+					x16734(&o266, hyp, 8, 16, 0);
+					page_num = options.first_page_num - 1;
+					if (pagename[0] != '\0')
+					{
+						if (!pagename_is_title)
+						{
+							verboseout("looking for page \"%s\"\n", pagename);
+							node = hyp_find_pagename(o266.o0, pagename);
+							if (node < 0)
+							{
+								fprintf(stderr, "Page \"%s\" not found!\n", pagename);
+							} else
+							{
+								if (hyp_load_page(&o266, NULL, node, 0, NULL))
+								{
+									fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
+								} else
+								{
+									x14db6(&o266, &page_num, &x18b52);
+								}
+							}
+						} else
+						{
+							verboseout("looking for title \"%s\"\n", pagename);
+							node = -1;
+							d5 = 0;
+							while ((node = x16842(o266.o0, node, 1)) != -1)
+							{
+								if ((title = hyp_get_window_title(&o266, node)) != NULL)
+								{
+									if ((case_insensitive ? stricmp(title, pagename) : strncmp(title, pagename, strlen(pagename))) == 0)
+									{
+										d5++;
+										if (hyp_load_page(&o266, NULL, node, 0, NULL))
+										{
+											fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
+										} else
+										{
+											x14db6(&o266, &page_num, &x18b52);
+											if (page_num >= options.last_page)
+												break;
+										}
+									}
+								}
+								if (should_abort())
+									break;
+							}
+							if (d5 == 0)
+							{
+								fprintf(stderr, "Title \"%s\" not found!\n", pagename);
+							}
+						}
+					} else
+					{
+						trace(">>>Try to print document\n");
+						node = -1;
+						while ((node = x16842(o266.o0, node, 1)) != -1)
+						{
+							trace(">>>Try to load page (index=%d)\n", (int)node);
+							if (hyp_load_page(&o266, NULL, node, 0, NULL))
+							{
+								fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
+							} else
+							{
+								trace(">>>Try to print page (index=%d)\n", (int)node);
+								x14db6(&o266, &page_num, &x18b52);
+								if (page_num >= options.last_page)
+									break;
+							}
+							if (should_abort())
+								break;
+						}
+					}
+					x16768(&o266);
+					retcode = EXIT_SUCCESS;
+				}
+			}
+		}
+	}
+	
+	if (vdihandle > 0)
+	{
+		vst_unload_fonts(vdihandle, 0);
+		v_clswk(vdihandle);
+	}
+	if (hyp != NULL)
+		hyp_free(&hyp);
+
+	return retcode;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -364,7 +574,7 @@ static int x128ae(const char *filename)
 static void parseline(char *line)
 {
 	int i;
-	size_t len;
+	long len;
 	char *p;
 	
 	static const char *const keywords[] = {
@@ -420,23 +630,23 @@ static void parseline(char *line)
 		break;
 	
 	case 1:
-		border_left = atol(line) * 1000;
+		options.border_left = atol(line) * 1000;
 		break;
 	
 	case 2:
-		border_top = atol(line) * 1000;
+		options.border_top = atol(line) * 1000;
 		break;
 	
 	case 3:
-		border_right = atol(line) * 1000;
+		options.border_right = atol(line) * 1000;
 		break;
 	
 	case 4:
-		border_bottom = atol(line) * 1000;
+		options.border_bottom = atol(line) * 1000;
 		break;
 	
 	case 5:
-		add_head = atoi(line) != 0;
+		options.add_head = atoi(line) != 0;
 		break;
 	
 	case 6:
@@ -452,11 +662,11 @@ static void parseline(char *line)
 		break;
 	
 	case 9:
-		head_sep = atoi(line);
+		options.head_sep = atoi(line);
 		break;
 	
 	case 10:
-		add_foot = atoi(line) != 0;
+		options.add_foot = atoi(line) != 0;
 		break;
 	
 	case 11:
@@ -472,7 +682,7 @@ static void parseline(char *line)
 		break;
 	
 	case 14:
-		foot_sep = atoi(line);
+		options.foot_sep = atoi(line);
 		break;
 	
 	case 15:
@@ -496,7 +706,7 @@ static void parseline(char *line)
 		break;
 	
 	case 17:
-		swap_layout = atoi(line) != 0;
+		options.swap_layout = atoi(line) != 0;
 		break;
 	
 	case 18:
@@ -508,11 +718,11 @@ static void parseline(char *line)
 		break;
 	
 	case 20:
-		skip_udo_header = atoi(line) != 0;
+		options.skip_udo_header = atoi(line) != 0;
 		break;
 	
 	case 21:
-		show_borders = atoi(line);
+		options.show_borders = atoi(line);
 		break;
 	
 	case 22:
@@ -602,25 +812,28 @@ int main(int argc, char **argv)
 {
 	char stguide_inf[MAXPATH];
 	Path filename;
-	char cwd[MAXPATH * 2];
+	char cwd[MAXPATH];
 	int i;
 	char *arg;
 	int retcode;
 	
+	const char *id = "@(#)hyp2gdos v1.1 [May 31 1997], (c) Martin Osieka (\/)";
+	(void)id;
+
 	retcode = EXIT_SUCCESS;
 	set_domain();
 	get_cwd(cwd);
 	getcookie(0x4D674D63L, &magicmac); /* 'MgMc' */
 
-	first_page_num = 1;
-	first_page = 1;
-	last_page = 32767;
-	x1a03e = head_left;
-	x1a042 = head_center;
-	x1a046 = head_right;
-	x1a04e = foot_left;
-	x1a052 = foot_center;
-	x1a056 = foot_right;
+	options.first_page_num = 1;
+	options.first_page = 1;
+	options.last_page = 32767;
+	options.head_left_str = head_left;
+	options.head_center_str = head_center;
+	options.head_right_str = head_right;
+	options.foot_left_str = foot_left;
+	options.foot_center_str = foot_center;
+	options.foot_right_str = foot_right;
 	
 	get_stguideinf_path(stguide_inf);
 	parseinf(stguide_inf);
@@ -660,21 +873,21 @@ int main(int argc, char **argv)
 			break;
 		case 'p':
 		case 'P':
-			first_page_num = atoi(arg);
-			if (first_page_num < 1)
-				first_page_num = 1;
+			options.first_page_num = atoi(arg);
+			if (options.first_page_num < 1)
+				options.first_page_num = 1;
 			break;
 		case 'b':
 		case 'B':
-			first_page = atoi(arg);
+			options.first_page = atoi(arg);
 			break;
 		case 'e':
 		case 'E':
-			last_page = atoi(arg);
+			options.last_page = atoi(arg);
 			break;
 		case 's':
 		case 'S':
-			skip_pages = atoi(arg);
+			options.skip_pages = atoi(arg);
 			break;
 		case 'o':
 		case 'O':
@@ -682,11 +895,11 @@ int main(int argc, char **argv)
 			break;
 		case 'g':
 		case 'G':
-			first_line = atoi(arg);
+			options.first_line = atoi(arg);
 			break;
 		case 'h':
 		case 'H':
-			last_line = atoi(arg);
+			options.last_line = atoi(arg);
 			break;
 		case 'v':
 		case 'V':
@@ -695,31 +908,16 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	if (first_page < first_page_num)
-		first_page = first_page_num;
+	if (options.first_page < options.first_page_num)
+		options.first_page = options.first_page_num;
 	
 	if (i >= argc)
 	{
-		fprintf(stderr,
-			"Usage: hyp2gdos {-option} {file.hyp}\n"
-			"Prints the file file.hyp to GDOS.\n"
-			"-dN      device N (default 21)\n"
-			"-tT      print only page titled T\n"
-			"-nN      print only page internal named N\n"
-			"-i       case insensitive titles\n"
-			"-fFILE   load configuration from FILE\n"
-			"-pN      set number of start page to N\n"
-			"-bPAGE   first PAGE to print\n"
-			"-ePAGE   last PAGE to print\n"
-			"-sN      skip pages (N=1: odd, N=2: even)\n"
-			"-oN      set tab size to N\n"
-			"-gLINE   first LINE to print\n"
-			"-hLINE   last LINE to print\n"
-			"Press & hold SHIFT+SHIFT to cancel printing.\n");
-			return EXIT_FAILURE;
+		fprintf(stderr, usage);
+		return EXIT_FAILURE;
 	}
 	
-	do
+	while (i < argc)
 	{
 		retcode = EXIT_FAILURE;
 		if (setpath(argv[i], filename.buf) != 0)
@@ -729,25 +927,19 @@ int main(int argc, char **argv)
 #else
 			fprintf(stderr, "error: unknown file %d!\n", argv[i]); /* BUG: wrong format */
 #endif
+			break;
 		} else
 		{
 			make_absolute(&filename, cwd);
-			retcode = x128ae(filename.buf);
-			if (retcode != 0)
+			retcode = printfile(filename.buf);
+			if (retcode != EXIT_SUCCESS)
 			{
 				fprintf(stderr, "error: %d!\n", retcode);
+				break;
 			}
 		}
 		++i;
-	} while (i < argc);
+	}
 
-	debugout(0); /* XXX */
-	init_wk(0);
-	wk_info();
-	conv_macroman(0, 0);
-	get_effects(0, 0, 0, 0);
-	reset_abort();
-	should_abort();
-	
 	return retcode;
 }
