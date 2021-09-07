@@ -1,0 +1,19 @@
+hyp2gdos.ttp
+
+.C [-2- -8-]
+
+.C [-A- -H- -K-]
+.C [-C- -M- -P- -G]
+.L [-S=4096]
+=
+pcstart.s
+
+pcstdlib.lib
+tos.s
+vdi.s
+
+main.c
+
+hyp.c
+
+util.c [-P]
