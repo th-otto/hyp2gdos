@@ -36,6 +36,8 @@
 # define UNUSED(x) (void)(x)
 #endif
 
+#include "hyp.h"
+
 
 #define MAXPATH 256
 #define LINEMAX 128
@@ -55,41 +57,27 @@ typedef struct {
 	char buf[MAXPATH];
 } Path;
 
-/* Valid values for INDEX_ENTRY->type */
-typedef enum {
-	HYP_NODE_INTERNAL = 0,
-	HYP_NODE_POPUP = 1,
-	HYP_NODE_EXTERNAL_REF = 2,
-	HYP_NODE_IMAGE = 3,
-	HYP_NODE_SYSTEM_ARGUMENT = 4,
-	HYP_NODE_REXX_SCRIPT = 5,
-	HYP_NODE_REXX_COMMAND = 6,
-	HYP_NODE_QUIT = 7,
-	HYP_NODE_CLOSE = 8,
-	HYP_NODE_EOF = 0xff
-} hyp_indextype;
-#define HYP_NODE_IS_TEXT(type) ((type) <= HYP_NODE_POPUP)
-
-typedef short hyp_nodenr;
-
-typedef struct
-{
-	unsigned char length;       /* Length */
-	/* hyp_indextype */ char type;         /* Type */
-	unsigned long seek_offset;  /* File seek offset*/
-	unsigned short comp_diff;   /* Difference packed/unpacked in bytes */
-	hyp_nodenr next;            /* Index of successor entry */
-	hyp_nodenr previous;        /* Index of predecessor entry */
-	hyp_nodenr toc_index;       /* Index of directory/parent entry */
-	unsigned char name[1];      /* First character of 0-terminated entry name */
-} INDEX_ENTRY;
-
 struct hypfile {
 	/*   0 */ unsigned short flags;
 #define SCALE_IMAGES 0x02
+#define FLAG_20      0x20
+#define FLAG_40      0x40
+#define FLAG_80      0x80
 
-	/* 270 */ hyp_nodenr num_nodes;
-	/* 278 */ INDEX_ENTRY **nodes;
+	/*   2 */ Path filename;
+	/* 258 */ FILE *fp;
+	/* 262 */ HYP_HEADER header;
+	/* 274 */ void *indexdata;
+	/* 278 */ INDEX_ENTRY **indextable;
+	/* 282 */ void *o282;
+	/* 286 */ void *o286;
+	/* 290 */ short o290;
+	/* 292 */ short o292;
+	/* 294 */ short o294;
+	/* 296 */ short o296;
+	/* 298 */ void *o298;
+	/* 302 */ void *o302;
+	/* 306 */ short o306;
 };
 
 
@@ -98,7 +86,7 @@ struct font {
 };
 
 struct x76 {
-	void *o0;
+	struct hypfile *hyp;
 	char o4[72];
 };
 
@@ -140,6 +128,8 @@ int get_effects(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effects);
 int get_nodetype(struct hypfile *hyp, hyp_nodenr node);
 _BOOL should_abort(void);
 
+int verboseout(const char *format, ...) __attribute__((format(printf, 1, 2)));
+
 
 
 struct file *openfile(const char *filename);
@@ -177,16 +167,18 @@ void vq_scrninfo(_WORD handle, _WORD *workout);
 
 
 struct hypfile *hyp_new(void);
-void hyp_delete(struct hypfile *hyp);
-void hyp_free(struct hypfile **hyp);
-int hyp_load(struct hypfile *hyp, const char *filename);
+void hyp_delete(struct hypfile **hyp);
+void hyp_free(struct hypfile *hyp);
+int hyp_load(struct hypfile *hyp, const Path *filename);
 int x16fd8(void);
 int x17008(int fontidx, _WORD font_id, _WORD size);
 _BOOL can_scale_bitmaps(_WORD handle);
 int x16734(struct x76 *p, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
-hyp_nodenr hyp_find_pagename(void *x, const char *pagename);
+hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);
 int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int z, void *a);
 int x14db6(struct x76 *x, _WORD *page_num, int *font_idx);
-hyp_nodenr x16842(void *x, hyp_nodenr node, int direction);
+hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction);
 char *hyp_get_window_title(struct x76 *x, hyp_nodenr nodenr);
 void x16768(struct x76 *x);
+FILE *x14f38(const Path *filename);
+void conv_nodename(unsigned char os, char *name);

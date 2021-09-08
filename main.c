@@ -145,8 +145,7 @@ static int debugout(const char *format, ...)
 
 /* ---------------------------------------------------------------------- */
 
-__attribute__((format(printf, 1, 2)))
-static int verboseout(const char *format, ...)
+int verboseout(const char *format, ...)
 {
 	va_list args;
 	int ret;
@@ -408,7 +407,7 @@ int (*p_get_effects)(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effec
 
 /* ---------------------------------------------------------------------- */
 
-static int printfile(const char *filename)
+static int printfile(const Path *filename)
 {
 	_WORD workin[11] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2 };
 	_WORD workout[57];
@@ -420,10 +419,10 @@ static int printfile(const char *filename)
 	int retcode;
 	long memavail;
 	void *mem;
-	long node;
-	int d5;
+	long node; /* FIXME: should be hyp_nodenr */
+	int found;
 	
-	strmcpy(filename, pathbuf.buf, (int)sizeof(pathbuf.buf));
+	strmcpy(filename->buf, pathbuf.buf, (int)sizeof(pathbuf.buf));
 	if ((hyp = hyp_new()) == NULL)
 	{
 		fprintf(stderr, "Not enough memory!\n");
@@ -478,14 +477,14 @@ static int printfile(const char *filename)
 					{
 						hyp->flags &= ~SCALE_IMAGES;
 					}
-					x16734(&o266, hyp, 8, 16, 0);
+					x16734(&o266, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, 0);
 					page_num = options.first_page_num - 1;
 					if (pagename[0] != '\0')
 					{
 						if (!pagename_is_title)
 						{
 							verboseout("looking for page \"%s\"\n", pagename);
-							node = hyp_find_pagename(o266.o0, pagename);
+							node = hyp_find_pagename(o266.hyp, pagename);
 							if (node < 0)
 							{
 								fprintf(stderr, "Page \"%s\" not found!\n", pagename);
@@ -503,14 +502,14 @@ static int printfile(const char *filename)
 						{
 							verboseout("looking for title \"%s\"\n", pagename);
 							node = -1;
-							d5 = 0;
-							while ((node = x16842(o266.o0, node, 1)) != -1)
+							found = 0;
+							while ((node = x16842(o266.hyp, node, 1)) != -1)
 							{
 								if ((title = hyp_get_window_title(&o266, node)) != NULL)
 								{
 									if ((case_insensitive ? stricmp(title, pagename) : strncmp(title, pagename, strlen(pagename))) == 0)
 									{
-										d5++;
+										found++;
 										if (hyp_load_page(&o266, NULL, node, 0, NULL))
 										{
 											fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
@@ -525,7 +524,7 @@ static int printfile(const char *filename)
 								if (should_abort())
 									break;
 							}
-							if (d5 == 0)
+							if (found == 0)
 							{
 								fprintf(stderr, "Title \"%s\" not found!\n", pagename);
 							}
@@ -534,7 +533,7 @@ static int printfile(const char *filename)
 					{
 						trace(">>>Try to print document\n");
 						node = -1;
-						while ((node = x16842(o266.o0, node, 1)) != -1)
+						while ((node = x16842(o266.hyp, node, 1)) != -1)
 						{
 							trace(">>>Try to load page (index=%d)\n", (int)node);
 							if (hyp_load_page(&o266, NULL, node, 0, NULL))
@@ -564,7 +563,7 @@ static int printfile(const char *filename)
 		v_clswk(vdihandle);
 	}
 	if (hyp != NULL)
-		hyp_free(&hyp);
+		hyp_delete(&hyp);
 
 	return retcode;
 }
@@ -817,7 +816,7 @@ int main(int argc, char **argv)
 	char *arg;
 	int retcode;
 	
-	const char *id = "@(#)hyp2gdos v1.1 [May 31 1997], (c) Martin Osieka (\/)";
+	const char *id = "@(#)hyp2gdos v1.1 [May 31 1997], (c) Martin Osieka (\\/)";
 	(void)id;
 
 	retcode = EXIT_SUCCESS;
@@ -931,7 +930,7 @@ int main(int argc, char **argv)
 		} else
 		{
 			make_absolute(&filename, cwd);
-			retcode = printfile(filename.buf);
+			retcode = printfile(&filename);
 			if (retcode != EXIT_SUCCESS)
 			{
 				fprintf(stderr, "error: %d!\n", retcode);

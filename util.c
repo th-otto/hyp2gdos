@@ -10,11 +10,9 @@ static int x185c8(void)
 	fseek(0, 0, 0);
 	strcat(sysvarptr, " ");
 	*strchr(sysvarptr, 10) = 0;
-	if (strcmp(sysvarptr, " ")){}
 	strncmp(sysvarptr, " ", 0);
-	strtol(0, 0, 0);
+	if (strcmp(sysvarptr, " ")){}
 	strdup(" ");
-	stricmp(0, 0);
 	strnicmp(0, 0, 0);
 	memcmp(sysvarptr, " ", 1);
 	memcpy(sysvarptr, " ", 1);
@@ -26,34 +24,22 @@ static int x185c8(void)
 	if (timezone / timezone)
 		return 0;
 	
-	Kbshift(-1);
 	(void) Tgetdate();
-	Malloc(0);
-	Mfree(0);
-	Supexec(0);
 	conv_macroman(0, 0);
 	
-	vdi(0);
 	v_updwk(0);
 	v_rbox(0, 0);
 	v_pline(0, 0, 0);
-	v_opnwk(0, 0, 0);
-	v_clswk(0);
 	v_clrwk(0);
 	v_bar(0, 0);
 	vs_clip(0, 0, 0);
-	vst_unload_fonts(0, 0);
 	vst_point(0, 0, 0, 0, 0, 0);
-	vst_load_fonts(0, 0);
 	vst_font(0, 0);
 	vst_alignment(0, 0, 0, 0, 0);
 	vsf_style(0, 0);
-	vsf_perimeter(0, 0);
 	vrt_cpyfm(0, 0, 0, 0, 0, 0);
 	vro_cpyfm(0, 0, 0, 0, 0);
-	vq_extnd(0, 0, 0);
 	v_gtext(0, 0, 0, 0);
-	vqt_name(0, 0, 0);
 	vqt_extent(0, 0, 0);
 
 	get_basename(0, 0);
