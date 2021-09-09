@@ -477,7 +477,7 @@ static int printfile(const Path *filename)
 					{
 						hyp->flags &= ~SCALE_IMAGES;
 					}
-					x16734(&page, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, 0);
+					hyp_init_pageinfo(&page, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, FALSE);
 					page_num = layout.first_page_num - 1;
 					if (pagename[0] != '\0')
 					{
@@ -503,7 +503,7 @@ static int printfile(const Path *filename)
 							verboseout("looking for title \"%s\"\n", pagename);
 							node = -1;
 							found = 0;
-							while ((node = x16842(page.hyp, node, 1)) != -1)
+							while ((node = hyp_next_textnode(page.hyp, node, TRUE)) != HYP_NOINDEX)
 							{
 								if ((title = hyp_get_window_title(&page, node)) != NULL)
 								{
@@ -533,7 +533,7 @@ static int printfile(const Path *filename)
 					{
 						trace(">>>Try to print document\n");
 						node = -1;
-						while ((node = x16842(page.hyp, node, 1)) != -1)
+						while ((node = hyp_next_textnode(page.hyp, node, TRUE)) != HYP_NOINDEX)
 						{
 							trace(">>>Try to load page (index=%d)\n", (int)node);
 							if (hyp_load_page(&page, NULL, node, FALSE, NULL))
@@ -550,7 +550,7 @@ static int printfile(const Path *filename)
 								break;
 						}
 					}
-					x16768(&page);
+					hyp_free_pageinfo(&page);
 					retcode = EXIT_SUCCESS;
 				}
 			}

@@ -216,13 +216,13 @@ int hyp_load(struct hypfile *hyp, const Path *filename);
 int x16fd8(void);
 int x17008(int fontidx, _WORD font_id, _WORD size);
 _BOOL can_scale_bitmaps(_WORD handle);
-int x16734(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
+int hyp_init_pageinfo(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, _BOOL history);
 hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);
 int hyp_load_page(struct pageinfo *page, const Path *filename, hyp_nodenr node, _BOOL addhist, long *lineno);
 int x14db6(struct pageinfo *page, _WORD *page_num, int *font_idx);
-hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction);
+hyp_nodenr hyp_next_textnode(struct hypfile *hyp, hyp_nodenr node, _BOOL direction);
 char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr);
-void x16768(struct pageinfo *page);
+void hyp_free_pageinfo(struct pageinfo *page);
 FILE *x14f38(const Path *filename);
 size_t conv_nodename(unsigned char os, char *name);
 void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type);
@@ -237,4 +237,6 @@ char *dec_255_decode(char *data, short *val);
 char *dec_255_encode(char *data, short val);
 
 int x18118(char *data, short width, short height, short planes);
-long x16674(struct pageinfo *page, long num_lines);
+long hyp_get_linewidth(struct pageinfo *page, long lineno);
+
+char hyp_get_char_at(struct pageinfo *page, long lineno, long offset);

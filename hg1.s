@@ -1820,7 +1820,7 @@ x1455e:
 	moveq.l    #8,d0
 	movea.l    (a2),a1
 	lea.l      (a7),a0
-	bsr        x16734
+	bsr        hyp_init_pageinfo
 	move.w     d3,d0
 	lea.l      (a7),a0
 	bsr        hyp_get_window_title
@@ -1835,7 +1835,7 @@ x1455e:
 	adda.l     d0,a3
 x1459c:
 	lea.l      (a7),a0
-	bsr        x16768
+	bsr        hyp_free_pageinfo
 	bra.s      x145f6
 x145a4:
 	move.w     d4,-(a7)
@@ -1901,7 +1901,7 @@ x1460c:
 	moveq.l    #2,d3
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x16674
+	bsr        hyp_get_linewidth
 	move.l     d0,d4
 	moveq.l    #-1,d5
 	add.w      d4,d5
@@ -3219,8 +3219,6 @@ x1d982:
 x1d986:
 	.globl x1d98a
 x1d98a:
-	.globl x16db6
-x16db6:
 	.globl x186c2
 x186c2:
 

@@ -18,4 +18,6 @@ hg1.s
 
 hyp.c
 
+hg2.s
+
 util.c [-P]

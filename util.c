@@ -3,6 +3,168 @@
 
 static char *sysvarptr;
 
+
+
+
+FILE *x14f38(const Path *filename)
+{
+	(void) filename;
+	hyp_get_char_at(0, 0, 0);
+	return 0;
+}
+
+
+int x16fd8(void)
+{
+	return 0;
+}
+
+
+int x17008(int fontidx, _WORD font_id, _WORD size)
+{
+	(void) fontidx;
+	(void) font_id;
+	(void) size;
+	return 0;
+}
+
+
+_BOOL can_scale_bitmaps(_WORD handle)
+{
+	_WORD workout[57];
+	
+	vq_extnd(handle, 1, workout);
+	return (workout[30] & 1) != 0;
+}
+
+
+#ifdef __GNUC__
+hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename)
+{
+	(void) hyp;
+	(void) pagename;
+	return HYP_NOINDEX;
+}
+#endif
+
+
+#ifdef __GNUC__
+int x14db6(struct pageinfo *page, _WORD *page_num, int *font_idx)
+{
+	(void)page;
+	(void)page_num;
+	(void)font_idx;
+	return 0;
+}
+#endif
+
+
+#ifdef __GNUC__
+void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type)
+{
+	(void) hyp;
+	(void) type;
+	return NULL;
+}
+#endif
+
+
+#ifdef __GNUC__
+size_t conv_nodename(unsigned char os, char *name)
+{
+	(void) os;
+	(void) name;
+	return 0;
+}
+#endif
+
+
+void x183a6(long *dst, long a, long b, long c, long d)
+{
+	(void) dst;
+	(void) a;
+	(void) b;
+	(void) c;
+	(void) d;
+}
+
+
+int x1837c(char *str, char *end)
+{
+	(void) str;
+	(void) end;
+	return 0;
+}
+
+
+int x18352(const char *str, int d3, int d1)
+{
+	(void) str;
+	(void) d3;
+	(void) d1;
+	return 0;
+}
+
+
+#ifdef __GNUC__
+void x1509e(struct hypfile *hyp, struct xo4 **data)
+{
+	(void) hyp;
+	(void) data;
+}
+#endif
+
+
+#ifdef __GNUC__
+int x15132(struct hypfile *hyp, struct xo4 **data, hyp_nodenr node)
+{
+	(void) hyp;
+	(void) data;
+	(void) node;
+	return 0;
+}
+#endif
+
+
+
+#ifdef __GNUC__
+char *dec_255_decode(char *data, short *val)
+{
+	unsigned short lo;
+	
+	lo = (unsigned char)*data++ - 1U;
+	lo += ((unsigned char)*data++ - 1U) * 255;
+	*val = lo;
+	return data;
+}
+#endif
+
+
+#ifdef __GNUC__
+char *dec_255_encode(char *data, short val)
+{
+	short hi;
+	short lo;
+	
+	hi = val / 255 + 1;
+	lo = val % 255 + 1;
+	*data++ = lo;
+	*data++ = hi;
+	return data;
+}
+#endif
+
+
+int x18118(char *data, short width, short height, short planes)
+{
+	UNUSED(data);
+	UNUSED(width);
+	UNUSED(height);
+	UNUSED(planes);
+	return 0;
+}
+
+
 static int x185c8(void)
 {
 	sprintf(sysvarptr, "hello");

@@ -991,7 +991,7 @@ static int reset_pageinfo(struct pageinfo *page, hyp_nodenr node)
 			return hyp_errno;
 		}
 		calc_max_textlen(page);
-		x183a6(page->o22, 0, 0, page->num_lines - 1, x16674(page, page->num_lines - 1));
+		x183a6(page->o22, 0, 0, page->num_lines - 1, hyp_get_linewidth(page, page->num_lines - 1));
 		x183a6(page->o38, 0, 0, 0, 0);
 		page->lineno = 0;
 		page->o60 = 0;
@@ -1150,7 +1150,7 @@ static char *get_linktext(struct hypfile *hyp, char *data, char **text, long *pl
 
 /* ---------------------------------------------------------------------- */
 
-static char x1658a(struct hypfile *hyp, char *data, long offset)
+static char get_char_at(struct hypfile *hyp, char *data, long offset)
 {
 	char *start;
 	long len;
@@ -1168,30 +1168,35 @@ static char x1658a(struct hypfile *hyp, char *data, long offset)
 		} else
 		{
 			if (hyp->header.magic != HYP_MAGIC_HYP)
-				goto esc;
-			data++;
-			switch (*data)
 			{
-			case HYP_ESC_ESC:
-			esc:
 				start = data;
 				data++;
 				len = 1;
-				break;
-			
-			case HYP_ESC_LINK:
-			case HYP_ESC_ALINK:
-				data = get_linktext(hyp, data + 1, &start, &len);
-				break;
-				
-			case HYP_ESC_LINK_LINE:
-			case HYP_ESC_ALINK_LINE:
-				data = get_linktext(hyp, data + 3, &start, &len);
-				break;
-			
-			default:
+			} else
+			{
 				data++;
-				continue;
+				switch (*data)
+				{
+				case HYP_ESC_ESC:
+					start = data;
+					data++;
+					len = 1;
+					break;
+				
+				case HYP_ESC_LINK:
+				case HYP_ESC_ALINK:
+					data = get_linktext(hyp, data + 1, &start, &len);
+					break;
+					
+				case HYP_ESC_LINK_LINE:
+				case HYP_ESC_ALINK_LINE:
+					data = get_linktext(hyp, data + 3, &start, &len);
+					break;
+				
+				default:
+					data++;
+					continue;
+				}
 			}
 		}
 		if ((offset -= len) < 0)
@@ -1204,209 +1209,167 @@ static char x1658a(struct hypfile *hyp, char *data, long offset)
 
 /* ---------------------------------------------------------------------- */
 
-int x16734(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x)
+char hyp_get_char_at(struct pageinfo *page, long lineno, long offset)
 {
-	(void)page;
-	(void) hyp;
-	(void) font_width;
-	(void) font_height;
-	(void) x;
-	return 0;
+	return get_char_at(page->hyp, page->text[lineno], offset);
 }
 
+/* ---------------------------------------------------------------------- */
 
-int x16fd8(void)
+long hyp_get_linewidth(struct pageinfo *page, long lineno)
 {
-	return 0;
-}
-
-
-int x17008(int fontidx, _WORD font_id, _WORD size)
-{
-	(void) fontidx;
-	(void) font_id;
-	(void) size;
-	return 0;
-}
-
-
-_BOOL can_scale_bitmaps(_WORD handle)
-{
-	_WORD workout[57];
+	char *line;
+	long len;
+	char *data;
+	char *text;
+	long linklen;
 	
-	vq_extnd(handle, 1, workout);
-	return (workout[30] & 1) != 0;
+	line = page->text[lineno];
+	len = 0;
+	data = line;
+	while (*data != HYP_EOL)
+	{
+		if (*data != HYP_ESC)
+		{
+			char *start = data;
+			while (*data != HYP_EOL && *data != HYP_ESC)
+				data++;
+			len += data - start;
+		} else
+		{
+			if (page->hyp->header.magic != HYP_MAGIC_HYP)
+			{
+				data++;
+				len++;
+			} else
+			{
+				data++;
+				switch (*data)
+				{
+				case HYP_ESC_ESC:
+					data++;
+					len++;
+					break;
+				
+				case HYP_ESC_LINK:
+				case HYP_ESC_ALINK:
+					data = get_linktext(page->hyp, data + 1, &text, &linklen);
+					len += linklen;
+					break;
+					
+				case HYP_ESC_LINK_LINE:
+				case HYP_ESC_ALINK_LINE:
+					data = get_linktext(page->hyp, data + 3, &text, &linklen);
+					len += linklen;
+					break;
+				
+				default:
+					data++;
+					break;
+				}
+			}
+		}
+	}
+	return len;
 }
 
+/* ---------------------------------------------------------------------- */
 
-#ifdef __GNUC__
-hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename)
+int hyp_init_pageinfo(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, _BOOL history)
 {
-	(void) hyp;
-	(void) pagename;
-	return HYP_NOINDEX;
-}
-#endif
-
-
-#ifdef __GNUC__
-int x14db6(struct pageinfo *page, _WORD *page_num, int *font_idx)
-{
-	(void)page;
-	(void)page_num;
-	(void)font_idx;
+	memset(page, 0, sizeof(*page));
+	page->hyp = hyp;
+	page->font_width = font_width;
+	page->font_height = font_height;
+	if (history)
+		page->hist = alloc_history();
 	return 0;
 }
-#endif
 
+/* ---------------------------------------------------------------------- */
 
-hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction)
+void hyp_free_pageinfo(struct pageinfo *page)
 {
-	(void)hyp;
-	(void)node;
-	(void)direction;
-	return node;
+	free_pageinfo(page);
+	free_history(page->hist);
+	page->hyp = NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+
+static int tree_has_title(struct hypfile *hyp, char *treedata, hyp_nodenr nodenr)
+{
+	short *head;
+	int nodes;
+	const short *bitdata;
+	
+	/*
+	 * if extension not present, have to scan nodes
+	 */
+	if (treedata == NULL)
+		return -1;
+	/* skip back to extension header */
+	head = (short *)(treedata - 4);
+	/*
+	 * extension present, but empty: no window titles present
+	 */
+	if (head[1] == 0)
+		return 0;
+	nodes = (head[1] - 4) << 3;
+	if (nodes > hyp->header.num_index)
+		nodes = hyp->header.num_index;
+	if (nodenr < 0 || nodenr >= nodes)
+		return 0;
+	/* skip title length field */
+	bitdata = (const short *)(treedata + 4);
+	return (bitdata[nodenr >> 4] & (1 << (nodenr & 15))) != 0;
+}
+
+/* ---------------------------------------------------------------------- */
 
 char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr)
 {
-	(void)page;
-	(void)nodenr;
-	return 0;
+	if (get_nodetype(page->hyp, nodenr) != HYP_NODE_INTERNAL)
+		return NULL;
+	if (tree_has_title(page->hyp, hyp_find_extheader(page->hyp, HYP_EXTH_TREEHEADER), nodenr) == 0)
+		return page->hyp->indextable[nodenr]->name;
+	if (page->o4 != NULL && page->o4->nodenr != nodenr)
+		free_pageinfo(page);
+	if (reset_pageinfo(page, nodenr) != 0)
+		return NULL;
+	return page->window_title;
 }
 
+/* ---------------------------------------------------------------------- */
 
-void x16768(struct pageinfo *page)
+hyp_nodenr hyp_next_textnode(struct hypfile *hyp, hyp_nodenr node, int direction)
 {
-	(void)page;
-}
-
-FILE *x14f38(const Path *filename)
-{
-	(void) filename;
-	free_history(alloc_history()); /* XXX */
-	add_history(0, 0);
-	calc_max_textlen(0);
-	skip_gfx_cmds(0, 0, 0, 0);
-	prepare_page(0);
-	free_pageinfo(0);
-	reset_pageinfo((void *)1, 0);
-	dec_255_encode(0, 0);
-	get_linktext(0, 0, 0, 0);
-	x1658a(0, 0, 0);
-	return 0;
-}
-
-
-#ifdef __GNUC__
-void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type)
-{
-	(void) hyp;
-	(void) type;
-	return NULL;
-}
-#endif
-
-
-#ifdef __GNUC__
-size_t conv_nodename(unsigned char os, char *name)
-{
-	(void) os;
-	(void) name;
-	return 0;
-}
-#endif
-
-
-void x183a6(long *dst, long a, long b, long c, long d)
-{
-	(void) dst;
-	(void) a;
-	(void) b;
-	(void) c;
-	(void) d;
-}
-
-
-int x1837c(char *str, char *end)
-{
-	(void) str;
-	(void) end;
-	return 0;
-}
-
-
-int x18352(const char *str, int d3, int d1)
-{
-	(void) str;
-	(void) d3;
-	(void) d1;
-	return 0;
-}
-
-
-#ifdef __GNUC__
-void x1509e(struct hypfile *hyp, struct xo4 **data)
-{
-	(void) hyp;
-	(void) data;
-}
-#endif
-
-
-#ifdef __GNUC__
-int x15132(struct hypfile *hyp, struct xo4 **data, hyp_nodenr node)
-{
-	(void) hyp;
-	(void) data;
-	(void) node;
-	return 0;
-}
-#endif
-
-
-
-#ifdef __GNUC__
-char *dec_255_decode(char *data, short *val)
-{
-	unsigned short lo;
-	
-	lo = (unsigned char)*data++ - 1U;
-	lo += ((unsigned char)*data++ - 1U) * 255;
-	*val = lo;
-	return data;
-}
-#endif
-
-
-#ifdef __GNUC__
-char *dec_255_encode(char *data, short val)
-{
-	short hi;
-	short lo;
-	
-	hi = val / 255 + 1;
-	lo = val % 255 + 1;
-	*data++ = lo;
-	*data++ = hi;
-	return data;
-}
-#endif
-
-
-int x18118(char *data, short width, short height, short planes)
-{
-	UNUSED(data);
-	UNUSED(width);
-	UNUSED(height);
-	UNUSED(planes);
-	return 0;
-}
-
-
-long x16674(struct pageinfo *page, long num_lines)
-{
-	(void) page;
-	return num_lines;
+	if (direction)
+	{
+		/* scan forward */
+		if (node == HYP_NOINDEX)
+			node = -1;
+		for (;;)
+		{
+			++node;
+			if (node >= hyp->header.num_index)
+				break;
+			if (get_nodetype(hyp, node) == HYP_NODE_INTERNAL)
+				return node;
+		}
+	} else
+	{
+		/* scan backward */
+		if (node == HYP_NOINDEX)
+			node = hyp->header.num_index;
+		for (;;)
+		{
+			--node;
+			if (node < 0)
+				break;
+			if (get_nodetype(hyp, node) == HYP_NODE_INTERNAL)
+				return node;
+		}
+	}
+	return HYP_NOINDEX;
 }
