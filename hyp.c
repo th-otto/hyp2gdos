@@ -3,6 +3,7 @@
 
 int hyp_errno;
 char hypfold[MAXPATH];
+char katalog[MAXPATH];
 _WORD x1d9c4;
 
 /**************************************************************************/
@@ -316,23 +317,23 @@ reterror:
 
 /* ---------------------------------------------------------------------- */
 
-struct x21a4 *x15774(void)
+static struct history *alloc_history(void)
 {
-	struct x21a4 *p;
+	struct history *p;
 	
 	p = malloc(sizeof(*p));
 	if (p != NULL)
 	{
 		memset(p, 0, sizeof(*p));
-		p->o2 = 15;
-		p->o0 = 0;
+		p->curr = HISTSIZE - 1;
+		p->size = 0;
 	}
 	return p;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void x157a0(struct x21a4 *p)
+static void free_history(struct history *p)
 {
 	if (p)
 		free(p);
@@ -340,43 +341,43 @@ void x157a0(struct x21a4 *p)
 
 /* ---------------------------------------------------------------------- */
 
-static long x158c4(struct x76 *x, long y);
+static long get_real_lineno(struct pageinfo *page, long y);
 
-static void x157b0(struct x21a4 *o68, struct x76 *x)
+static void add_history(struct history *hist, struct pageinfo *page)
 {
-	if (x == NULL)
+	if (page == NULL)
 		return;
-	if (x->o4 == NULL)
+	if (page->o4 == NULL)
 		return;
-	if (o68->o0 < 16)
-		o68->o0++;
-	o68->o2++;
-	if (o68->o2 >= 16)
-		o68->o2 = 0;
-	pathcopy(&o68->o4[o68->o2].filename, &x->hyp->filename);
-	o68->o4[o68->o2].o256 = x->o4->nodenr;
-	strcpy(o68->o4[o68->o2].o258, x->window_title);
-	o68->o4[o68->o2].o514 = x158c4(x, x->o56);
-	o68->o4[o68->o2].o518 = x->o60;
-	x183a6(o68->o4[o68->o2].o522, 0, 0, 0, 0);
+	if (hist->size < HISTSIZE)
+		hist->size++;
+	hist->curr++;
+	if (hist->curr >= HISTSIZE)
+		hist->curr = 0;
+	pathcopy(&hist->entry[hist->curr].filename, &page->hyp->filename);
+	hist->entry[hist->curr].nodenr = page->o4->nodenr;
+	strcpy(hist->entry[hist->curr].window_title, page->window_title);
+	hist->entry[hist->curr].lineno = get_real_lineno(page, page->lineno);
+	hist->entry[hist->curr].o518 = page->o60;
+	x183a6(hist->entry[hist->curr].o522, 0, 0, 0, 0);
 }
 
 /* ---------------------------------------------------------------------- */
 
 static char emptystr[] = "";
 
-static long x158c4(struct x76 *x, long y)
+static long get_real_lineno(struct pageinfo *page, long y)
 {
 	long z;
 	
-	if (x->o16 != 0)
+	if (page->image_lines != 0)
 	{
-		if (y > x->max_text_width)
-			y = x->max_text_width;
+		if (y > page->num_lines)
+			y = page->num_lines;
 		z = y - 1;
 		while (z >= 0)
 		{
-			if (x->text[z] == emptystr)
+			if (page->text[z] == emptystr)
 				--y;
 			--z;
 		}
@@ -388,7 +389,7 @@ static long x158c4(struct x76 *x, long y)
 
 typedef int (*cb)(Path *modulename, char *nodename, long lineno, char *entryname);
 
-static int x15900(struct hypfile *hyp, const char *reffilename, char *data, cb o308, Path *modulename, char *errmsg, long *lineno)
+static int scan_ref(struct hypfile *hyp, const char *reffilename, char *data, cb callback, Path *modulename, char *errmsg, long *lineno)
 {
 	int os;
 	long count;
@@ -442,10 +443,10 @@ static int x15900(struct hypfile *hyp, const char *reffilename, char *data, cb o
 					*lineno = (((unsigned char)lineno_pos[0]) << 8) | ((unsigned char)lineno_pos[1]);
 				}
 			do_callback:
-				if (o308 == NULL)
+				if (callback == NULL)
 					goto reterr;
 				{
-					int err = o308(modulename, nodename, lineno != NULL ? *lineno : 0, data + 2);
+					int err = callback(modulename, nodename, lineno != NULL ? *lineno : 0, data + 2);
 					if (err == 1423)
 						goto reterr;
 					if ((hyp_errno = err) != 0)
@@ -466,20 +467,20 @@ reterr:
 
 /* ---------------------------------------------------------------------- */
 
-static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, char *o48, cb o52, int (*o56)(void), Path *modulename, char *errmsg, long *lineno)
+static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, char *name, cb callback, int (*cancel)(void), Path *modulename, char *errmsg, long *lineno)
 {
 	FILE *fp;
-	char *a3;
+	char *data;
 	int err;
 	long magic;
 	long refhead[2];
 	
 	fp = NULL;
-	a3 = NULL;
+	data = NULL;
 	*errmsg = '\0';
 	if (lineno != NULL)
 		*lineno = 0;
-	if ((err = x18352(o48, d5, d3)) != 0)
+	if ((err = x18352(name, d5, d3)) != 0)
 		return err;
 	if (hyp != NULL)
 	{
@@ -503,8 +504,8 @@ static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, cha
 			err = x15132(hyp, &o16, found);
 			if (err == 0)
 			{
-				a3 = o16->data + 4;
-				err = x15900(hyp, filename, a3, o52, modulename, errmsg, lineno);
+				data = o16->data + 4;
+				err = scan_ref(hyp, filename, data, callback, modulename, errmsg, lineno);
 				x1509e(hyp, &o16);
 			}
 			if (err == 1423)
@@ -535,8 +536,7 @@ static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, cha
 	}
 	for (;;)
 	{
-
-		if (o56 != NULL && (err = o56()) != 0)
+		if (cancel != NULL && (err = cancel()) != 0)
 		{
 			hyp_errno = err;
 			goto reterr;
@@ -548,30 +548,30 @@ static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, cha
 		}
 		if (refhead[0] == 0 && refhead[1] == 0)
 			break;
-		a3 = xmalloc(refhead[0] + sizeof(refhead));
-		if (a3 == NULL)
+		data = xmalloc(refhead[0] + sizeof(refhead));
+		if (data == NULL)
 		{
 			hyp_errno = 2;
 			goto reterr;
 		}
-		memcpy(a3, refhead, sizeof(refhead));
-		if ((long)fread(a3 + sizeof(refhead), 1, refhead[0], fp) != refhead[0])
+		memcpy(data, refhead, sizeof(refhead));
+		if ((long)fread(data + sizeof(refhead), 1, refhead[0], fp) != refhead[0])
 		{
 			hyp_errno = errno;
 			goto reterr;
 		}
-		err = x15900(hyp, filename, a3, o52, modulename, errmsg, lineno);
+		err = scan_ref(hyp, filename, data, callback, modulename, errmsg, lineno);
 		if (err == 1423)
 			goto retok;
 		if ((hyp_errno = err) != 0)
 			goto reterr;
-		xfree(a3);
+		xfree(data);
 	}
 retok:
 	hyp_errno = 0;
 reterr:
-	if (a3 != NULL)
-		xfree(a3);
+	if (data != NULL)
+		xfree(data);
 	if (fp != NULL)
 		fclose(fp);
 	return hyp_errno;
@@ -626,7 +626,7 @@ static int calc_textlen(struct hypfile *hyp, char *_data)
 				data++;
 			c = *data;
 			*data = '\0';
-			len += conv_nodename(hyp->header.compiler_os, start);
+			len += (int)conv_nodename(hyp->header.compiler_os, start);
 			*data = c;
 		} else
 		{
@@ -667,45 +667,45 @@ static int calc_textlen(struct hypfile *hyp, char *_data)
 
 /* ---------------------------------------------------------------------- */
 
-static void calc_max_textlen(struct x76 *x)
+static void calc_max_textlen(struct pageinfo *page)
 {
 	hyp_nodenr i;
 	int maxlen;
 	int len;
 	
-	maxlen = x->max_text_width;
-	for (i = 0; i < x->num_lines; i++)
+	maxlen = page->max_text_width;
+	for (i = 0; i < page->num_lines; i++)
 	{
-		len = calc_textlen(x->hyp, x->text[i]);
+		len = calc_textlen(page->hyp, page->text[i]);
 		if (len > maxlen)
 			maxlen = len;
 	}
-	x->max_text_width = maxlen;
+	page->max_text_width = maxlen;
 }
 
 /* ---------------------------------------------------------------------- */
 
-static char *skip_gfx_cmds(struct x76 *x, char *data, short *y_offset, short *width)
+static char *skip_gfx_cmds(struct pageinfo *page, char *data, short *y_offset, short *height)
 {
 	char *end;
 	
 	if (data == NULL)
 	{
-		data = x->o4->data;
+		data = page->o4->data;
 		*y_offset = -1;
 	}
-	end = x->o4->data + x->o4->datalen;
-	if (x->hyp->header.magic == HYP_MAGIC_HYP)
+	end = page->o4->data + page->o4->datalen;
+	if (page->hyp->header.magic == HYP_MAGIC_HYP)
 	{
 		while (data < end && *data == HYP_ESC)
 		{
 			switch (data[1])
 			{
 			case HYP_ESC_PIC:
-				if (!(x->hyp->flags & IGNORE_IMAGES) && data[7] != 0 && data[8] == 0)
+				if (!(page->hyp->flags & IGNORE_IMAGES) && data[7] != 0 && data[8] == 0)
 				{
 					dec_255_decode(&data[5], y_offset);
-					*width = data[7];
+					*height = data[7];
 					data += 9;
 					return data;
 				}
@@ -747,12 +747,12 @@ static char *skip_gfx_cmds(struct x76 *x, char *data, short *y_offset, short *wi
 
 /* ---------------------------------------------------------------------- */
 
-static int x15ebc(struct x76 *x)
+static int prepare_page(struct pageinfo *page)
 {
 	char *data;
 	char *end;
 	int ypos;
-	int d4;
+	int num_lines;
 	struct xo4 *a0;
 	struct xo4 *a5;
 	char *picdata;
@@ -760,19 +760,20 @@ static int x15ebc(struct x76 *x)
 	hyp_nodenr picnode; /* o12 */
 	short y_offset; /* o10 */
 	char *o6;
-	short h;
 	short y;
+	short h;
 	short dithermask; /* o0 */
+	int i;
 	
-	a0 = x->o4;
-	x->window_title = x->hyp->indextable[a0->nodenr]->name;
+	a0 = page->o4;
+	page->window_title = page->hyp->indextable[a0->nodenr]->name;
 	ypos = 0;
 	data = a0->data;
 	end = data + a0->datalen;
 	a5 = a0;
 	dithermask = 0xfefe;
 	
-	if (x->hyp->header.magic == HYP_MAGIC_HYP)
+	if (page->hyp->header.magic == HYP_MAGIC_HYP)
 	{
 		while (data < end && *data == HYP_ESC)
 		{
@@ -785,25 +786,26 @@ static int x15ebc(struct x76 *x)
 				continue;
 			
 			case HYP_ESC_PIC:
-				if (!(x->hyp->flags & IGNORE_IMAGES))
+				if (!(page->hyp->flags & IGNORE_IMAGES))
 				{
 					long planesize;
 					long picsize;
-					long diff;
+					unsigned long endoffset;
+					unsigned long diff;
 					char *picend;
 					short width;
 					short height;
 					
 					dec_255_decode(data + 2, &picnode);
-					if (x15132(x->hyp, &a5->picdata, picnode) != 0)
+					if (x15132(page->hyp, &a5->picdata, picnode) != 0)
 						return 1;
 					picdata = a5->picdata->data;
 					planesize = ((*((short *)picdata) + 15) / 16) * 2; /* width */
 					planesize *= *((short *)(picdata + 2)); /* height */
 					picsize = planesize * picdata[4]; /* planes */
-					picsize = picsize + 8;
-					diff = picsize - a5->picdata->datalen;
-					picend = a5->picdata->data + picsize;
+					endoffset = picsize + 8;
+					diff = a5->picdata->datalen - endoffset;
+					picend = a5->picdata->data + endoffset;
 					if (diff < 8 || *((long *)picend) != 0x4849434CL) /* 'HICL' */
 						picend = NULL;
 					if (picdata[4] > 1)
@@ -822,20 +824,16 @@ static int x15ebc(struct x76 *x)
 					dec_255_encode(data + 5, y_offset + ypos);
 					width = *((short *)picdata);
 					height = *((short *)(picdata + 2));
-					if (x->hyp->flags & SCALE_IMAGES)
+					if (page->hyp->flags & SCALE_IMAGES)
 					{
-						int scalew = (width / HYP_PIC_FONTW) * x->font_width;
-						scalew += *((short *)picdata) % HYP_PIC_FONTW;
-						width = scalew; /* ??? */
-						width = (height / HYP_PIC_FONTH) * x->font_height;
-						width += *((short *)(picdata + 2)) % HYP_PIC_FONTH;
-						height = width;
-						height = (height + x->font_height - 1) / x->font_height;
-						if (data[7] != 0 && data[8] == 0 && !(x->hyp->flags & FLAG_04)) /* picture dimensions in chars */
-						{
-							data[7] = height;
-							ypos += height;
-						}
+						width = (width / HYP_PIC_FONTW) * page->font_width + *((short *)picdata) % HYP_PIC_FONTW;
+						height = (height / HYP_PIC_FONTH) * page->font_height + *((short *)(picdata + 2)) % HYP_PIC_FONTH;
+					}
+					height = (height + page->font_height - 1) / page->font_height;
+					if (data[7] != 0 && data[8] == 0 && !(page->hyp->flags & FLAG_04)) /* picture dimensions in chars */
+					{
+						data[7] = height;
+						ypos += height;
 					}
 				}
 				data += 9;
@@ -850,7 +848,7 @@ static int x15ebc(struct x76 *x)
 				continue;
 
 			case HYP_ESC_EXTERNAL_REFS:
-				conv_nodename(x->hyp->header.compiler_os, data + 5);
+				conv_nodename(page->hyp->header.compiler_os, data + 5);
 				/* BUG: sign-extended */
 				data += data[2];
 				continue;
@@ -868,8 +866,8 @@ static int x15ebc(struct x76 *x)
 
 			case HYP_ESC_WINDOWTITLE:
 				data += 2;
-				x->window_title = data;
-				data += conv_nodename(x->hyp->header.compiler_os, data) + 1;
+				page->window_title = data;
+				data += conv_nodename(page->hyp->header.compiler_os, data) + 1;
 				continue;
 			
 			case HYP_ESC_OBJTABLE:
@@ -879,59 +877,57 @@ static int x15ebc(struct x76 *x)
 			break;
 		}
 	}
-	x->o16 = ypos;
-	d4 = ypos;
+	page->image_lines = ypos;
+	num_lines = ypos;
 	starttext = data;
 	while (data < end)
 	{
-		d4++;
+		num_lines++;
 		while (*data != HYP_EOL)
 			data++;
 		data++;
 	}
 	
-	x->text = malloc(d4 * sizeof(x->text[0]));
-	if (x->text == NULL)
+	page->text = malloc(num_lines * sizeof(page->text[0]));
+	if (page->text == NULL)
 	{
 		hyp_errno = 2;
 		return 1;
 	}
-	x->num_lines = d4;
-	x->max_text_width = 0;
+	page->num_lines = num_lines;
+	page->max_text_width = 0;
 	if (ypos != 0)
 	{
-		int i;
-		
-		o6 = skip_gfx_cmds(x, NULL, &y, &h);
+		o6 = skip_gfx_cmds(page, NULL, &y, &h);
 		data = starttext;
-		i = 0;
-		goto nexti;
+		for (i = 0; i < num_lines; i++)
 		{
-			do
+			while (y == i)
 			{
-				x->text[i] = emptystr;
-				i++;
-			nextline:
-				;
-			} while (--h >= 0);
-			if (i >= d4)
-				return 0;
-			o6 = skip_gfx_cmds(x, starttext, &y, &h);
-			do
-			{
-				if (y == i)
-					goto nextline;
-				x->text[i] = data;
-				while (*data != HYP_EOL)
-					data++;
+				while (--h >= 0)
+				{
+					page->text[i] = emptystr;
+					i++;
+				}
+				if (i >= num_lines)
+					return 0;
+				o6 = skip_gfx_cmds(page, o6, &y, &h);
+			}
+			page->text[i] = data;
+			while (*data != HYP_EOL)
 				data++;
-				i++;
-			nexti:
-				;
-			} while (i < d4);
+			data++;
 		}
 	} else
 	{
+		data = starttext;
+		for (i = 0; i < num_lines; i++)
+		{
+			page->text[i] = data;
+			while (*data != HYP_EOL)
+				data++;
+			data++;
+		}
 	}
 	
 	return 0;
@@ -939,9 +935,278 @@ static int x15ebc(struct x76 *x)
 
 /* ---------------------------------------------------------------------- */
 
-int x16734(struct x76 *p, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x)
+static void free_pageinfo(struct pageinfo *page)
 {
-	(void)p;
+	struct xo4 *xo4;
+	struct xo4 *next;
+	
+	if (page == NULL)
+		return;
+	if (page->text != NULL)
+		free(page->text);
+	page->text = NULL;
+	page->num_lines = 0;
+	page->max_text_width = 0;
+	x183a6(page->o22, 0, 0, 0, 0);
+	x183a6(page->o38, 0, 0, 0, 0);
+	page->lineno = 0;
+	page->o60 = 0;
+	if (page->errmsg != NULL)
+		free(page->errmsg);
+	page->errmsg = NULL;
+	xo4 = page->o4;
+	while (xo4 != NULL)
+	{
+		next = xo4->picdata;
+		x1509e(page->hyp, &xo4);
+		xo4 = next;
+	}
+	page->o4 = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static int reset_pageinfo(struct pageinfo *page, hyp_nodenr node)
+{
+	struct hypfile *hyp;
+	short font_width;
+	short font_height;
+	struct history *hist;
+	
+	if (page != NULL)
+	{
+		hyp = page->hyp;
+		font_width = page->font_width;
+		font_height = page->font_height;
+		hist = page->hist;
+		memset(page, 0, sizeof(*page));
+		page->hyp = hyp;
+		page->font_width = font_width;
+		page->font_height = font_height;
+		page->hist = hist;
+		if (x15132(hyp, &page->o4, node) != 0 ||
+			prepare_page(page) != 0)
+		{
+			free_pageinfo(page);
+			return hyp_errno;
+		}
+		calc_max_textlen(page);
+		x183a6(page->o22, 0, 0, page->num_lines - 1, x16674(page, page->num_lines - 1));
+		x183a6(page->o38, 0, 0, 0, 0);
+		page->lineno = 0;
+		page->o60 = 0;
+		return 0;
+	}
+	hyp_errno = 1;
+	free_pageinfo(page);
+	return hyp_errno;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static int load_page(struct pageinfo *page, const Path *filename, const char *pagename, hyp_nodenr node, _BOOL addhist, long *lineno)
+{
+	char hypfile[MAXPATH];
+	Path newpath;
+	FILE *fp;
+	char errmsg[256];
+	char *name;
+	char *slash;
+
+	hyp_errno = 1;
+	if (page != NULL)
+	{
+		if (addhist && page->hist != NULL)
+			add_history(page->hist, page);
+		if (filename != NULL)
+		{
+			free_pageinfo(page);
+			if (hyp_load(page->hyp, filename) != 0)
+			{
+				free_pageinfo(page);
+				return hyp_errno;
+			}
+		}
+		if (pagename != NULL)
+			node = hyp_find_pagename(page->hyp, pagename);
+		if (node == -11)
+			node = page->hyp->main_page;
+		if (page->o4 != NULL && page->o4->nodenr == node)
+			return 0;
+		switch (get_nodetype(page->hyp, node))
+		{
+		case HYP_NODE_INTERNAL:
+		case HYP_NODE_POPUP:
+		case HYP_NODE_EXTERNAL_REF:
+			break;
+		default:
+			return 2;
+		}
+		free_pageinfo(page);
+		if (page->hyp->indextable[node]->type == HYP_NODE_EXTERNAL_REF)
+		{
+			name = page->hyp->indextable[node]->name;
+			
+			if ((slash = strchr(name, '/')) == NULL)
+			{
+				setpath(name, newpath.buf);
+				if ((fp = x14f38(&newpath)) != NULL)
+				{
+					fclose(fp);
+					free_pageinfo(page);
+					if (hyp_load(page->hyp, &newpath) != 0)
+					{
+						free_pageinfo(page);
+						return hyp_errno;
+					}
+					node = page->hyp->main_page;
+				} else
+				{
+					if (x15a8c(NULL, katalog, 0, 0, name, 0, 0, &newpath, errmsg, lineno) == 0 && *errmsg != '\0')
+					{
+						free_pageinfo(page);
+						if (hyp_load(page->hyp, &newpath) != 0)
+						{
+							free_pageinfo(page);
+							return hyp_errno;
+						}
+						node = hyp_find_pagename(page->hyp, errmsg);
+					} else
+					{
+						hyp_errno = 1997;
+						free_pageinfo(page);
+						return hyp_errno;
+					}
+				}
+			} else
+			{
+				strcpy(errmsg, slash + 1);
+				strncpy(hypfile, name, MAXPATH - 1);
+				hypfile[slash - name] = '\0';
+				get_name(newpath.buf, hypfile);
+				free_pageinfo(page);
+				if (hyp_load(page->hyp, &newpath) != 0)
+				{
+					free_pageinfo(page);
+					return hyp_errno;
+				}
+				node = hyp_find_pagename(page->hyp, errmsg);
+				if (node < 0)
+				{
+					page->errmsg = strdup(errmsg);
+					hyp_errno = 1;
+					return hyp_errno;
+				}
+			}
+		}
+		
+		if (reset_pageinfo(page, node) != 0)
+		{
+			free_pageinfo(page);
+			return hyp_errno;
+		}
+		if (lineno != NULL)
+		{
+			if (*lineno < 0 || *lineno >= page->num_lines)
+				*lineno = 0;
+		}
+		hyp_errno = 0;
+		return hyp_errno;
+	}
+	free_pageinfo(page);
+	return hyp_errno;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int hyp_load_page(struct pageinfo *page, const Path *filename, hyp_nodenr node, _BOOL addhist, long *lineno)
+{
+	return load_page(page, filename, NULL, node, addhist, lineno);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static char *get_linktext(struct hypfile *hyp, char *data, char **text, long *plen)
+{
+	short node;
+	int len;
+	
+	data = dec_255_decode(data, &node);
+	/* BUG: sign-extended */
+	len = *data++ - HYP_STRLEN_OFFSET;
+	if (len <= 0)
+	{
+		char *name = hyp->indextable[node]->name;
+		*text = name;
+		len = (int)strlen(name);
+	} else
+	{
+		*text = data;
+		data += len;
+	}
+	*plen = len;
+	return data;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static char x1658a(struct hypfile *hyp, char *data, long offset)
+{
+	char *start;
+	long len;
+	
+	if (offset < 0)
+		return HYP_EOL;
+	while (*data != HYP_EOL)
+	{
+		if (*data != HYP_ESC)
+		{
+			start = data;
+			while (*data != HYP_EOL && *data != HYP_ESC)
+				data++;
+			len = data - start;
+		} else
+		{
+			if (hyp->header.magic != HYP_MAGIC_HYP)
+				goto esc;
+			data++;
+			switch (*data)
+			{
+			case HYP_ESC_ESC:
+			esc:
+				start = data;
+				data++;
+				len = 1;
+				break;
+			
+			case HYP_ESC_LINK:
+			case HYP_ESC_ALINK:
+				data = get_linktext(hyp, data + 1, &start, &len);
+				break;
+				
+			case HYP_ESC_LINK_LINE:
+			case HYP_ESC_ALINK_LINE:
+				data = get_linktext(hyp, data + 3, &start, &len);
+				break;
+			
+			default:
+				data++;
+				continue;
+			}
+		}
+		if ((offset -= len) < 0)
+		{
+			return *(start + offset + len);
+		}
+	}
+	return HYP_EOL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int x16734(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x)
+{
+	(void)page;
 	(void) hyp;
 	(void) font_width;
 	(void) font_height;
@@ -984,21 +1249,10 @@ hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename)
 #endif
 
 
-int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int z, void *a)
-{
-	(void)x;
-	(void)node;
-	(void)y;
-	(void)z;
-	(void)a;
-	return 0;
-}
-
-
 #ifdef __GNUC__
-int x14db6(struct x76 *x, _WORD *page_num, int *font_idx)
+int x14db6(struct pageinfo *page, _WORD *page_num, int *font_idx)
 {
-	(void)x;
+	(void)page;
 	(void)page_num;
 	(void)font_idx;
 	return 0;
@@ -1015,29 +1269,32 @@ hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction)
 }
 
 
-char *hyp_get_window_title(struct x76 *x, hyp_nodenr nodenr)
+char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr)
 {
-	(void)x;
+	(void)page;
 	(void)nodenr;
 	return 0;
 }
 
 
-void x16768(struct x76 *x)
+void x16768(struct pageinfo *page)
 {
-	(void)x;
+	(void)page;
 }
 
 FILE *x14f38(const Path *filename)
 {
 	(void) filename;
-	x157a0(x15774()); /* XXX */
-	x157b0(0, 0);
-	x15a8c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	free_history(alloc_history()); /* XXX */
+	add_history(0, 0);
 	calc_max_textlen(0);
 	skip_gfx_cmds(0, 0, 0, 0);
-	x15ebc(0);
+	prepare_page(0);
+	free_pageinfo(0);
+	reset_pageinfo((void *)1, 0);
 	dec_255_encode(0, 0);
+	get_linktext(0, 0, 0, 0);
+	x1658a(0, 0, 0);
 	return 0;
 }
 
@@ -1053,7 +1310,7 @@ void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type)
 
 
 #ifdef __GNUC__
-int conv_nodename(unsigned char os, char *name)
+size_t conv_nodename(unsigned char os, char *name)
 {
 	(void) os;
 	(void) name;
@@ -1145,4 +1402,11 @@ int x18118(char *data, short width, short height, short planes)
 	UNUSED(height);
 	UNUSED(planes);
 	return 0;
+}
+
+
+long x16674(struct pageinfo *page, long num_lines)
+{
+	(void) page;
+	return num_lines;
 }

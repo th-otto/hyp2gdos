@@ -3187,8 +3187,6 @@ x1a076:
 x1a0f6:
 	.globl x186e4
 x186e4:
-	.globl x16674
-x16674:
 	.globl x1665a
 x1665a:
 	.globl x1726c

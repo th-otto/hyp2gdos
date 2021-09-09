@@ -411,7 +411,7 @@ static int printfile(const Path *filename)
 {
 	_WORD workin[11] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2 };
 	_WORD workout[57];
-	struct x76 o266;
+	struct pageinfo page;
 	struct hypfile *hyp;
 	char *title;
 	_WORD page_num;
@@ -477,25 +477,25 @@ static int printfile(const Path *filename)
 					{
 						hyp->flags &= ~SCALE_IMAGES;
 					}
-					x16734(&o266, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, 0);
+					x16734(&page, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, 0);
 					page_num = layout.first_page_num - 1;
 					if (pagename[0] != '\0')
 					{
 						if (!pagename_is_title)
 						{
 							verboseout("looking for page \"%s\"\n", pagename);
-							node = hyp_find_pagename(o266.hyp, pagename);
+							node = hyp_find_pagename(page.hyp, pagename);
 							if (node < 0)
 							{
 								fprintf(stderr, "Page \"%s\" not found!\n", pagename);
 							} else
 							{
-								if (hyp_load_page(&o266, NULL, node, 0, NULL))
+								if (hyp_load_page(&page, NULL, node, FALSE, NULL))
 								{
 									fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 								} else
 								{
-									x14db6(&o266, &page_num, &x18b52);
+									x14db6(&page, &page_num, &x18b52);
 								}
 							}
 						} else
@@ -503,19 +503,19 @@ static int printfile(const Path *filename)
 							verboseout("looking for title \"%s\"\n", pagename);
 							node = -1;
 							found = 0;
-							while ((node = x16842(o266.hyp, node, 1)) != -1)
+							while ((node = x16842(page.hyp, node, 1)) != -1)
 							{
-								if ((title = hyp_get_window_title(&o266, node)) != NULL)
+								if ((title = hyp_get_window_title(&page, node)) != NULL)
 								{
 									if ((case_insensitive ? stricmp(title, pagename) : strncmp(title, pagename, strlen(pagename))) == 0)
 									{
 										found++;
-										if (hyp_load_page(&o266, NULL, node, 0, NULL))
+										if (hyp_load_page(&page, NULL, node, FALSE, NULL))
 										{
 											fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 										} else
 										{
-											x14db6(&o266, &page_num, &x18b52);
+											x14db6(&page, &page_num, &x18b52);
 											if (page_num >= layout.last_page)
 												break;
 										}
@@ -533,16 +533,16 @@ static int printfile(const Path *filename)
 					{
 						trace(">>>Try to print document\n");
 						node = -1;
-						while ((node = x16842(o266.hyp, node, 1)) != -1)
+						while ((node = x16842(page.hyp, node, 1)) != -1)
 						{
 							trace(">>>Try to load page (index=%d)\n", (int)node);
-							if (hyp_load_page(&o266, NULL, node, 0, NULL))
+							if (hyp_load_page(&page, NULL, node, FALSE, NULL))
 							{
 								fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 							} else
 							{
 								trace(">>>Try to print page (index=%d)\n", (int)node);
-								x14db6(&o266, &page_num, &x18b52);
+								x14db6(&page, &page_num, &x18b52);
 								if (page_num >= layout.last_page)
 									break;
 							}
@@ -550,7 +550,7 @@ static int printfile(const Path *filename)
 								break;
 						}
 					}
-					x16768(&o266);
+					x16768(&page);
 					retcode = EXIT_SUCCESS;
 				}
 			}
@@ -791,7 +791,6 @@ static void get_stguideinf_path(char *path)
 {
 	if (gethomedir(path) == NULL)
 		get_bootdir(path);
-	/* BUG: does not check for trailing slash */
 	strcat(path, "st-guide.inf");
 }
 

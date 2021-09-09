@@ -12,7 +12,6 @@ static int x185c8(void)
 	*strchr(sysvarptr, 10) = 0;
 	strncmp(sysvarptr, " ", 0);
 	if (strcmp(sysvarptr, " ")){}
-	strdup(" ");
 	strnicmp(0, 0, 0);
 	memcmp(sysvarptr, " ", 1);
 	memcpy(sysvarptr, " ", 1);

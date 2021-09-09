@@ -87,19 +87,20 @@ struct font {
 	_BOOL used;
 };
 
-struct x538 {
+struct histent {
 	Path filename;
-	short o256;
-	char o258[256];
-	long o514;
+	hyp_nodenr nodenr;
+	char window_title[256];
+	long lineno;
 	long o518;
 	long o522[4];
 };
 
-struct x21a4 {
-	short o0;
-	short o2;
-	struct x538 o4[16];
+#define HISTSIZE 16
+struct history {
+	short size;
+	short curr;
+	struct histent entry[HISTSIZE];
 };
 
 struct xo4 {
@@ -111,21 +112,23 @@ struct xo4 {
 };
 
 
-struct x76 {
+struct pageinfo {
 	/*  0 */ struct hypfile *hyp;
 	/*  4 */ struct xo4 *o4;
 	/*  8 */ char **text;
 	/* 12 */ short num_lines;
 	/* 14 */ int max_text_width;
-	/* 16 */ short o16;
+	/* 16 */ short image_lines;
 	/* 18 */ char *window_title;
-	/* 22 */ char o22[34];
-	/* 56 */ long o56;
+	/* 22 */ long o22[4];
+	/* 38 */ long o38[4];
+	/* 54 */ short o54;
+	/* 56 */ long lineno;
 	/* 60 */ long o60;
 	/* 64 */ short font_width;
 	/* 66 */ short font_height;
-	/* 68 */ struct x21a4 *o68;
-	/* 72 */ void *o72;
+	/* 68 */ struct history *hist;
+	/* 72 */ char *errmsg;
 };
 
 struct layout {
@@ -160,6 +163,7 @@ extern _WORD x1d9c4;
 extern struct layout layout;
 extern int hyp_errno;
 extern char hypfold[MAXPATH];
+extern char katalog[MAXPATH];
 
 
 size_t conv_macroman(const char *src, char *dst);
@@ -212,20 +216,17 @@ int hyp_load(struct hypfile *hyp, const Path *filename);
 int x16fd8(void);
 int x17008(int fontidx, _WORD font_id, _WORD size);
 _BOOL can_scale_bitmaps(_WORD handle);
-int x16734(struct x76 *p, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
+int x16734(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
 hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);
-int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int lineno, void *a);
-int x14db6(struct x76 *x, _WORD *page_num, int *font_idx);
+int hyp_load_page(struct pageinfo *page, const Path *filename, hyp_nodenr node, _BOOL addhist, long *lineno);
+int x14db6(struct pageinfo *page, _WORD *page_num, int *font_idx);
 hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction);
-char *hyp_get_window_title(struct x76 *x, hyp_nodenr nodenr);
-void x16768(struct x76 *x);
+char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr);
+void x16768(struct pageinfo *page);
 FILE *x14f38(const Path *filename);
-int conv_nodename(unsigned char os, char *name);
+size_t conv_nodename(unsigned char os, char *name);
 void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type);
 
-
-struct x21a4 *x15774(void);
-void x157a0(struct x21a4 *p);
 
 void x183a6(long *dst, long a, long b, long c, long d);
 int x1837c(char *str, char *end);
@@ -236,3 +237,4 @@ char *dec_255_decode(char *data, short *val);
 char *dec_255_encode(char *data, short val);
 
 int x18118(char *data, short width, short height, short planes);
+long x16674(struct pageinfo *page, long num_lines);
