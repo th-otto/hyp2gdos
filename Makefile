@@ -15,5 +15,7 @@ OBJS = \
 hyp2gdos.ttp: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lgem
 
+$(OBJS): hyp.h hyp2gdos.h
+
 clean::
 	rm -f *.o hyp2gdos.ttp *.pdb

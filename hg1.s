@@ -119,7 +119,7 @@ x133d0:
 	movea.l    46(a7),a2
 	lea.l      4(a7),a1
 	movea.l    a2,a0
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a2
 	pea.l      (a7)
 	lea.l      6(a7),a1
@@ -334,7 +334,7 @@ x135fc:
 	move.l     (a7),d7
 	lea.l      6(a7),a1
 	lea.l      1(a4),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a4
 	pea.l      4(a7)
 	move.l     a0,-(a7)
@@ -450,7 +450,7 @@ x136fa:
 	movea.l    46(a7),a2
 	lea.l      4(a7),a1
 	movea.l    a2,a0
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a2
 	pea.l      (a7)
 	lea.l      6(a7),a1
@@ -818,7 +818,7 @@ x13a92:
 x13ab8:
 	lea.l      14(a7),a1
 	lea.l      2(a3),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    24(a7),a0
 	movea.l    4(a0),a1
 	movea.l    (a1),a6
@@ -949,7 +949,7 @@ x13bf2:
 x13c0e:
 	movea.l    a2,a1
 	lea.l      5(a3),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	move.w     (a2),d0
 	ext.l      d0
 	sub.l      d7,d0
@@ -987,7 +987,7 @@ x13c5e:
 	bsr        x1505e
 	movea.l    a0,a3
 	movea.l    a2,a1
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a3
 	lea.l      8(a7),a1
 	bsr        x1505e
@@ -1103,7 +1103,7 @@ x13d62:
 x13d88:
 	lea.l      36(a7),a1
 	lea.l      2(a3),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    28(a7),a0
 	movea.l    4(a0),a1
 	move.l     (a1),32(a7)
@@ -1231,7 +1231,7 @@ x13eea:
 x13f02:
 	lea.l      8(a7),a1
 	lea.l      5(a3),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	move.w     8(a7),d0
 	ext.l      d0
 	sub.l      d4,d0
@@ -1330,7 +1330,7 @@ x13ffa:
 	beq        x143bc
 	lea.l      (a7),a1
 	lea.l      4(a3),a0
-	bsr        x15068
+	bsr        dec_255_decode
 	moveq.l    #-2,d1
 	moveq.l    #-2,d0
 	movea.l    a5,a0
@@ -1359,7 +1359,7 @@ x14066:
 	bsr        x1505e
 	movea.l    a0,a3
 	lea.l      8(a7),a1
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a3
 	lea.l      4(a7),a1
 	bsr        x1505e
@@ -1428,7 +1428,7 @@ x1414e:
 	bsr        x1505e
 	movea.l    a0,a3
 	lea.l      8(a7),a1
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a3
 	lea.l      4(a7),a1
 	bsr        x1505e
@@ -1543,7 +1543,7 @@ x142a4:
 	bsr        x1505e
 	movea.l    a0,a3
 	lea.l      8(a7),a1
-	bsr        x15068
+	bsr        dec_255_decode
 	movea.l    a0,a3
 	lea.l      4(a7),a1
 	bsr        x1505e
@@ -1727,7 +1727,7 @@ x1446c:
 x14484:
 	moveq.l    #1,d0
 	movea.l    (a2),a0
-	bsr        x1503a
+	bsr        hyp_find_extheader
 	movea.l    a0,a6
 	move.l     a6,d0
 	bne.s      x144ca
@@ -1735,7 +1735,7 @@ x14484:
 x14496:
 	moveq.l    #8,d0
 	movea.l    (a2),a0
-	bsr        x1503a
+	bsr        hyp_find_extheader
 	movea.l    a0,a6
 	move.l     a6,d0
 	bne.s      x144ca
@@ -1743,7 +1743,7 @@ x14496:
 x144a8:
 	moveq.l    #6,d0
 	movea.l    (a2),a0
-	bsr        x1503a
+	bsr        hyp_find_extheader
 	movea.l    a0,a6
 	move.l     a6,d0
 	bne.s      x144ca
@@ -1751,7 +1751,7 @@ x144a8:
 x144ba:
 	moveq.l    #5,d0
 	movea.l    (a2),a0
-	bsr        x1503a
+	bsr        hyp_find_extheader
 	movea.l    a0,a6
 	move.l     a6,d0
 	beq        x145f6
@@ -1882,7 +1882,7 @@ x1460c:
 	clr.b      (a2)
 	clr.b      128(a2)
 	moveq.l    #0,d3
-	move.w     options+52,d0 /* skip_udo_header */
+	move.w     layout+52,d0 /* skip_udo_header */
 	beq        x14720
 	move.w     12(a3),d1
 	ble        x14720
@@ -2015,7 +2015,7 @@ x14728:
 	movea.l    (a7)+,a0
 	movea.l    (a7)+,a1
 	bsr        x181b8
-	lea.l      options,a4
+	lea.l      layout,a4
 	move.l     2(a4),d0
 	move.w     2(a7),d1
 	ext.l      d1
@@ -2094,7 +2094,7 @@ x14862:
 	move.l     a3,-(a7)
 	movea.l    a0,a3
 	movea.l    a1,a2
-	move.w     options+50,d1 /* swap_layout */
+	move.w     layout+50,d1 /* swap_layout */
 	beq.s      x148b6
 	tst.w      d0
 	beq.s      x1487c
@@ -2137,15 +2137,15 @@ x148bc:
 	movea.l    16(a0),a1
 	move.w     72(a1),d2
 	bne        x14a44
-	move.w     options+18,d1 /* add_head */
+	move.w     layout+18,d1 /* add_head */
 	beq        x14a44
 	move.l     396(a7),-(a7)
 	tst.w      d4
 	beq.s      x14902
-	movea.l    options+28,a1 /* head_right_str */
+	movea.l    layout+28,a1 /* head_right_str */
 	bra.s      x14908
 x14902:
-	movea.l    options+20,a1 /* head_left_str */
+	movea.l    layout+20,a1 /* head_left_str */
 x14908:
 	lea.l      268(a7),a0
 	move.w     d5,d0
@@ -2154,7 +2154,7 @@ x14908:
 	lea.l      136(a7),a4
 	move.l     396(a7),-(a7)
 	move.w     d5,d0
-	movea.l    options+24,a1 /* head_center_str */
+	movea.l    layout+24,a1 /* head_center_str */
 	movea.l    a4,a0
 	bsr        x143d4
 	addq.w     #4,a7
@@ -2164,10 +2164,10 @@ x14908:
 	move.w     d0,-(a7)
 	tst.w      d4
 	beq.s      x14944
-	movea.l    options+20,a1 /* head_left_str */
+	movea.l    layout+20,a1 /* head_left_str */
 	bra.s      x1494a
 x14944:
-	movea.l    options+28,a1 /* head_right_str */
+	movea.l    layout+28,a1 /* head_right_str */
 x1494a:
 	movea.l    a3,a0
 	move.w     (a7)+,d0
@@ -2228,7 +2228,7 @@ x1494a:
 	movea.l    a2,a0
 	bsr        x1777e
 	add.w      d3,d4
-	move.w     options+32,d0 /* head_sep */
+	move.w     layout+32,d0 /* head_sep */
 	beq.s      x14a44
 	move.w     24(a5),(a7)
 	move.w     d3,d1
@@ -2247,7 +2247,7 @@ x1494a:
 	move.w     6(a0),d0
 	movea.l    a2,a0
 	moveq.l    #7,d1
-	move.w     options+32,d2
+	move.w     layout+32,d2
 	bsr        x172de
 	addq.w     #2,a7
 	lea.l      (a7),a1
@@ -2272,15 +2272,15 @@ x14a4e:
 	movea.l    16(a0),a1
 	move.w     72(a1),d2
 	bne        x14bda
-	move.w     options+34,d0 /* add_foot */
+	move.w     layout+34,d0 /* add_foot */
 	beq        x14bda
 	move.l     396(a7),-(a7)
 	tst.w      d1
 	beq.s      x14a94
-	movea.l    options+44,a1 /* foot_right_str */
+	movea.l    layout+44,a1 /* foot_right_str */
 	bra.s      x14a9a
 x14a94:
-	movea.l    options+36,a1 /* foot_left_str */
+	movea.l    layout+36,a1 /* foot_left_str */
 x14a9a:
 	lea.l      268(a7),a0
 	move.w     d5,d0
@@ -2289,7 +2289,7 @@ x14a9a:
 	lea.l      136(a7),a4
 	move.l     396(a7),-(a7)
 	move.w     d5,d0
-	movea.l    options+40,a1 /* foot_center_str */
+	movea.l    layout+40,a1 /* foot_center_str */
 	movea.l    a4,a0
 	bsr        x143d4
 	addq.w     #4,a7
@@ -2299,10 +2299,10 @@ x14a9a:
 	move.w     d0,-(a7)
 	tst.w      d4
 	beq.s      x14ad6
-	movea.l    options+36,a1
+	movea.l    layout+36,a1
 	bra.s      x14adc
 x14ad6:
-	movea.l    options+44,a1
+	movea.l    layout+44,a1
 x14adc:
 	movea.l    a3,a0
 	move.w     (a7)+,d0
@@ -2364,7 +2364,7 @@ x14adc:
 	add.w      24(a5),d0
 	movea.l    a2,a0
 	bsr        x1777e
-	move.w     options+48,d0 /* foot_sep */
+	move.w     layout+48,d0 /* foot_sep */
 	beq.s      x14bda
 	move.w     24(a5),(a7)
 	move.w     d4,d1
@@ -2383,7 +2383,7 @@ x14adc:
 	move.w     6(a0),d0
 	movea.l    a2,a0
 	moveq.l    #7,d1
-	move.w     options+48,d2
+	move.w     layout+48,d2
 	bsr        x172de
 	addq.w     #2,a7
 	lea.l      (a7),a1
@@ -2504,7 +2504,7 @@ x14ce2:
 	movea.l    16(a0),a1
 	move.w     72(a1),d0
 	bne.s      x14d3e
-	move.w     options+54,d1 /* show_borders */
+	move.w     layout+54,d1 /* show_borders */
 	beq.s      x14d3e
 	lea.l      8(a3),a1
 	movea.l    a2,a0
@@ -2517,14 +2517,14 @@ x14ce2:
 	bsr        x172de
 	addq.w     #2,a7
 	moveq.l    #1,d0
-	and.w      options+54,d0
+	and.w      layout+54,d0
 	beq.s      x14d2a
 	lea.l      8(a3),a1
 	movea.l    a2,a0
 	bsr        x17482
 x14d2a:
 	moveq.l    #2,d0
-	and.w      options+54,d0
+	and.w      layout+54,d0
 	beq.s      x14d3e
 	lea.l      24(a3),a1
 	movea.l    a2,a0
@@ -2597,7 +2597,7 @@ x14dd4:
 	lea.l      44(a7),a3
 	move.l     68(a7),(a3)
 	move.l     104(a7),20(a3)
-	lea.l      options,a4
+	lea.l      layout,a4
 	move.l     a4,16(a3)
 	movea.l    a3,a0
 	bsr        x13332
@@ -2806,6 +2806,7 @@ x14fde:
 	movea.l    (a7)+,a2
 	rts
 
+	.globl hyp_find_pagename
 hyp_find_pagename:
 	movem.l    d3/a2-a3,-(a7)
 	movea.l    a0,a3
@@ -2848,8 +2849,8 @@ x15034:
 	movem.l    (a7)+,d3/a2-a3
 	rts
 
-	.globl x1503a
-x1503a:
+	.globl hyp_find_extheader
+hyp_find_extheader:
 	movea.l    282(a0),a0
 	move.l     a0,d1
 	bne.s      x15056
@@ -2878,8 +2879,8 @@ x1505e:
 	move.w     d0,(a1)
 	rts
 
-	.globl x15068
-x15068:
+	.globl dec_255_decode
+dec_255_decode:
 	clr.w      d0
 	move.b     (a0)+,d0
 	subq.w     #1,d0
@@ -2893,8 +2894,8 @@ x15068:
 	move.w     d0,(a1)
 	rts
 
-	.globl x15080
-x15080:
+	.globl dec_255_encode
+dec_255_encode:
 	move.w     d0,d1
 	ext.l      d1
 	divs.w     #$00FF,d1

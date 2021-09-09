@@ -59,7 +59,9 @@ typedef struct {
 
 struct hypfile {
 	/*   0 */ unsigned short flags;
-#define SCALE_IMAGES 0x02
+#define IGNORE_IMAGES	0x01
+#define SCALE_IMAGES 	0x02
+#define FLAG_04      0x04
 #define FLAG_20      0x20
 #define FLAG_40      0x40
 #define FLAG_80      0x80
@@ -69,15 +71,15 @@ struct hypfile {
 	/* 262 */ HYP_HEADER header;
 	/* 274 */ void *indexdata;
 	/* 278 */ INDEX_ENTRY **indextable;
-	/* 282 */ void *o282;
-	/* 286 */ void *o286;
-	/* 290 */ short o290;
-	/* 292 */ short o292;
-	/* 294 */ short o294;
-	/* 296 */ short o296;
+	/* 282 */ void *extdata;
+	/* 286 */ long extdatasize;
+	/* 290 */ hyp_nodenr num_internal_nodes;
+	/* 292 */ hyp_nodenr main_page;
+	/* 294 */ hyp_nodenr index_page;
+	/* 296 */ hyp_nodenr help_page;
 	/* 298 */ void *o298;
 	/* 302 */ void *o302;
-	/* 306 */ short o306;
+	/* 306 */ short width;
 };
 
 
@@ -85,12 +87,48 @@ struct font {
 	_BOOL used;
 };
 
-struct x76 {
-	struct hypfile *hyp;
-	char o4[72];
+struct x538 {
+	Path filename;
+	short o256;
+	char o258[256];
+	long o514;
+	long o518;
+	long o522[4];
 };
 
-struct options {
+struct x21a4 {
+	short o0;
+	short o2;
+	struct x538 o4[16];
+};
+
+struct xo4 {
+	struct xo4 *picdata;
+	hyp_nodenr nodenr;
+	long datalen;
+	void *o10;
+	char data[0];
+};
+
+
+struct x76 {
+	/*  0 */ struct hypfile *hyp;
+	/*  4 */ struct xo4 *o4;
+	/*  8 */ char **text;
+	/* 12 */ short num_lines;
+	/* 14 */ int max_text_width;
+	/* 16 */ short o16;
+	/* 18 */ char *window_title;
+	/* 22 */ char o22[34];
+	/* 56 */ long o56;
+	/* 60 */ long o60;
+	/* 64 */ short font_width;
+	/* 66 */ short font_height;
+	/* 68 */ struct x21a4 *o68;
+	/* 72 */ void *o72;
+};
+
+struct layout {
 	_WORD x1a02a;
 	long border_left;
 	long border_top;
@@ -119,7 +157,8 @@ struct options {
 
 extern struct font fonttable[8];
 extern _WORD x1d9c4;
-extern struct options options;
+extern struct layout layout;
+extern int hyp_errno;
 extern char hypfold[MAXPATH];
 
 
@@ -175,10 +214,25 @@ int x17008(int fontidx, _WORD font_id, _WORD size);
 _BOOL can_scale_bitmaps(_WORD handle);
 int x16734(struct x76 *p, struct hypfile *hyp, _WORD font_width, _WORD font_height, int x);
 hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);
-int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int z, void *a);
+int hyp_load_page(struct x76 *x, void *y, hyp_nodenr node, int lineno, void *a);
 int x14db6(struct x76 *x, _WORD *page_num, int *font_idx);
 hyp_nodenr x16842(struct hypfile *hyp, hyp_nodenr node, int direction);
 char *hyp_get_window_title(struct x76 *x, hyp_nodenr nodenr);
 void x16768(struct x76 *x);
 FILE *x14f38(const Path *filename);
-void conv_nodename(unsigned char os, char *name);
+int conv_nodename(unsigned char os, char *name);
+void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type);
+
+
+struct x21a4 *x15774(void);
+void x157a0(struct x21a4 *p);
+
+void x183a6(long *dst, long a, long b, long c, long d);
+int x1837c(char *str, char *end);
+int x18352(const char *str, int d3, int d1);
+int x15132(struct hypfile *hyp, struct xo4 **data, hyp_nodenr node);
+void x1509e(struct hypfile *hyp, struct xo4 **data);
+char *dec_255_decode(char *data, short *val);
+char *dec_255_encode(char *data, short val);
+
+int x18118(char *data, short width, short height, short planes);

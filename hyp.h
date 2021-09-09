@@ -1,5 +1,5 @@
 typedef short hyp_nodenr;
-
+#define HYP_NOINDEX ((hyp_nodenr)-1)
 
 /*
  * File related structures
@@ -66,6 +66,11 @@ typedef struct
  * applies to labels and aliases.
  */
 #define HYP_NODENAME_MAX (253U - SIZEOF_INDEX_ENTRY)
+
+/*
+ * some strings have a length byte, with an offset of 32
+ */
+#define HYP_STRLEN_OFFSET 32
 
 /*
  * Largest value that can be encoded as base-255
@@ -173,5 +178,19 @@ typedef struct
  */
 #define HYP_PIC_FONTW 8
 #define HYP_PIC_FONTH 16
+
+typedef enum
+{
+	REF_FILENAME = 0,
+	REF_NODENAME = 1,
+	REF_ALIASNAME = 2,
+	REF_LABELNAME = 3,
+	REF_DATABASE = 4,
+	REF_OS = 5,
+	REF_TITLE = 6,        /* undocumented; only found in finder.ref */
+	REF_UNKNOWN = 8,      /* undocumented; only found in finder.ref */
+	REF_CHARSET = 30,
+	REF_LANGUAGE = 31
+} hyp_reftype;
 
 

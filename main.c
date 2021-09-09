@@ -24,7 +24,7 @@ char head_right[LINEMAX];
 char foot_left[LINEMAX];
 char foot_center[LINEMAX];
 char foot_right[LINEMAX];
-struct options options;
+struct layout layout;
 static _BOOL mint_domain;
 
 static char const usage[] =
@@ -478,7 +478,7 @@ static int printfile(const Path *filename)
 						hyp->flags &= ~SCALE_IMAGES;
 					}
 					x16734(&o266, hyp, HYP_PIC_FONTW, HYP_PIC_FONTH, 0);
-					page_num = options.first_page_num - 1;
+					page_num = layout.first_page_num - 1;
 					if (pagename[0] != '\0')
 					{
 						if (!pagename_is_title)
@@ -516,7 +516,7 @@ static int printfile(const Path *filename)
 										} else
 										{
 											x14db6(&o266, &page_num, &x18b52);
-											if (page_num >= options.last_page)
+											if (page_num >= layout.last_page)
 												break;
 										}
 									}
@@ -543,7 +543,7 @@ static int printfile(const Path *filename)
 							{
 								trace(">>>Try to print page (index=%d)\n", (int)node);
 								x14db6(&o266, &page_num, &x18b52);
-								if (page_num >= options.last_page)
+								if (page_num >= layout.last_page)
 									break;
 							}
 							if (should_abort())
@@ -629,23 +629,23 @@ static void parseline(char *line)
 		break;
 	
 	case 1:
-		options.border_left = atol(line) * 1000;
+		layout.border_left = atol(line) * 1000;
 		break;
 	
 	case 2:
-		options.border_top = atol(line) * 1000;
+		layout.border_top = atol(line) * 1000;
 		break;
 	
 	case 3:
-		options.border_right = atol(line) * 1000;
+		layout.border_right = atol(line) * 1000;
 		break;
 	
 	case 4:
-		options.border_bottom = atol(line) * 1000;
+		layout.border_bottom = atol(line) * 1000;
 		break;
 	
 	case 5:
-		options.add_head = atoi(line) != 0;
+		layout.add_head = atoi(line) != 0;
 		break;
 	
 	case 6:
@@ -661,11 +661,11 @@ static void parseline(char *line)
 		break;
 	
 	case 9:
-		options.head_sep = atoi(line);
+		layout.head_sep = atoi(line);
 		break;
 	
 	case 10:
-		options.add_foot = atoi(line) != 0;
+		layout.add_foot = atoi(line) != 0;
 		break;
 	
 	case 11:
@@ -681,7 +681,7 @@ static void parseline(char *line)
 		break;
 	
 	case 14:
-		options.foot_sep = atoi(line);
+		layout.foot_sep = atoi(line);
 		break;
 	
 	case 15:
@@ -705,7 +705,7 @@ static void parseline(char *line)
 		break;
 	
 	case 17:
-		options.swap_layout = atoi(line) != 0;
+		layout.swap_layout = atoi(line) != 0;
 		break;
 	
 	case 18:
@@ -717,11 +717,11 @@ static void parseline(char *line)
 		break;
 	
 	case 20:
-		options.skip_udo_header = atoi(line) != 0;
+		layout.skip_udo_header = atoi(line) != 0;
 		break;
 	
 	case 21:
-		options.show_borders = atoi(line);
+		layout.show_borders = atoi(line);
 		break;
 	
 	case 22:
@@ -824,15 +824,15 @@ int main(int argc, char **argv)
 	get_cwd(cwd);
 	getcookie(0x4D674D63L, &magicmac); /* 'MgMc' */
 
-	options.first_page_num = 1;
-	options.first_page = 1;
-	options.last_page = 32767;
-	options.head_left_str = head_left;
-	options.head_center_str = head_center;
-	options.head_right_str = head_right;
-	options.foot_left_str = foot_left;
-	options.foot_center_str = foot_center;
-	options.foot_right_str = foot_right;
+	layout.first_page_num = 1;
+	layout.first_page = 1;
+	layout.last_page = 32767;
+	layout.head_left_str = head_left;
+	layout.head_center_str = head_center;
+	layout.head_right_str = head_right;
+	layout.foot_left_str = foot_left;
+	layout.foot_center_str = foot_center;
+	layout.foot_right_str = foot_right;
 	
 	get_stguideinf_path(stguide_inf);
 	parseinf(stguide_inf);
@@ -872,21 +872,21 @@ int main(int argc, char **argv)
 			break;
 		case 'p':
 		case 'P':
-			options.first_page_num = atoi(arg);
-			if (options.first_page_num < 1)
-				options.first_page_num = 1;
+			layout.first_page_num = atoi(arg);
+			if (layout.first_page_num < 1)
+				layout.first_page_num = 1;
 			break;
 		case 'b':
 		case 'B':
-			options.first_page = atoi(arg);
+			layout.first_page = atoi(arg);
 			break;
 		case 'e':
 		case 'E':
-			options.last_page = atoi(arg);
+			layout.last_page = atoi(arg);
 			break;
 		case 's':
 		case 'S':
-			options.skip_pages = atoi(arg);
+			layout.skip_pages = atoi(arg);
 			break;
 		case 'o':
 		case 'O':
@@ -894,11 +894,11 @@ int main(int argc, char **argv)
 			break;
 		case 'g':
 		case 'G':
-			options.first_line = atoi(arg);
+			layout.first_line = atoi(arg);
 			break;
 		case 'h':
 		case 'H':
-			options.last_line = atoi(arg);
+			layout.last_line = atoi(arg);
 			break;
 		case 'v':
 		case 'V':
@@ -907,8 +907,8 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	if (options.first_page < options.first_page_num)
-		options.first_page = options.first_page_num;
+	if (layout.first_page < layout.first_page_num)
+		layout.first_page = layout.first_page_num;
 	
 	if (i >= argc)
 	{
