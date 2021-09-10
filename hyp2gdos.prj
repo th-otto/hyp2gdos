@@ -19,5 +19,6 @@ hg1.s
 hyp.c
 
 hg2.s
+lh5d.c
 
 util.c [-P]

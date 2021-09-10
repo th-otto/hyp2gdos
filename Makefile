@@ -9,6 +9,7 @@ all: hyp2gdos.ttp
 OBJS = \
 	main.o \
 	hyp.o \
+	lh5d.o \
 	util.o \
 	$(empty)
 

@@ -13321,5 +13321,11 @@ emptystr:
 1a178: hypfold
 1a478: katalog
 
+1d976: bitbuf
+1d978: subbitbuf
+1d97a: bitcount
+1d97c: blocksize
+1d98e: dec_j
+
 1dac8: sysvarptr
 

@@ -1,8 +1,7 @@
 	.text
 
-	.globl 16892
-x16892:
-	lea.l      x1d97a,a0
+fillbuf:
+	lea.l      bitcount,a0
 	move.w     -4(a0),d1
 	lsl.w      d0,d1
 	move.w     d1,-4(a0)
@@ -36,16 +35,15 @@ x168d6:
 	or.w       d1,-4(a0)
 	rts
 
-	.globl x168ea
-x168ea:
+getbits:
 	move.w     d3,-(a7)
 	move.w     d4,-(a7)
 	move.w     d0,d3
-	move.w     x1d976,d4
+	move.w     bitbuf,d4
 	moveq.l    #16,d1
 	sub.b      d3,d1
 	lsr.w      d1,d4
-	bsr.w      x16892
+	bsr.w      fillbuf
 	move.w     d4,d0
 	move.w     (a7)+,d4
 	move.w     (a7)+,d3
@@ -265,13 +263,13 @@ x16ada:
 	move.w     d1,d3
 	move.w     d2,(a7)
 	move.w     d1,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d4
 	lea.l      x1b762,a2
 	tst.w      d4
 	bne.s      x16b2a
 	move.w     d3,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d5
 	clr.w      d6
 	bra.s      x16b0a
@@ -286,7 +284,7 @@ x16b0a:
 x16b12:
 	move.w     d6,d0
 	add.w      d0,d0
-	lea.l      8212(a2),a0
+	lea.l      8212(a2),a0 /* 0001d776 */
 	move.w     d5,0(a0,d0.w)
 	addq.w     #1,d6
 x16b20:
@@ -297,7 +295,7 @@ x16b2a:
 	clr.w      d6
 	bra.s      x16b7e
 x16b2e:
-	move.w     8724(a2),d5
+	move.w     8724(a2),d5 /* 0001d976 */
 	moveq.l    #13,d0
 	lsr.w      d0,d5
 	cmp.w      #7,d5
@@ -309,7 +307,7 @@ x16b42:
 	addq.w     #1,d5
 x16b46:
 	move.w     d0,d1
-	and.w      8724(a2),d1
+	and.w      8724(a2),d1 /* 0001d976 */
 	bne.s      x16b42
 x16b4e:
 	cmp.w      #7,d5
@@ -320,13 +318,13 @@ x16b58:
 	moveq.l    #-3,d0
 	add.w      d5,d0
 x16b5c:
-	bsr        x16892
+	bsr        fillbuf
 	move.b     d5,0(a2,d6.w)
 	addq.w     #1,d6
 	cmp.w      (a7),d6
 	bne.s      x16b7e
 	moveq.l    #2,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d5
 	bra.s      x16b7a
 x16b74:
@@ -345,7 +343,7 @@ x16b84:
 x16b8a:
 	cmp.w      d6,d7
 	bgt.s      x16b84
-	lea.l      8212(a2),a1
+	lea.l      8212(a2),a1 /* 0001d776 */
 	moveq.l    #8,d1
 	movea.l    a2,a0
 	move.w     d7,d0
@@ -359,13 +357,13 @@ x16b9c:
 x16ba4:
 	movem.l    d3-d5/a2,-(a7)
 	moveq.l    #9,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d3
 	lea.l      x1b564,a2
 	tst.w      d3
 	bne.s      x16bee
 	moveq.l    #9,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d4
 	clr.w      d5
 	bra.s      x16bcc
@@ -380,7 +378,7 @@ x16bcc:
 x16bd6:
 	move.w     d5,d0
 	add.w      d0,d0
-	lea.l      530(a2),a0
+	lea.l      530(a2),a0 /* 0001b776 */
 	move.w     d4,0(a0,d0.w)
 	addq.w     #1,d5
 x16be4:
@@ -391,37 +389,37 @@ x16bee:
 	clr.w      d5
 	bra        x16c8c
 x16bf4:
-	move.w     9234(a2),d0
+	move.w     9234(a2),d0 /* 0001d976 */
 	lsr.w      #8,d0
 	add.w      d0,d0
-	lea.l      8722(a2),a0
+	lea.l      8722(a2),a0 /* 0001d776 */
 	move.w     0(a0,d0.w),d4
 	cmp.w      #$0013,d4
 	blt.s      x16c38
 	move.w     #$0080,d0
 x16c0e:
-	move.w     9234(a2),d1
+	move.w     9234(a2),d1 /* 0001d976 */
 	and.w      d0,d1
 	beq.s      x16c24
 	move.w     d4,d2
 	add.w      d2,d2
-	lea.l      -2038(a2),a0
+	lea.l      -2038(a2),a0 /* 0001ad6e */
 	move.w     0(a0,d2.w),d4
 	bra.s      x16c30
 x16c24:
 	move.w     d4,d1
 	add.w      d1,d1
-	lea.l      -4076(a2),a0
+	lea.l      -4076(a2),a0 /* 0001a578 */
 	move.w     0(a0,d1.w),d4
 x16c30:
 	lsr.w      #1,d0
 	cmp.w      #$0013,d4
 	bge.s      x16c0e
 x16c38:
-	lea.l      510(a2),a0
+	lea.l      510(a2),a0 /* 0001b762 */
 	clr.w      d0
 	move.b     0(a0,d4.w),d0
-	bsr        x16892
+	bsr        fillbuf
 	cmp.w      #2,d4
 	bgt.s      x16c80
 	tst.w      d4
@@ -432,13 +430,13 @@ x16c54:
 	cmp.w      #1,d4
 	bne.s      x16c66
 	moveq.l    #4,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d4
 	addq.w     #3,d4
 	bra.s      x16c7a
 x16c66:
 	moveq.l    #9,d0
-	bsr        x168ea
+	bsr        getbits
 	move.w     d0,d4
 	add.w      #$0014,d4
 	bra.s      x16c7a
@@ -464,7 +462,7 @@ x16c94:
 x16c9a:
 	cmp.w      #$01FE,d5
 	blt.s      x16c94
-	lea.l      530(a2),a1
+	lea.l      530(a2),a1 /* 0001b776 */
 	moveq.l    #12,d1
 	movea.l    a2,a0
 	move.w     #$01FE,d0
@@ -478,11 +476,11 @@ x16cb6:
 	move.w     d3,-(a7)
 	move.l     a2,-(a7)
 	lea.l      x1d97c,a2
-	move.w     (a2),d0
+	move.w     (a2),d0 /* 0001d97c */
 	bne.s      x16ce4
 	moveq.l    #16,d0
-	bsr        x168ea
-	move.w     d0,(a2)
+	bsr        getbits
+	move.w     d0,(a2) /* 0001d97c */
 	moveq.l    #3,d2
 	moveq.l    #5,d1
 	moveq.l    #19,d0
@@ -494,37 +492,37 @@ x16cb6:
 	bsr        x16ada
 x16ce4:
 	subq.w     #1,(a2)
-	move.w     -6(a2),d0
+	move.w     -6(a2),d0 /* 0001d976 */
 	lsr.w      #4,d0
 	add.w      d0,d0
-	lea.l      -8710(a2),a0
+	lea.l      -8710(a2),a0 /* 0001b776 */
 	move.w     0(a0,d0.w),d3
 	cmp.w      #$01FE,d3
 	bcs.s      x16d28
 	moveq.l    #8,d0
 x16cfe:
-	move.w     -6(a2),d1
+	move.w     -6(a2),d1 /* 0001d976 */
 	and.w      d0,d1
 	beq.s      x16d14
 	move.w     d3,d2
 	add.w      d2,d2
-	lea.l      -11278(a2),a0
+	lea.l      -11278(a2),a0 /* 0001ad6e */
 	move.w     0(a0,d2.w),d3
 	bra.s      x16d20
 x16d14:
 	move.w     d3,d1
 	add.w      d1,d1
-	lea.l      -13316(a2),a0
+	lea.l      -13316(a2),a0 /* 0001a578 */
 	move.w     0(a0,d1.w),d3
 x16d20:
 	lsr.w      #1,d0
 	cmp.w      #$01FE,d3
 	bcc.s      x16cfe
 x16d28:
-	lea.l      -9240(a2),a0
+	lea.l      -9240(a2),a0 /* 0001b564 */
 	clr.w      d0
 	move.b     0(a0,d3.w),d0
-	bsr        x16892
+	bsr        fillbuf
 	move.w     d3,d0
 	movea.l    (a7)+,a2
 	move.w     (a7)+,d3
@@ -535,7 +533,7 @@ x16d3e:
 	move.w     d3,-(a7)
 	move.l     a2,-(a7)
 	lea.l      x1d776,a2
-	move.w     512(a2),d0
+	move.w     512(a2),d0 /* 0001d976 */
 	lsr.w      #8,d0
 	add.w      d0,d0
 	move.w     0(a2,d0.w),d3
@@ -543,33 +541,33 @@ x16d3e:
 	bcs.s      x16d88
 	move.w     #$0080,d0
 x16d5e:
-	move.w     512(a2),d1
+	move.w     512(a2),d1 /* 0001d976 */
 	and.w      d0,d1
 	beq.s      x16d74
 	move.w     d3,d2
 	add.w      d2,d2
-	lea.l      -10760(a2),a0
+	lea.l      -10760(a2),a0 /* 0001ad6e */
 	move.w     0(a0,d2.w),d3
 	bra.s      x16d80
 x16d74:
 	move.w     d3,d1
 	add.w      d1,d1
-	lea.l      -12798(a2),a0
+	lea.l      -12798(a2),a0 /* 0001a578 */
 	move.w     0(a0,d1.w),d3
 x16d80:
 	lsr.w      #1,d0
 	cmp.w      #14,d3
 	bcc.s      x16d5e
 x16d88:
-	lea.l      -8212(a2),a0
+	lea.l      -8212(a2),a0 /* 0001b762 */
 	clr.w      d0
 	move.b     0(a0,d3.w),d0
-	bsr        x16892
+	bsr        fillbuf
 	tst.w      d3
 	beq.s      x16dae
 	moveq.l    #-1,d0
 	add.w      d3,d0
-	bsr        x168ea
+	bsr        getbits
 	moveq.l    #1,d1
 	moveq.l    #-1,d2
 	add.b      d3,d2
@@ -590,59 +588,59 @@ x16db6:
 	lea.l      x1d990,a2
 	tst.w      d0
 	beq.s      x16dfc
-	clr.w      -26(a2)
-	clr.w      -24(a2)
-	clr.w      -22(a2)
+	clr.w      -26(a2) /* 0001d976 */
+	clr.w      -24(a2) /* 0001d978 */
+	clr.w      -22(a2) /* 0001d97a */
 	moveq.l    #16,d0
-	bsr        x16892
-	clr.w      -20(a2)
-	clr.w      -2(a2)
+	bsr        fillbuf
+	clr.w      -20(a2) /* 0001d97c */
+	clr.w      -2(a2) /* 0001d98e */
 	bra.s      x16e02
 x16de2:
-	move.l     (a2),d0
-	movea.l    -10(a2),a0
-	movea.l    -10(a2),a1
+	move.l     (a2),d0 /* 0001d990 */
+	movea.l    -10(a2),a0 /* 0001d986 */
+	movea.l    -10(a2),a1 /* 0001d986 */
 	move.b     0(a0,d0.l),0(a1,d3.l)
-	addq.l     #1,(a2)
+	addq.l     #1,(a2) /* 0001d990 */
 	addq.l     #1,d3
-	cmp.l      -6(a2),d3
+	cmp.l      -6(a2),d3 /* 0001d98a */
 	beq.s      x16e5c
 x16dfc:
-	subq.w     #1,-2(a2)
+	subq.w     #1,-2(a2) /* 0001d98e */
 	bpl.s      x16de2
 x16e02:
 	bsr        x16cb6
 	cmp.w      #$00FF,d0
 	bhi.s      x16e1e
-	movea.l    -10(a2),a0
+	movea.l    -10(a2),a0 /* 0001d986 */
 	move.b     d0,0(a0,d3.l)
 	addq.l     #1,d3
-	cmp.l      -6(a2),d3
+	cmp.l      -6(a2),d3 /* 0001d98a */
 	beq.s      x16e5c
 	bra.s      x16e02
 x16e1e:
 	move.w     d0,d1
 	add.w      #$FF03,d1
-	move.w     d1,-2(a2)
+	move.w     d1,-2(a2) /* 0001d98e */
 	bsr        x16d3e
 	moveq.l    #0,d1
 	move.w     d0,d1
 	move.l     d3,d0
 	sub.l      d1,d0
 	subq.l     #1,d0
-	move.l     d0,(a2)
+	move.l     d0,(a2) /* 0001d990 */
 	bra.s      x16e54
 x16e3a:
-	move.l     (a2),d0
-	movea.l    -10(a2),a0
-	movea.l    -10(a2),a1
+	move.l     (a2),d0 /* 0001d990 */
+	movea.l    -10(a2),a0 /* 0001d986 */
+	movea.l    -10(a2),a1 /* 0001d986 */
 	move.b     0(a0,d0.l),0(a1,d3.l)
-	addq.l     #1,(a2)
+	addq.l     #1,(a2) /* 0001d990 */
 	addq.l     #1,d3
-	cmp.l      -6(a2),d3
+	cmp.l      -6(a2),d3 /* 0001d98a */
 	beq.s      x16e5c
 x16e54:
-	subq.w     #1,-2(a2)
+	subq.w     #1,-2(a2) /* 0001d98e */
 	bpl.s      x16e3a
 	bra.s      x16e02
 x16e5c:
@@ -650,13 +648,20 @@ x16e5c:
 	move.l     (a7)+,d3
 	rts
 
-
-x1d97a:
-x1d976:
+	.bss
+	
 x1a578:
 x1ad6e:
 x1b762:
 x1b564:
-x1d97c:
+
 x1d776:
+
+bitbuf: .ds.w 1
+subbitbuf: .ds.w 1
+
+bitcount: .ds.w 1
+x1d97c:
+
+dec_j: .ds.w 1
 x1d990:
