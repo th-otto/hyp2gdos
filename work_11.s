@@ -3952,9 +3952,9 @@ printfile:
 [000129b2] 6100 d89e                 bsr        fprintf
 [000129b6] 7602                      moveq.l    #2,d3
 [000129b8] 6000 028c                 bra        $00012C46
-[000129bc] 6100 461a                 bsr        $00016FD8
+[000129bc] 6100 461a                 bsr        new_font_id
 [000129c0] 33c0 0001 8b52            move.w     d0,$00018B52
-[000129c6] 6100 4610                 bsr        $00016FD8
+[000129c6] 6100 4610                 bsr        new_font_id
 [000129ca] 33c0 0001 8b54            move.w     d0,$00018B54
 [000129d0] 41ee ff00                 lea.l      -256(a6),a0
 [000129d4] 6100 fe3c                 bsr        find_font
@@ -4748,7 +4748,7 @@ J4:
 [000132d2] 3a02                      move.w     d2,d5
 [000132d4] 43f9 0001 915c            lea.l      $0001915C,a1
 [000132da] 7001                      moveq.l    #1,d0
-[000132dc] 6100 451e                 bsr        $000177FC
+[000132dc] 6100 451e                 bsr        vdi_get_textwidth
 [000132e0] 3600                      move.w     d0,d3
 [000132e2] 47f9 0001 910c            lea.l      x1910c,a3
 [000132e8] 6026                      bra.s      $00013310
@@ -4765,7 +4765,7 @@ J4:
 [00013300] 3207                      move.w     d7,d1
 [00013302] 3004                      move.w     d4,d0
 [00013304] 204a                      movea.l    a2,a0
-[00013306] 6100 4476                 bsr        $0001777E
+[00013306] 6100 4476                 bsr        vdi_draw_text
 [0001330a] 3006                      move.w     d6,d0
 [0001330c] c1c3                      muls.w     d3,d0
 [0001330e] d840                      add.w      d0,d4
@@ -4781,7 +4781,7 @@ J4:
 [00013322] 3005                      move.w     d5,d0
 [00013324] 9043                      sub.w      d3,d0
 [00013326] 204a                      movea.l    a2,a0
-[00013328] 6100 4454                 bsr        $0001777E
+[00013328] 6100 4454                 bsr        vdi_draw_text
 [0001332c] 4cdf 0cf8                 movem.l    (a7)+,d3-d7/a2-a3
 [00013330] 4e75                      rts
 
@@ -4790,18 +4790,18 @@ J4:
 [00013338] 2448                      movea.l    a0,a2
 [0001333a] 266a 0014                 movea.l    20(a2),a3
 [0001333e] 2050                      movea.l    (a0),a0
-[00013340] 6100 3f62                 bsr        $000172A4
+[00013340] 6100 3f62                 bsr        vdi_ref
 [00013344] 3f2b 0002                 move.w     2(a3),-(a7)
 [00013348] 4242                      clr.w      d2
 [0001334a] 7207                      moveq.l    #7,d1
 [0001334c] 302b 0006                 move.w     6(a3),d0
 [00013350] 2052                      movea.l    (a2),a0
-[00013352] 6100 435a                 bsr        $000176AE
+[00013352] 6100 435a                 bsr        vdi_text_attributes
 [00013356] 544f                      addq.w     #2,a7
 [00013358] 486f 0004                 pea.l      4(a7)
 [0001335c] 43ef 000a                 lea.l      10(a7),a1
 [00013360] 2052                      movea.l    (a2),a0
-[00013362] 6100 43ae                 bsr        $00017712
+[00013362] 6100 43ae                 bsr        vdi_get_fontwidth
 [00013366] 584f                      addq.w     #4,a7
 [00013368] 206b 0010                 movea.l    16(a3),a0
 [0001336c] 6100 e0b6                 bsr        strlen
@@ -4811,7 +4811,7 @@ J4:
 [00013376] 3003                      move.w     d3,d0
 [00013378] 226b 0010                 movea.l    16(a3),a1
 [0001337c] 2052                      movea.l    (a2),a0
-[0001337e] 6100 447c                 bsr        $000177FC
+[0001337e] 6100 447c                 bsr        vdi_get_textwidth
 [00013382] 48c0                      ext.l      d0
 [00013384] 81c3                      divs.w     d3,d0
 [00013386] 3f40 0006                 move.w     d0,6(a7)
@@ -4820,19 +4820,19 @@ J4:
 [0001338e] 7207                      moveq.l    #7,d1
 [00013390] 302b 0006                 move.w     6(a3),d0
 [00013394] 2052                      movea.l    (a2),a0
-[00013396] 6100 4316                 bsr        $000176AE
+[00013396] 6100 4316                 bsr        vdi_text_attributes
 [0001339a] 544f                      addq.w     #2,a7
 [0001339c] 4857                      pea.l      (a7)
 [0001339e] 43ef 0006                 lea.l      6(a7),a1
 [000133a2] 2052                      movea.l    (a2),a0
-[000133a4] 6100 436c                 bsr        $00017712
+[000133a4] 6100 436c                 bsr        vdi_get_fontwidth
 [000133a8] 584f                      addq.w     #4,a7
 [000133aa] 3017                      move.w     (a7),d0
 [000133ac] b06f 0004                 cmp.w      4(a7),d0
 [000133b0] 6f04                      ble.s      $000133B6
 [000133b2] 3f40 0004                 move.w     d0,4(a7)
 [000133b6] 2052                      movea.l    (a2),a0
-[000133b8] 6100 3f0e                 bsr        $000172C8
+[000133b8] 6100 3f0e                 bsr        vdi_unref
 [000133bc] 356f 0006 000c            move.w     6(a7),12(a2)
 [000133c2] 356f 0004 000e            move.w     4(a7),14(a2)
 [000133c8] 504f                      addq.w     #8,a7
@@ -4864,7 +4864,7 @@ J4:
 [00013416] 3200                      move.w     d0,d1
 [00013418] 2053                      movea.l    (a3),a0
 [0001341a] 302f 0004                 move.w     4(a7),d0
-[0001341e] 6100 428e                 bsr        $000176AE
+[0001341e] 6100 428e                 bsr        vdi_text_attributes
 [00013422] 544f                      addq.w     #2,a7
 [00013424] 161a                      move.b     (a2)+,d3
 [00013426] 4883                      ext.w      d3
@@ -4891,7 +4891,7 @@ J4:
 [00013460] 7001                      moveq.l    #1,d0
 [00013462] 224d                      movea.l    a5,a1
 [00013464] 2053                      movea.l    (a3),a0
-[00013466] 6100 4394                 bsr        $000177FC
+[00013466] 6100 4394                 bsr        vdi_get_textwidth
 [0001346a] 206f 0032                 movea.l    50(a7),a0
 [0001346e] d150                      add.w      d0,(a0)
 [00013470] 5294                      addq.l     #1,(a4)
@@ -4908,7 +4908,7 @@ J4:
 [00013486] 206b 0014                 movea.l    20(a3),a0
 [0001348a] 3028 0006                 move.w     6(a0),d0
 [0001348e] 2053                      movea.l    (a3),a0
-[00013490] 6100 421c                 bsr        $000176AE
+[00013490] 6100 421c                 bsr        vdi_text_attributes
 [00013494] 544f                      addq.w     #2,a7
 [00013496] 204a                      movea.l    a2,a0
 [00013498] 4fef 000a                 lea.l      10(a7),a7
@@ -4924,7 +4924,7 @@ J4:
 [000134b6] 2a6f 0038                 movea.l    56(a7),a5
 [000134ba] 266a 0014                 movea.l    20(a2),a3
 [000134be] 2051                      movea.l    (a1),a0
-[000134c0] 6100 3de2                 bsr        $000172A4
+[000134c0] 6100 3de2                 bsr        vdi_ref
 [000134c4] 4243                      clr.w      d3
 [000134c6] 206f 0008                 movea.l    8(a7),a0
 [000134ca] 2250                      movea.l    (a0),a1
@@ -4940,7 +4940,7 @@ J4:
 [000134e8] 7207                      moveq.l    #7,d1
 [000134ea] 302b 0006                 move.w     6(a3),d0
 [000134ee] 2052                      movea.l    (a2),a0
-[000134f0] 6100 41bc                 bsr        $000176AE
+[000134f0] 6100 41bc                 bsr        vdi_text_attributes
 [000134f4] 544f                      addq.w     #2,a7
 [000134f6] 4255                      clr.w      (a5)
 [000134f8] 7a00                      moveq.l    #0,d5
@@ -4986,7 +4986,7 @@ J4:
 [0001356a] 7001                      moveq.l    #1,d0
 [0001356c] 224c                      movea.l    a4,a1
 [0001356e] 2052                      movea.l    (a2),a0
-[00013570] 6100 428a                 bsr        $000177FC
+[00013570] 6100 428a                 bsr        vdi_get_textwidth
 [00013574] d155                      add.w      d0,(a5)
 [00013576] 6056                      bra.s      $000135CE
 [00013578] 206f 0008                 movea.l    8(a7),a0
@@ -5019,7 +5019,7 @@ J5:
 [000135be] 7001                      moveq.l    #1,d0
 [000135c0] 224c                      movea.l    a4,a1
 [000135c2] 2052                      movea.l    (a2),a0
-[000135c4] 6100 4236                 bsr        $000177FC
+[000135c4] 6100 4236                 bsr        vdi_get_textwidth
 [000135c8] 48c0                      ext.l      d0
 [000135ca] d080                      add.l      d0,d0
 [000135cc] dbc0                      adda.l     d0,a5
@@ -5064,7 +5064,7 @@ J5:
 [0001363a] 72ff                      moveq.l    #-1,d1
 [0001363c] 302b 0006                 move.w     6(a3),d0
 [00013640] 2052                      movea.l    (a2),a0
-[00013642] 6100 406a                 bsr        $000176AE
+[00013642] 6100 406a                 bsr        vdi_text_attributes
 [00013646] 544f                      addq.w     #2,a7
 [00013648] 6030                      bra.s      $0001367A
 [0001364a] 0c14 0064                 cmpi.b     #$64,(a4)
@@ -5083,7 +5083,7 @@ J5:
 [0001366a] 72ff                      moveq.l    #-1,d1
 [0001366c] 302b 0006                 move.w     6(a3),d0
 [00013670] 2052                      movea.l    (a2),a0
-[00013672] 6100 403a                 bsr        $000176AE
+[00013672] 6100 403a                 bsr        vdi_text_attributes
 [00013676] 544f                      addq.w     #2,a7
 [00013678] 524c                      addq.w     #1,a4
 [0001367a] 1014                      move.b     (a4),d0
@@ -5113,10 +5113,10 @@ J5:
 [000136bc] 72ff                      moveq.l    #-1,d1
 [000136be] 70ff                      moveq.l    #-1,d0
 [000136c0] 2052                      movea.l    (a2),a0
-[000136c2] 6100 3fea                 bsr        $000176AE
+[000136c2] 6100 3fea                 bsr        vdi_text_attributes
 [000136c6] 544f                      addq.w     #2,a7
 [000136c8] 2052                      movea.l    (a2),a0
-[000136ca] 6100 3bfc                 bsr        $000172C8
+[000136ca] 6100 3bfc                 bsr        vdi_unref
 [000136ce] 4240                      clr.w      d0
 [000136d0] 4fef 000c                 lea.l      12(a7),a7
 [000136d4] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
@@ -5159,7 +5159,7 @@ J5:
 [00013738] 3200                      move.w     d0,d1
 [0001373a] 2053                      movea.l    (a3),a0
 [0001373c] 302f 0004                 move.w     4(a7),d0
-[00013740] 6100 3f6c                 bsr        $000176AE
+[00013740] 6100 3f6c                 bsr        vdi_text_attributes
 [00013744] 544f                      addq.w     #2,a7
 [00013746] 161a                      move.b     (a2)+,d3
 [00013748] 4883                      ext.w      d3
@@ -5182,11 +5182,11 @@ J5:
 [00013778] 3210                      move.w     (a0),d1
 [0001377a] 3015                      move.w     (a5),d0
 [0001377c] 2053                      movea.l    (a3),a0
-[0001377e] 6100 3ffe                 bsr        $0001777E
+[0001377e] 6100 3ffe                 bsr        vdi_draw_text
 [00013782] 3003                      move.w     d3,d0
 [00013784] 224c                      movea.l    a4,a1
 [00013786] 2053                      movea.l    (a3),a0
-[00013788] 6100 4072                 bsr        $000177FC
+[00013788] 6100 4072                 bsr        vdi_get_textwidth
 [0001378c] 3800                      move.w     d0,d4
 [0001378e] 6020                      bra.s      $000137B0
 [00013790] 3403                      move.w     d3,d2
@@ -5195,11 +5195,11 @@ J5:
 [00013798] 3210                      move.w     (a0),d1
 [0001379a] 3015                      move.w     (a5),d0
 [0001379c] 2053                      movea.l    (a3),a0
-[0001379e] 6100 3fde                 bsr        $0001777E
+[0001379e] 6100 3fde                 bsr        vdi_draw_text
 [000137a2] 3003                      move.w     d3,d0
 [000137a4] 224a                      movea.l    a2,a1
 [000137a6] 2053                      movea.l    (a3),a0
-[000137a8] 6100 4052                 bsr        $000177FC
+[000137a8] 6100 4052                 bsr        vdi_get_textwidth
 [000137ac] 3800                      move.w     d0,d4
 [000137ae] d4c3                      adda.w     d3,a2
 [000137b0] d955                      add.w      d4,(a5)
@@ -5234,7 +5234,7 @@ J5:
 [00013804] 72ff                      moveq.l    #-1,d1
 [00013806] 302b 0006                 move.w     6(a3),d0
 [0001380a] 204c                      movea.l    a4,a0
-[0001380c] 6100 3ea0                 bsr        $000176AE
+[0001380c] 6100 3ea0                 bsr        vdi_text_attributes
 [00013810] 544f                      addq.w     #2,a7
 [00013812] 2006                      move.l     d6,d0
 [00013814] e588                      lsl.l      #2,d0
@@ -5308,11 +5308,11 @@ J5:
 [000138d2] 322f 0002                 move.w     2(a7),d1
 [000138d6] 302f 0004                 move.w     4(a7),d0
 [000138da] 204c                      movea.l    a4,a0
-[000138dc] 6100 3ea0                 bsr        $0001777E
+[000138dc] 6100 3ea0                 bsr        vdi_draw_text
 [000138e0] 3006                      move.w     d6,d0
 [000138e2] 224d                      movea.l    a5,a1
 [000138e4] 204c                      movea.l    a4,a0
-[000138e6] 6100 3f14                 bsr        $000177FC
+[000138e6] 6100 3f14                 bsr        vdi_get_textwidth
 [000138ea] d16f 0004                 add.w      d0,4(a7)
 [000138ee] dd57                      add.w      d6,(a7)
 [000138f0] 6000 00fa                 bra        $000139EC
@@ -5348,11 +5348,11 @@ J6:
 [0001393e] 322f 0002                 move.w     2(a7),d1
 [00013942] 302f 0004                 move.w     4(a7),d0
 [00013946] 204c                      movea.l    a4,a0
-[00013948] 6100 3e34                 bsr        $0001777E
+[00013948] 6100 3e34                 bsr        vdi_draw_text
 [0001394c] 7001                      moveq.l    #1,d0
 [0001394e] 224a                      movea.l    a2,a1
 [00013950] 204c                      movea.l    a4,a0
-[00013952] 6100 3ea8                 bsr        $000177FC
+[00013952] 6100 3ea8                 bsr        vdi_get_textwidth
 [00013956] d16f 0004                 add.w      d0,4(a7)
 [0001395a] 524a                      addq.w     #1,a2
 [0001395c] 5257                      addq.w     #1,(a7)
@@ -5383,7 +5383,7 @@ J6:
 [000139ac] 72ff                      moveq.l    #-1,d1
 [000139ae] 302b 0006                 move.w     6(a3),d0
 [000139b2] 204c                      movea.l    a4,a0
-[000139b4] 6100 3cf8                 bsr        $000176AE
+[000139b4] 6100 3cf8                 bsr        vdi_text_attributes
 [000139b8] 544f                      addq.w     #2,a7
 [000139ba] 6030                      bra.s      $000139EC
 [000139bc] 0c12 0064                 cmpi.b     #$64,(a2)
@@ -5402,7 +5402,7 @@ J6:
 [000139dc] 72ff                      moveq.l    #-1,d1
 [000139de] 302b 0006                 move.w     6(a3),d0
 [000139e2] 204c                      movea.l    a4,a0
-[000139e4] 6100 3cc8                 bsr        $000176AE
+[000139e4] 6100 3cc8                 bsr        vdi_text_attributes
 [000139e8] 544f                      addq.w     #2,a7
 [000139ea] 524a                      addq.w     #1,a2
 [000139ec] 1012                      move.b     (a2),d0
@@ -5421,7 +5421,7 @@ J6:
 [00013a14] 72ff                      moveq.l    #-1,d1
 [00013a16] 70ff                      moveq.l    #-1,d0
 [00013a18] 204c                      movea.l    a4,a0
-[00013a1a] 6100 3c92                 bsr        $000176AE
+[00013a1a] 6100 3c92                 bsr        vdi_text_attributes
 [00013a1e] 544f                      addq.w     #2,a7
 [00013a20] 4fef 000e                 lea.l      14(a7),a7
 [00013a24] 4cdf 3c78                 movem.l    (a7)+,d3-d6/a2-a5
@@ -5886,11 +5886,11 @@ J8:
 [00013f54] 3001                      move.w     d1,d0
 [00013f56] 7207                      moveq.l    #7,d1
 [00013f58] 3400                      move.w     d0,d2
-[00013f5a] 6100 3382                 bsr        $000172DE
+[00013f5a] 6100 3382                 bsr        vdi_line_attributes
 [00013f5e] 544f                      addq.w     #2,a7
 [00013f60] 224d                      movea.l    a5,a1
 [00013f62] 204c                      movea.l    a4,a0
-[00013f64] 6100 351c                 bsr        $00017482
+[00013f64] 6100 351c                 bsr        vdi_draw_rect
 [00013f68] 6000 0090                 bra        $00013FFA
 [00013f6c] 206f 0026                 movea.l    38(a7),a0
 [00013f70] 0c28 0001 0004            cmpi.b     #$01,4(a0)
@@ -5910,7 +5910,7 @@ J8:
 [00013f96] 204c                      movea.l    a4,a0
 [00013f98] 3015                      move.w     (a5),d0
 [00013f9a] 322d 0002                 move.w     2(a5),d1
-[00013f9e] 6100 3974                 bsr        $00017914
+[00013f9e] 6100 3974                 bsr        vdi_draw_bitmap
 [00013fa2] 4fef 000e                 lea.l      14(a7),a7
 [00013fa6] 6052                      bra.s      $00013FFA
 [00013fa8] 206f 0020                 movea.l    32(a7),a0
@@ -5940,7 +5940,7 @@ J8:
 [00013fe8] 3015                      move.w     (a5),d0
 [00013fea] 322d 0002                 move.w     2(a5),d1
 [00013fee] 342d 0004                 move.w     4(a5),d2
-[00013ff2] 6100 3fc4                 bsr        $00017FB8
+[00013ff2] 6100 3fc4                 bsr        vdi_draw_image
 [00013ff6] 4fef 0012                 lea.l      18(a7),a7
 [00013ffa] 47eb 0009                 lea.l      9(a3),a3
 [00013ffe] 0c13 001b                 cmpi.b     #$1B,(a3)
@@ -5972,7 +5972,7 @@ J8:
 [00014054] 7207                      moveq.l    #7,d1
 [00014056] 204c                      movea.l    a4,a0
 [00014058] 302f 0024                 move.w     36(a7),d0
-[0001405c] 6100 3280                 bsr        $000172DE
+[0001405c] 6100 3280                 bsr        vdi_line_attributes
 [00014060] 544f                      addq.w     #2,a7
 [00014062] 6000 0234                 bra        $00014298
 [00014066] 43ef 0006                 lea.l      6(a7),a1
@@ -6036,12 +6036,12 @@ J8:
 [00014130] 204c                      movea.l    a4,a0
 [00014132] 7207                      moveq.l    #7,d1
 [00014134] 342f 000c                 move.w     12(a7),d2
-[00014138] 6100 31a4                 bsr        $000172DE
+[00014138] 6100 31a4                 bsr        vdi_line_attributes
 [0001413c] 544f                      addq.w     #2,a7
 [0001413e] 3006                      move.w     d6,d0
 [00014140] 43ef 0020                 lea.l      32(a7),a1
 [00014144] 204c                      movea.l    a4,a0
-[00014146] 6100 3292                 bsr        $000173DA
+[00014146] 6100 3292                 bsr        vdi_draw_arrowed
 [0001414a] 6000 0270                 bra        $000143BC
 [0001414e] 43ef 0006                 lea.l      6(a7),a1
 [00014152] 41eb 0002                 lea.l      2(a3),a0
@@ -6135,20 +6135,20 @@ J8:
 [00014276] 7207                      moveq.l    #7,d1
 [00014278] 7001                      moveq.l    #1,d0
 [0001427a] 204c                      movea.l    a4,a0
-[0001427c] 6100 32f6                 bsr        $00017574
+[0001427c] 6100 32f6                 bsr        vdi_fill_attributes
 [00014280] 224d                      movea.l    a5,a1
 [00014282] 204c                      movea.l    a4,a0
-[00014284] 6100 332c                 bsr        $000175B2
+[00014284] 6100 332c                 bsr        vdi_draw_bar
 [00014288] 7001                      moveq.l    #1,d0
 [0001428a] 3f00                      move.w     d0,-(a7)
 [0001428c] 3400                      move.w     d0,d2
 [0001428e] 7207                      moveq.l    #7,d1
 [00014290] 204c                      movea.l    a4,a0
-[00014292] 6100 304a                 bsr        $000172DE
+[00014292] 6100 304a                 bsr        vdi_line_attributes
 [00014296] 544f                      addq.w     #2,a7
 [00014298] 224d                      movea.l    a5,a1
 [0001429a] 204c                      movea.l    a4,a0
-[0001429c] 6100 31e4                 bsr        $00017482
+[0001429c] 6100 31e4                 bsr        vdi_draw_rect
 [000142a0] 6000 011a                 bra        $000143BC
 [000142a4] 43ef 0006                 lea.l      6(a7),a1
 [000142a8] 41eb 0002                 lea.l      2(a3),a0
@@ -6211,22 +6211,22 @@ J8:
 [00014368] 7207                      moveq.l    #7,d1
 [0001436a] 7001                      moveq.l    #1,d0
 [0001436c] 204c                      movea.l    a4,a0
-[0001436e] 6100 3204                 bsr        $00017574
+[0001436e] 6100 3204                 bsr        vdi_fill_attributes
 [00014372] 700a                      moveq.l    #10,d0
 [00014374] 224d                      movea.l    a5,a1
 [00014376] 204c                      movea.l    a4,a0
-[00014378] 6100 32b6                 bsr        $00017630
+[00014378] 6100 32b6                 bsr        vdi_draw_rounded_box
 [0001437c] 7001                      moveq.l    #1,d0
 [0001437e] 3f00                      move.w     d0,-(a7)
 [00014380] 3400                      move.w     d0,d2
 [00014382] 7207                      moveq.l    #7,d1
 [00014384] 204c                      movea.l    a4,a0
-[00014386] 6100 2f56                 bsr        $000172DE
+[00014386] 6100 2f56                 bsr        vdi_line_attributes
 [0001438a] 544f                      addq.w     #2,a7
 [0001438c] 700a                      moveq.l    #10,d0
 [0001438e] 224d                      movea.l    a5,a1
 [00014390] 204c                      movea.l    a4,a0
-[00014392] 6100 3142                 bsr        $000174D6
+[00014392] 6100 3142                 bsr        vdi_draw_rounded_rect
 [00014396] 6024                      bra.s      $000143BC
 [00014398] 102b 0002                 move.b     2(a3),d0
 [0001439c] 4880                      ext.w      d0
@@ -6556,13 +6556,13 @@ J9:
 [00014730] 2449                      movea.l    a1,a2
 [00014732] 3600                      move.w     d0,d3
 [00014734] 2050                      movea.l    (a0),a0
-[00014736] 6100 2b34                 bsr        $0001726C
+[00014736] 6100 2b34                 bsr        vdi_get_handle
 [0001473a] 204a                      movea.l    a2,a0
 [0001473c] 6100 3a0e                 bsr        $0001814C
 [00014740] 41ea 0008                 lea.l      8(a2),a0
 [00014744] 2f08                      move.l     a0,-(a7)
 [00014746] 2053                      movea.l    (a3),a0
-[00014748] 6100 2b22                 bsr        $0001726C
+[00014748] 6100 2b22                 bsr        vdi_get_handle
 [0001474c] 205f                      movea.l    (a7)+,a0
 [0001474e] 6100 39cc                 bsr        $0001811C
 [00014752] 43d7                      lea.l      (a7),a1
@@ -6570,7 +6570,7 @@ J9:
 [00014758] 2f09                      move.l     a1,-(a7)
 [0001475a] 2f08                      move.l     a0,-(a7)
 [0001475c] 2053                      movea.l    (a3),a0
-[0001475e] 6100 2b0c                 bsr        $0001726C
+[0001475e] 6100 2b0c                 bsr        vdi_get_handle
 [00014762] 205f                      movea.l    (a7)+,a0
 [00014764] 225f                      movea.l    (a7)+,a1
 [00014766] 6100 3a50                 bsr        $000181B8
@@ -6721,7 +6721,7 @@ J9:
 [00014952] 584f                      addq.w     #4,a7
 [00014954] 43ed 0018                 lea.l      24(a5),a1
 [00014958] 204a                      movea.l    a2,a0
-[0001495a] 6100 2fa4                 bsr        $00017900
+[0001495a] 6100 2fa4                 bsr        vdi_clip
 [0001495e] 382d 001a                 move.w     26(a5),d4
 [00014962] 206f 0188                 movea.l    392(a7),a0
 [00014966] 3f10                      move.w     (a0),-(a7)
@@ -6729,7 +6729,7 @@ J9:
 [0001496a] 7203                      moveq.l    #3,d1
 [0001496c] 3028 0006                 move.w     6(a0),d0
 [00014970] 204a                      movea.l    a2,a0
-[00014972] 6100 2d3a                 bsr        $000176AE
+[00014972] 6100 2d3a                 bsr        vdi_text_attributes
 [00014976] 544f                      addq.w     #2,a7
 [00014978] 41ef 0108                 lea.l      264(a7),a0
 [0001497c] 6100 caa6                 bsr        strlen
@@ -6738,12 +6738,12 @@ J9:
 [00014986] 3204                      move.w     d4,d1
 [00014988] 302d 0018                 move.w     24(a5),d0
 [0001498c] 204a                      movea.l    a2,a0
-[0001498e] 6100 2dee                 bsr        $0001777E
+[0001498e] 6100 2dee                 bsr        vdi_draw_text
 [00014992] 204b                      movea.l    a3,a0
 [00014994] 6100 ca8e                 bsr        strlen
 [00014998] 224b                      movea.l    a3,a1
 [0001499a] 204a                      movea.l    a2,a0
-[0001499c] 6100 2e5e                 bsr        $000177FC
+[0001499c] 6100 2e5e                 bsr        vdi_get_textwidth
 [000149a0] 3a00                      move.w     d0,d5
 [000149a2] 204b                      movea.l    a3,a0
 [000149a4] 6100 ca7e                 bsr        strlen
@@ -6754,12 +6754,12 @@ J9:
 [000149b2] 9045                      sub.w      d5,d0
 [000149b4] d06d 0018                 add.w      24(a5),d0
 [000149b8] 204a                      movea.l    a2,a0
-[000149ba] 6100 2dc2                 bsr        $0001777E
+[000149ba] 6100 2dc2                 bsr        vdi_draw_text
 [000149be] 204c                      movea.l    a4,a0
 [000149c0] 6100 ca62                 bsr        strlen
 [000149c4] 224c                      movea.l    a4,a1
 [000149c6] 204a                      movea.l    a2,a0
-[000149c8] 6100 2e32                 bsr        $000177FC
+[000149c8] 6100 2e32                 bsr        vdi_get_textwidth
 [000149cc] 3a00                      move.w     d0,d5
 [000149ce] 204c                      movea.l    a4,a0
 [000149d0] 6100 ca52                 bsr        strlen
@@ -6772,7 +6772,7 @@ J9:
 [000149e2] 81fc 0002                 divs.w     #$0002,d0
 [000149e6] d06d 0018                 add.w      24(a5),d0
 [000149ea] 204a                      movea.l    a2,a0
-[000149ec] 6100 2d90                 bsr        $0001777E
+[000149ec] 6100 2d90                 bsr        vdi_draw_text
 [000149f0] d843                      add.w      d3,d4
 [000149f2] 3039 0001 a04a            move.w     $0001A04A,d0
 [000149f8] 674a                      beq.s      $00014A44
@@ -6794,11 +6794,11 @@ J9:
 [00014a2c] 204a                      movea.l    a2,a0
 [00014a2e] 7207                      moveq.l    #7,d1
 [00014a30] 3439 0001 a04a            move.w     $0001A04A,d2
-[00014a36] 6100 28a6                 bsr        $000172DE
+[00014a36] 6100 28a6                 bsr        vdi_line_attributes
 [00014a3a] 544f                      addq.w     #2,a7
 [00014a3c] 43d7                      lea.l      (a7),a1
 [00014a3e] 204a                      movea.l    a2,a0
-[00014a40] 6100 2990                 bsr        $000173D2
+[00014a40] 6100 2990                 bsr        vdi_draw_line
 [00014a44] 4fef 0190                 lea.l      400(a7),a7
 [00014a48] 4cdf 3c38                 movem.l    (a7)+,d3-d5/a2-a5
 [00014a4c] 4e75                      rts
@@ -6849,7 +6849,7 @@ J9:
 [00014ae4] 584f                      addq.w     #4,a7
 [00014ae6] 43ed 0018                 lea.l      24(a5),a1
 [00014aea] 204a                      movea.l    a2,a0
-[00014aec] 6100 2e12                 bsr        $00017900
+[00014aec] 6100 2e12                 bsr        vdi_clip
 [00014af0] 382d 001a                 move.w     26(a5),d4
 [00014af4] d86d 001e                 add.w      30(a5),d4
 [00014af8] 9843                      sub.w      d3,d4
@@ -6859,7 +6859,7 @@ J9:
 [00014b02] 7203                      moveq.l    #3,d1
 [00014b04] 3028 0006                 move.w     6(a0),d0
 [00014b08] 204a                      movea.l    a2,a0
-[00014b0a] 6100 2ba2                 bsr        $000176AE
+[00014b0a] 6100 2ba2                 bsr        vdi_text_attributes
 [00014b0e] 544f                      addq.w     #2,a7
 [00014b10] 41ef 0108                 lea.l      264(a7),a0
 [00014b14] 6100 c90e                 bsr        strlen
@@ -6868,12 +6868,12 @@ J9:
 [00014b1e] 3204                      move.w     d4,d1
 [00014b20] 302d 0018                 move.w     24(a5),d0
 [00014b24] 204a                      movea.l    a2,a0
-[00014b26] 6100 2c56                 bsr        $0001777E
+[00014b26] 6100 2c56                 bsr        vdi_draw_text
 [00014b2a] 204b                      movea.l    a3,a0
 [00014b2c] 6100 c8f6                 bsr        strlen
 [00014b30] 224b                      movea.l    a3,a1
 [00014b32] 204a                      movea.l    a2,a0
-[00014b34] 6100 2cc6                 bsr        $000177FC
+[00014b34] 6100 2cc6                 bsr        vdi_get_textwidth
 [00014b38] 3a00                      move.w     d0,d5
 [00014b3a] 204b                      movea.l    a3,a0
 [00014b3c] 6100 c8e6                 bsr        strlen
@@ -6884,12 +6884,12 @@ J9:
 [00014b4a] 9045                      sub.w      d5,d0
 [00014b4c] d06d 0018                 add.w      24(a5),d0
 [00014b50] 204a                      movea.l    a2,a0
-[00014b52] 6100 2c2a                 bsr        $0001777E
+[00014b52] 6100 2c2a                 bsr        vdi_draw_text
 [00014b56] 204c                      movea.l    a4,a0
 [00014b58] 6100 c8ca                 bsr        strlen
 [00014b5c] 224c                      movea.l    a4,a1
 [00014b5e] 204a                      movea.l    a2,a0
-[00014b60] 6100 2c9a                 bsr        $000177FC
+[00014b60] 6100 2c9a                 bsr        vdi_get_textwidth
 [00014b64] 3a00                      move.w     d0,d5
 [00014b66] 204c                      movea.l    a4,a0
 [00014b68] 6100 c8ba                 bsr        strlen
@@ -6902,7 +6902,7 @@ J9:
 [00014b7a] 81fc 0002                 divs.w     #$0002,d0
 [00014b7e] d06d 0018                 add.w      24(a5),d0
 [00014b82] 204a                      movea.l    a2,a0
-[00014b84] 6100 2bf8                 bsr        $0001777E
+[00014b84] 6100 2bf8                 bsr        vdi_draw_text
 [00014b88] 3039 0001 a05a            move.w     $0001A05A,d0
 [00014b8e] 674a                      beq.s      $00014BDA
 [00014b90] 3ead 0018                 move.w     24(a5),(a7)
@@ -6923,11 +6923,11 @@ J9:
 [00014bc2] 204a                      movea.l    a2,a0
 [00014bc4] 7207                      moveq.l    #7,d1
 [00014bc6] 3439 0001 a05a            move.w     $0001A05A,d2
-[00014bcc] 6100 2710                 bsr        $000172DE
+[00014bcc] 6100 2710                 bsr        vdi_line_attributes
 [00014bd0] 544f                      addq.w     #2,a7
 [00014bd2] 43d7                      lea.l      (a7),a1
 [00014bd4] 204a                      movea.l    a2,a0
-[00014bd6] 6100 27fa                 bsr        $000173D2
+[00014bd6] 6100 27fa                 bsr        vdi_draw_line
 [00014bda] 4fef 0190                 lea.l      400(a7),a7
 [00014bde] 4cdf 3c38                 movem.l    (a7)+,d3-d5/a2-a5
 [00014be2] 4e75                      rts
@@ -6969,7 +6969,7 @@ J9:
 [00014c44] 3f40 000a                 move.w     d0,10(a7)
 [00014c48] 43ef 0004                 lea.l      4(a7),a1
 [00014c4c] 2057                      movea.l    (a7),a0
-[00014c4e] 6100 2cb0                 bsr        $00017900
+[00014c4e] 6100 2cb0                 bsr        vdi_clip
 [00014c52] 2403                      move.l     d3,d2
 [00014c54] 7200                      moveq.l    #0,d1
 [00014c56] 2016                      move.l     (a6),d0
@@ -6981,7 +6981,7 @@ J9:
 [00014c66] 6670                      bne.s      $00014CD8
 [00014c68] 43ed 0020                 lea.l      32(a5),a1
 [00014c6c] 2057                      movea.l    (a7),a0
-[00014c6e] 6100 2c90                 bsr        $00017900
+[00014c6e] 6100 2c90                 bsr        vdi_clip
 [00014c72] 2053                      movea.l    (a3),a0
 [00014c74] 0ca8 4844 4f43 0106       cmpi.l     #$48444F43,262(a0)
 [00014c7c] 6706                      beq.s      $00014C84
@@ -6995,7 +6995,7 @@ J9:
 [00014c90] 7207                      moveq.l    #7,d1
 [00014c92] 302c 0006                 move.w     6(a4),d0
 [00014c96] 206f 0002                 movea.l    2(a7),a0
-[00014c9a] 6100 2a12                 bsr        $000176AE
+[00014c9a] 6100 2a12                 bsr        vdi_text_attributes
 [00014c9e] 544f                      addq.w     #2,a7
 [00014ca0] 382d 0020                 move.w     32(a5),d4
 [00014ca4] 3a2d 0022                 move.w     34(a5),d5
@@ -7033,26 +7033,26 @@ J9:
 [00014cfa] 6742                      beq.s      $00014D3E
 [00014cfc] 43eb 0008                 lea.l      8(a3),a1
 [00014d00] 204a                      movea.l    a2,a0
-[00014d02] 6100 2bfc                 bsr        $00017900
+[00014d02] 6100 2bfc                 bsr        vdi_clip
 [00014d06] 7001                      moveq.l    #1,d0
 [00014d08] 3f00                      move.w     d0,-(a7)
 [00014d0a] 7403                      moveq.l    #3,d2
 [00014d0c] 7203                      moveq.l    #3,d1
 [00014d0e] 204a                      movea.l    a2,a0
-[00014d10] 6100 25cc                 bsr        $000172DE
+[00014d10] 6100 25cc                 bsr        vdi_line_attributes
 [00014d14] 544f                      addq.w     #2,a7
 [00014d16] 7001                      moveq.l    #1,d0
 [00014d18] c079 0001 a060            and.w      show_borders,d0
 [00014d1e] 670a                      beq.s      $00014D2A
 [00014d20] 43eb 0008                 lea.l      8(a3),a1
 [00014d24] 204a                      movea.l    a2,a0
-[00014d26] 6100 275a                 bsr        $00017482
+[00014d26] 6100 275a                 bsr        vdi_draw_rect
 [00014d2a] 7002                      moveq.l    #2,d0
 [00014d2c] c079 0001 a060            and.w      show_borders,d0
 [00014d32] 670a                      beq.s      $00014D3E
 [00014d34] 43eb 0018                 lea.l      24(a3),a1
 [00014d38] 204a                      movea.l    a2,a0
-[00014d3a] 6100 2746                 bsr        $00017482
+[00014d3a] 6100 2746                 bsr        vdi_draw_rect
 [00014d3e] 265f                      movea.l    (a7)+,a3
 [00014d40] 245f                      movea.l    (a7)+,a2
 [00014d42] 4e75                      rts
@@ -7065,12 +7065,12 @@ J9:
 [00014d52] 3239 0001 9d24            move.w     $00019D24,d1
 [00014d58] 670a                      beq.s      $00014D64
 [00014d5a] 2050                      movea.l    (a0),a0
-[00014d5c] 6100 250e                 bsr        $0001726C
+[00014d5c] 6100 250e                 bsr        vdi_get_handle
 [00014d60] 6100 d44e                 bsr        v_clrwk
 [00014d64] 33fc 0001 0001 9d24       move.w     #$0001,$00019D24
-[00014d6c] 6100 da78                 bsr        $000127E6
+[00014d6c] 6100 da78                 bsr        should_abort
 [00014d70] 2052                      movea.l    (a2),a0
-[00014d72] 6100 2530                 bsr        $000172A4
+[00014d72] 6100 2530                 bsr        vdi_ref
 [00014d76] 7001                      moveq.l    #1,d0
 [00014d78] 245f                      movea.l    (a7)+,a2
 [00014d7a] 4e75                      rts
@@ -7078,21 +7078,21 @@ J9:
 [00014d7c] 2f0a                      move.l     a2,-(a7)
 [00014d7e] 2448                      movea.l    a0,a2
 [00014d80] 2050                      movea.l    (a0),a0
-[00014d82] 6100 2544                 bsr        $000172C8
+[00014d82] 6100 2544                 bsr        vdi_unref
 [00014d86] 206a 0010                 movea.l    16(a2),a0
 [00014d8a] 3028 0048                 move.w     72(a0),d0
 [00014d8e] 661e                      bne.s      $00014DAE
-[00014d90] 6100 da54                 bsr        $000127E6
+[00014d90] 6100 da54                 bsr        should_abort
 [00014d94] 4a40                      tst.w      d0
 [00014d96] 670c                      beq.s      $00014DA4
 [00014d98] 2052                      movea.l    (a2),a0
-[00014d9a] 6100 24d0                 bsr        $0001726C
+[00014d9a] 6100 24d0                 bsr        vdi_get_handle
 [00014d9e] 6100 3510                 bsr        $000182B0
 [00014da2] 600a                      bra.s      $00014DAE
 [00014da4] 2052                      movea.l    (a2),a0
-[00014da6] 6100 24c4                 bsr        $0001726C
+[00014da6] 6100 24c4                 bsr        vdi_get_handle
 [00014daa] 6100 d378                 bsr        v_updwk
-[00014dae] 6100 da36                 bsr        $000127E6
+[00014dae] 6100 da36                 bsr        should_abort
 [00014db2] 245f                      movea.l    (a7)+,a2
 [00014db4] 4e75                      rts
 
@@ -7100,7 +7100,7 @@ J9:
 [00014dba] 4fef ffb8                 lea.l      -72(a7),a7
 [00014dbe] 2c48                      movea.l    a0,a6
 [00014dc0] 2449                      movea.l    a1,a2
-[00014dc2] 6100 24ac                 bsr        $00017270
+[00014dc2] 6100 24ac                 bsr        vdi_alloc
 [00014dc6] 2f48 0044                 move.l     a0,68(a7)
 [00014dca] 2008                      move.l     a0,d0
 [00014dcc] 6606                      bne.s      $00014DD4
@@ -7179,13 +7179,13 @@ J9:
 [00014ea0] 6100 f9c0                 bsr        $00014862
 [00014ea4] 204b                      movea.l    a3,a0
 [00014ea6] 6100 fe9c                 bsr        $00014D44
-[00014eaa] 6100 d93a                 bsr        $000127E6
+[00014eaa] 6100 d93a                 bsr        should_abort
 [00014eae] 4a40                      tst.w      d0
 [00014eb0] 6656                      bne.s      $00014F08
 [00014eb2] 224d                      movea.l    a5,a1
 [00014eb4] 204b                      movea.l    a3,a0
 [00014eb6] 6100 fe2a                 bsr        $00014CE2
-[00014eba] 6100 d92a                 bsr        $000127E6
+[00014eba] 6100 d92a                 bsr        should_abort
 [00014ebe] 4a40                      tst.w      d0
 [00014ec0] 6646                      bne.s      $00014F08
 [00014ec2] 4855                      pea.l      (a5)
@@ -7195,7 +7195,7 @@ J9:
 [00014eca] 204b                      movea.l    a3,a0
 [00014ecc] 6100 f9ee                 bsr        $000148BC
 [00014ed0] 584f                      addq.w     #4,a7
-[00014ed2] 6100 d912                 bsr        $000127E6
+[00014ed2] 6100 d912                 bsr        should_abort
 [00014ed6] 4a40                      tst.w      d0
 [00014ed8] 662e                      bne.s      $00014F08
 [00014eda] 4855                      pea.l      (a5)
@@ -7205,7 +7205,7 @@ J9:
 [00014ee2] 204b                      movea.l    a3,a0
 [00014ee4] 6100 fb68                 bsr        $00014A4E
 [00014ee8] 584f                      addq.w     #4,a7
-[00014eea] 6100 d8fa                 bsr        $000127E6
+[00014eea] 6100 d8fa                 bsr        should_abort
 [00014eee] 4a40                      tst.w      d0
 [00014ef0] 6616                      bne.s      $00014F08
 [00014ef2] 4855                      pea.l      (a5)
@@ -7215,19 +7215,19 @@ J9:
 [00014efc] 204b                      movea.l    a3,a0
 [00014efe] 6100 fce4                 bsr        $00014BE4
 [00014f02] 504f                      addq.w     #8,a7
-[00014f04] 6100 d8e0                 bsr        $000127E6
+[00014f04] 6100 d8e0                 bsr        should_abort
 [00014f08] 204b                      movea.l    a3,a0
 [00014f0a] 6100 fe70                 bsr        $00014D7C
 [00014f0e] b697                      cmp.l      (a7),d3
 [00014f10] 6f12                      ble.s      $00014F24
-[00014f12] 6100 d8d2                 bsr        $000127E6
+[00014f12] 6100 d8d2                 bsr        should_abort
 [00014f16] 4a40                      tst.w      d0
 [00014f18] 660a                      bne.s      $00014F24
 [00014f1a] 3012                      move.w     (a2),d0
 [00014f1c] b06c 003c                 cmp.w      60(a4),d0
 [00014f20] 6d00 ff0c                 blt        $00014E2E
 [00014f24] 206f 0044                 movea.l    68(a7),a0
-[00014f28] 6100 2374                 bsr        $0001729E
+[00014f28] 6100 2374                 bsr        vdi_free
 [00014f2c] 4240                      clr.w      d0
 [00014f2e] 4fef 0048                 lea.l      72(a7),a7
 [00014f32] 4cdf 7c18                 movem.l    (a7)+,d3-d4/a2-a6
@@ -9573,7 +9573,7 @@ hyp_next_textnode:
 [0001688c] 245f                      movea.l    (a7)+,a2
 [0001688e] 261f                      move.l     (a7)+,d3
 [00016890] 4e75                      rts
-
+fillbuf:
 [00016892] 41f9 0001 d97a            lea.l      $0001D97A,a0
 [00016898] 3228 fffc                 move.w     -4(a0),d1
 [0001689c] e169                      lsl.w      d0,d1
@@ -9603,7 +9603,7 @@ hyp_next_textnode:
 [000168e2] e469                      lsr.w      d2,d1
 [000168e4] 8368 fffc                 or.w       d1,-4(a0)
 [000168e8] 4e75                      rts
-
+getbits:
 [000168ea] 3f03                      move.w     d3,-(a7)
 [000168ec] 3f04                      move.w     d4,-(a7)
 [000168ee] 3600                      move.w     d0,d3
@@ -9616,7 +9616,7 @@ hyp_next_textnode:
 [00016902] 381f                      move.w     (a7)+,d4
 [00016904] 361f                      move.w     (a7)+,d3
 [00016906] 4e75                      rts
-
+make_table:
 [00016908] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
 [0001690c] 4fef ff90                 lea.l      -112(a7),a7
 [00016910] 3f40 006e                 move.w     d0,110(a7)
@@ -9795,6 +9795,7 @@ hyp_next_textnode:
 [00016ad0] 4fef 0070                 lea.l      112(a7),a7
 [00016ad4] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
 [00016ad8] 4e75                      rts
+read_pt_len:
 [00016ada] 48e7 1f20                 movem.l    d3-d7/a2,-(a7)
 [00016ade] 554f                      subq.w     #2,a7
 [00016ae0] 3e00                      move.w     d0,d7
@@ -9873,6 +9874,7 @@ hyp_next_textnode:
 [00016b9c] 544f                      addq.w     #2,a7
 [00016b9e] 4cdf 04f8                 movem.l    (a7)+,d3-d7/a2
 [00016ba2] 4e75                      rts
+read_c_len:
 [00016ba4] 48e7 1c20                 movem.l    d3-d5/a2,-(a7)
 [00016ba8] 7009                      moveq.l    #9,d0
 [00016baa] 6100 fd3e                 bsr        $000168EA
@@ -9969,6 +9971,7 @@ hyp_next_textnode:
 [00016cac] 6100 fc5a                 bsr        $00016908
 [00016cb0] 4cdf 0438                 movem.l    (a7)+,d3-d5/a2
 [00016cb4] 4e75                      rts
+decode_c:
 [00016cb6] 3f03                      move.w     d3,-(a7)
 [00016cb8] 2f0a                      move.l     a2,-(a7)
 [00016cba] 45f9 0001 d97c            lea.l      $0001D97C,a2
@@ -10018,6 +10021,7 @@ hyp_next_textnode:
 [00016d38] 245f                      movea.l    (a7)+,a2
 [00016d3a] 361f                      move.w     (a7)+,d3
 [00016d3c] 4e75                      rts
+decode_p:
 [00016d3e] 3f03                      move.w     d3,-(a7)
 [00016d40] 2f0a                      move.l     a2,-(a7)
 [00016d42] 45f9 0001 d776            lea.l      $0001D776,a2
@@ -10062,6 +10066,7 @@ hyp_next_textnode:
 [00016db0] 245f                      movea.l    (a7)+,a2
 [00016db2] 361f                      move.w     (a7)+,d3
 [00016db4] 4e75                      rts
+lh5_decode1:
 [00016db6] 2f03                      move.l     d3,-(a7)
 [00016db8] 2f0a                      move.l     a2,-(a7)
 [00016dba] 7600                      moveq.l    #0,d3
@@ -10243,7 +10248,7 @@ readline:
 [00016fce] 6000 ff78                 bra        $00016F48
 [00016fd2] 4cdf 0c38                 movem.l    (a7)+,d3-d5/a2-a3
 [00016fd6] 4e75                      rts
-
+new_font_id:
 [00016fd8] 4240                      clr.w      d0
 [00016fda] 41f9 0001 d994            lea.l      $0001D994,a0
 [00016fe0] 601c                      bra.s      $00016FFE
@@ -10261,7 +10266,7 @@ readline:
 [00017002] 6dde                      blt.s      $00016FE2
 [00017004] 4240                      clr.w      d0
 [00017006] 4e75                      rts
-
+set_font:
 [00017008] 3f03                      move.w     d3,-(a7)
 [0001700a] 907c 0014                 sub.w      #$0014,d0
 [0001700e] 4a40                      tst.w      d0
@@ -10288,6 +10293,7 @@ readline:
 [00017044] 4240                      clr.w      d0
 [00017046] 361f                      move.w     (a7)+,d3
 [00017048] 4e75                      rts
+select_font:
 [0001704a] 48e7 1034                 movem.l    d3/a2-a3/a5,-(a7)
 [0001704e] 554f                      subq.w     #2,a7
 [00017050] 2448                      movea.l    a0,a2
@@ -10390,6 +10396,7 @@ readline:
 [00017194] 544f                      addq.w     #2,a7
 [00017196] 4cdf 2c08                 movem.l    (a7)+,d3/a2-a3/a5
 [0001719a] 4e75                      rts
+set_effects:
 [0001719c] 2f0a                      move.l     a2,-(a7)
 [0001719e] 2448                      movea.l    a0,a2
 [000171a0] 3540 002c                 move.w     d0,44(a2)
@@ -10398,6 +10405,7 @@ readline:
 [000171a8] 6100 b0aa                 bsr        vst_effects
 [000171ac] 245f                      movea.l    (a7)+,a2
 [000171ae] 4e75                      rts
+set_pattern:
 [000171b0] 48e7 1820                 movem.l    d3-d4/a2,-(a7)
 [000171b4] 2448                      movea.l    a0,a2
 [000171b6] 3600                      move.w     d0,d3
@@ -10452,6 +10460,7 @@ J16:
 [00017228] 3543 0028                 move.w     d3,40(a2)
 [0001722c] 4cdf 0418                 movem.l    (a7)+,d3-d4/a2
 [00017230] 4e75                      rts
+set_wrmode:
 [00017232] 2f03                      move.l     d3,-(a7)
 [00017234] 2f0a                      move.l     a2,-(a7)
 [00017236] 2448                      movea.l    a0,a2
@@ -10479,8 +10488,10 @@ J16:
 [00017266] 245f                      movea.l    (a7)+,a2
 [00017268] 261f                      move.l     (a7)+,d3
 [0001726a] 4e75                      rts
+vdi_get_handle:
 [0001726c] 3010                      move.w     (a0),d0
 [0001726e] 4e75                      rts
+vdi_alloc:
 [00017270] 2f0a                      move.l     a2,-(a7)
 [00017272] 703c                      moveq.l    #60,d0
 [00017274] 6100 a54a                 bsr        malloc
@@ -10492,37 +10503,41 @@ J16:
 [00017282] 6100 a95c                 bsr        memset
 [00017286] 34b9 0001 d9c4            move.w     $0001D9C4,(a2)
 [0001728c] 204a                      movea.l    a2,a0
-[0001728e] 6100 0014                 bsr.w      $000172A4
+[0001728e] 6100 0014                 bsr.w      vdi_ref
 [00017292] 204a                      movea.l    a2,a0
-[00017294] 6100 0032                 bsr.w      $000172C8
+[00017294] 6100 0032                 bsr.w      vdi_unref
 [00017298] 204a                      movea.l    a2,a0
 [0001729a] 245f                      movea.l    (a7)+,a2
 [0001729c] 4e75                      rts
+vdi_free:
 [0001729e] 6100 a5ea                 bsr        free
 [000172a2] 4e75                      rts
+vdi_ref:
 [000172a4] 2f0a                      move.l     a2,-(a7)
 [000172a6] 2448                      movea.l    a0,a2
 [000172a8] 200a                      move.l     a2,d0
 [000172aa] 6606                      bne.s      $000172B2
 [000172ac] 7001                      moveq.l    #1,d0
-[000172ae] 6100 8ef6                 bsr        $000101A6
+[000172ae] 6100 8ef6                 bsr        exit
 [000172b2] 302a 0002                 move.w     2(a2),d0
 [000172b6] 526a 0002                 addq.w     #1,2(a2)
 [000172ba] 4a40                      tst.w      d0
 [000172bc] 6606                      bne.s      $000172C4
 [000172be] 204a                      movea.l    a2,a0
-[000172c0] 6100 060c                 bsr        $000178CE
+[000172c0] 6100 060c                 bsr        vdi_defaults
 [000172c4] 245f                      movea.l    (a7)+,a2
 [000172c6] 4e75                      rts
+vdi_unref:
 [000172c8] 2f0a                      move.l     a2,-(a7)
 [000172ca] 2448                      movea.l    a0,a2
 [000172cc] 200a                      move.l     a2,d0
 [000172ce] 6606                      bne.s      $000172D6
 [000172d0] 7001                      moveq.l    #1,d0
-[000172d2] 6100 8ed2                 bsr        $000101A6
+[000172d2] 6100 8ed2                 bsr        exit
 [000172d6] 536a 0002                 subq.w     #1,2(a2)
 [000172da] 245f                      movea.l    (a7)+,a2
 [000172dc] 4e75                      rts
+vdi_line_attributes:
 [000172de] 3f03                      move.w     d3,-(a7)
 [000172e0] 362f 0006                 move.w     6(a7),d3
 [000172e4] 4a40                      tst.w      d0
@@ -10539,6 +10554,7 @@ J16:
 [00017300] 3143 000a                 move.w     d3,10(a0)
 [00017304] 361f                      move.w     (a7)+,d3
 [00017306] 4e75                      rts
+vdi_force_line_attributes:
 [00017308] 48e7 1c20                 movem.l    d3-d5/a2,-(a7)
 [0001730c] 2448                      movea.l    a0,a2
 [0001730e] 3a00                      move.w     d0,d5
@@ -10560,20 +10576,21 @@ J16:
 [00017344] 3204                      move.w     d4,d1
 [00017346] 3005                      move.w     d5,d0
 [00017348] 204a                      movea.l    a2,a0
-[0001734a] 6100 ff92                 bsr.w      $000172DE
+[0001734a] 6100 ff92                 bsr.w      vdi_line_attributes
 [0001734e] 544f                      addq.w     #2,a7
 [00017350] 4cdf 0438                 movem.l    (a7)+,d3-d5/a2
 [00017354] 4e75                      rts
+draw_line:
 [00017356] 48e7 1030                 movem.l    d3/a2-a3,-(a7)
 [0001735a] 2448                      movea.l    a0,a2
 [0001735c] 3600                      move.w     d0,d3
 [0001735e] 2649                      movea.l    a1,a3
-[00017360] 6100 ff42                 bsr        $000172A4
+[00017360] 6100 ff42                 bsr        vdi_ref
 [00017364] 302a 0006                 move.w     6(a2),d0
 [00017368] b06a 001e                 cmp.w      30(a2),d0
 [0001736c] 6706                      beq.s      $00017374
 [0001736e] 204a                      movea.l    a2,a0
-[00017370] 6100 fec0                 bsr        $00017232
+[00017370] 6100 fec0                 bsr        set_wrmode
 [00017374] 302a 0008                 move.w     8(a2),d0
 [00017378] b06a 0022                 cmp.w      34(a2),d0
 [0001737c] 670e                      beq.s      $0001738C
@@ -10594,28 +10611,30 @@ J16:
 [000173ae] 3540 0020                 move.w     d0,32(a2)
 [000173b2] 322a 0004                 move.w     4(a2),d1
 [000173b6] 3012                      move.w     (a2),d0
-[000173b8] 6100 af0c                 bsr        vsl_color
+[000173b8] 6100 af0c                 bsr        vsl_colo
 [000173bc] 204b                      movea.l    a3,a0
 [000173be] 3203                      move.w     d3,d1
 [000173c0] 3012                      move.w     (a2),d0
-[000173c2] 6100 ad84                 bsr        $00012148
+[000173c2] 6100 ad84                 bsr        v_pline
 [000173c6] 204a                      movea.l    a2,a0
-[000173c8] 6100 fefe                 bsr        $000172C8
+[000173c8] 6100 fefe                 bsr        vdi_unref
 [000173cc] 4cdf 0c08                 movem.l    (a7)+,d3/a2-a3
 [000173d0] 4e75                      rts
+vdi_draw_line:
 [000173d2] 7002                      moveq.l    #2,d0
-[000173d4] 6100 ff80                 bsr.w      $00017356
+[000173d4] 6100 ff80                 bsr.w      draw_line
 [000173d8] 4e75                      rts
+vdi_draw_arrowed:
 [000173da] 48e7 1030                 movem.l    d3/a2-a3,-(a7)
 [000173de] 2448                      movea.l    a0,a2
 [000173e0] 2649                      movea.l    a1,a3
 [000173e2] 3600                      move.w     d0,d3
-[000173e4] 6100 febe                 bsr        $000172A4
+[000173e4] 6100 febe                 bsr        vdi_ref
 [000173e8] 302a 0006                 move.w     6(a2),d0
 [000173ec] b06a 001e                 cmp.w      30(a2),d0
 [000173f0] 6706                      beq.s      $000173F8
 [000173f2] 204a                      movea.l    a2,a0
-[000173f4] 6100 fe3c                 bsr        $00017232
+[000173f4] 6100 fe3c                 bsr        set_wrmode
 [000173f8] 302a 0008                 move.w     8(a2),d0
 [000173fc] b06a 0022                 cmp.w      34(a2),d0
 [00017400] 670e                      beq.s      $00017410
@@ -10636,7 +10655,7 @@ J16:
 [00017432] 3540 0020                 move.w     d0,32(a2)
 [00017436] 322a 0004                 move.w     4(a2),d1
 [0001743a] 3012                      move.w     (a2),d0
-[0001743c] 6100 ae88                 bsr        vsl_color
+[0001743c] 6100 ae88                 bsr        vsl_colo
 [00017440] 7002                      moveq.l    #2,d0
 [00017442] c043                      and.w      d3,d0
 [00017444] 6704                      beq.s      $0001744A
@@ -10656,15 +10675,16 @@ J16:
 [00017462] 204b                      movea.l    a3,a0
 [00017464] 7202                      moveq.l    #2,d1
 [00017466] 3012                      move.w     (a2),d0
-[00017468] 6100 acde                 bsr        $00012148
+[00017468] 6100 acde                 bsr        v_pline
 [0001746c] 4242                      clr.w      d2
 [0001746e] 4241                      clr.w      d1
 [00017470] 3012                      move.w     (a2),d0
 [00017472] 6100 ae42                 bsr        vsl_ends
 [00017476] 204a                      movea.l    a2,a0
-[00017478] 6100 fe4e                 bsr        $000172C8
+[00017478] 6100 fe4e                 bsr        vdi_unref
 [0001747c] 4cdf 0c08                 movem.l    (a7)+,d3/a2-a3
 [00017480] 4e75                      rts
+vdi_draw_rect:
 [00017482] 4fef ffec                 lea.l      -20(a7),a7
 [00017486] 3e91                      move.w     (a1),(a7)
 [00017488] 3f69 0002 0002            move.w     2(a1),2(a7)
@@ -10684,20 +10704,21 @@ J16:
 [000174c2] 3f6f 0002 0012            move.w     2(a7),18(a7)
 [000174c8] 43d7                      lea.l      (a7),a1
 [000174ca] 7005                      moveq.l    #5,d0
-[000174cc] 6100 fe88                 bsr        $00017356
+[000174cc] 6100 fe88                 bsr        draw_line
 [000174d0] 4fef 0014                 lea.l      20(a7),a7
 [000174d4] 4e75                      rts
+vdi_draw_rounded_rect:
 [000174d6] 2f0a                      move.l     a2,-(a7)
 [000174d8] 2f0b                      move.l     a3,-(a7)
 [000174da] 514f                      subq.w     #8,a7
 [000174dc] 2448                      movea.l    a0,a2
 [000174de] 2649                      movea.l    a1,a3
-[000174e0] 6100 fdc2                 bsr        $000172A4
+[000174e0] 6100 fdc2                 bsr        vdi_ref
 [000174e4] 302a 0006                 move.w     6(a2),d0
 [000174e8] b06a 001e                 cmp.w      30(a2),d0
 [000174ec] 6706                      beq.s      $000174F4
 [000174ee] 204a                      movea.l    a2,a0
-[000174f0] 6100 fd40                 bsr        $00017232
+[000174f0] 6100 fd40                 bsr        set_wrmode
 [000174f4] 302a 0008                 move.w     8(a2),d0
 [000174f8] b06a 0022                 cmp.w      34(a2),d0
 [000174fc] 670e                      beq.s      $0001750C
@@ -10711,14 +10732,14 @@ J16:
 [00017516] 3540 0024                 move.w     d0,36(a2)
 [0001751a] 322a 000a                 move.w     10(a2),d1
 [0001751e] 3012                      move.w     (a2),d0
-[00017520] 6100 ad6c                 bsr        vsl_width
+[00017520] 6100 ad6c                 bsr        vsl_widt
 [00017524] 302a 0004                 move.w     4(a2),d0
 [00017528] b06a 0020                 cmp.w      32(a2),d0
 [0001752c] 670e                      beq.s      $0001753C
 [0001752e] 3540 0020                 move.w     d0,32(a2)
 [00017532] 322a 0004                 move.w     4(a2),d1
 [00017536] 3012                      move.w     (a2),d0
-[00017538] 6100 ad8c                 bsr        vsl_color
+[00017538] 6100 ad8c                 bsr        vsl_colo
 [0001753c] 3e93                      move.w     (a3),(a7)
 [0001753e] 3f6b 0002 0002            move.w     2(a3),2(a7)
 [00017544] 3017                      move.w     (a7),d0
@@ -10733,11 +10754,12 @@ J16:
 [00017560] 3012                      move.w     (a2),d0
 [00017562] 6100 abc8                 bsr        v_rbox
 [00017566] 204a                      movea.l    a2,a0
-[00017568] 6100 fd5e                 bsr        $000172C8
+[00017568] 6100 fd5e                 bsr        vdi_unref
 [0001756c] 504f                      addq.w     #8,a7
 [0001756e] 265f                      movea.l    (a7)+,a3
 [00017570] 245f                      movea.l    (a7)+,a2
 [00017572] 4e75                      rts
+vdi_fill_attributes:
 [00017574] b07c ffff                 cmp.w      #$FFFF,d0
 [00017578] 6d04                      blt.s      $0001757E
 [0001757a] 3140 000c                 move.w     d0,12(a0)
@@ -10748,20 +10770,22 @@ J16:
 [0001758c] 6d04                      blt.s      $00017592
 [0001758e] 3142 0010                 move.w     d2,16(a0)
 [00017592] 4e75                      rts
+vdi_force_fill_attributes:
 [00017594] 2f0a                      move.l     a2,-(a7)
 [00017596] 2448                      movea.l    a0,a2
 [00017598] 357c ffff 001e            move.w     #$FFFF,30(a2)
 [0001759e] 357c ffff 0026            move.w     #$FFFF,38(a2)
 [000175a4] 357c ffff 0028            move.w     #$FFFF,40(a2)
-[000175aa] 6100 ffc8                 bsr.w      $00017574
+[000175aa] 6100 ffc8                 bsr.w      vdi_fill_attributes
 [000175ae] 245f                      movea.l    (a7)+,a2
 [000175b0] 4e75                      rts
+vdi_draw_bar:
 [000175b2] 2f0a                      move.l     a2,-(a7)
 [000175b4] 2f0b                      move.l     a3,-(a7)
 [000175b6] 514f                      subq.w     #8,a7
 [000175b8] 2448                      movea.l    a0,a2
 [000175ba] 2649                      movea.l    a1,a3
-[000175bc] 6100 fce6                 bsr        $000172A4
+[000175bc] 6100 fce6                 bsr        vdi_ref
 [000175c0] 3e93                      move.w     (a3),(a7)
 [000175c2] 3f6b 0002 0002            move.w     2(a3),2(a7)
 [000175c8] 3017                      move.w     (a7),d0
@@ -10776,39 +10800,40 @@ J16:
 [000175e6] b06a 001e                 cmp.w      30(a2),d0
 [000175ea] 6706                      beq.s      $000175F2
 [000175ec] 204a                      movea.l    a2,a0
-[000175ee] 6100 fc42                 bsr        $00017232
+[000175ee] 6100 fc42                 bsr        set_wrmode
 [000175f2] 302a 000c                 move.w     12(a2),d0
 [000175f6] b06a 0026                 cmp.w      38(a2),d0
 [000175fa] 670e                      beq.s      $0001760A
 [000175fc] 3540 0026                 move.w     d0,38(a2)
 [00017600] 322a 000c                 move.w     12(a2),d1
 [00017604] 3012                      move.w     (a2),d0
-[00017606] 6100 acf6                 bsr        vsf_color
+[00017606] 6100 acf6                 bsr        vsf_colo
 [0001760a] 302a 0010                 move.w     16(a2),d0
 [0001760e] b06a 0028                 cmp.w      40(a2),d0
 [00017612] 6706                      beq.s      $0001761A
 [00017614] 204a                      movea.l    a2,a0
-[00017616] 6100 fb98                 bsr        $000171B0
+[00017616] 6100 fb98                 bsr        set_pattern
 [0001761a] 41d7                      lea.l      (a7),a0
 [0001761c] 3012                      move.w     (a2),d0
 [0001761e] 6100 ab98                 bsr        v_bar
 [00017622] 204a                      movea.l    a2,a0
-[00017624] 6100 fca2                 bsr        $000172C8
+[00017624] 6100 fca2                 bsr        vdi_unref
 [00017628] 504f                      addq.w     #8,a7
 [0001762a] 265f                      movea.l    (a7)+,a3
 [0001762c] 245f                      movea.l    (a7)+,a2
 [0001762e] 4e75                      rts
+vdi_draw_rounded_box:
 [00017630] 2f0a                      move.l     a2,-(a7)
 [00017632] 2f0b                      move.l     a3,-(a7)
 [00017634] 514f                      subq.w     #8,a7
 [00017636] 2448                      movea.l    a0,a2
 [00017638] 2649                      movea.l    a1,a3
-[0001763a] 6100 fc68                 bsr        $000172A4
+[0001763a] 6100 fc68                 bsr        vdi_ref
 [0001763e] 302a 000e                 move.w     14(a2),d0
 [00017642] b06a 001e                 cmp.w      30(a2),d0
 [00017646] 6706                      beq.s      $0001764E
 [00017648] 204a                      movea.l    a2,a0
-[0001764a] 6100 fbe6                 bsr        $00017232
+[0001764a] 6100 fbe6                 bsr        set_wrmode
 [0001764e] 302a 000c                 move.w     12(a2),d0
 [00017652] b06a 0026                 cmp.w      38(a2),d0
 [00017656] 670e                      beq.s      $00017666
@@ -10820,7 +10845,7 @@ J16:
 [0001766a] b06a 0028                 cmp.w      40(a2),d0
 [0001766e] 6706                      beq.s      $00017676
 [00017670] 204a                      movea.l    a2,a0
-[00017672] 6100 fb3c                 bsr        $000171B0
+[00017672] 6100 fb3c                 bsr        set_pattern
 [00017676] 3e93                      move.w     (a3),(a7)
 [00017678] 3f6b 0002 0002            move.w     2(a3),2(a7)
 [0001767e] 3017                      move.w     (a7),d0
@@ -10835,18 +10860,19 @@ J16:
 [0001769a] 3012                      move.w     (a2),d0
 [0001769c] 6100 aa8e                 bsr        v_rbox
 [000176a0] 204a                      movea.l    a2,a0
-[000176a2] 6100 fc24                 bsr        $000172C8
+[000176a2] 6100 fc24                 bsr        vdi_unref
 [000176a6] 504f                      addq.w     #8,a7
 [000176a8] 265f                      movea.l    (a7)+,a3
 [000176aa] 245f                      movea.l    (a7)+,a2
 [000176ac] 4e75                      rts
+vdi_text_attributes:
 [000176ae] 48e7 1e20                 movem.l    d3-d6/a2,-(a7)
 [000176b2] 2448                      movea.l    a0,a2
 [000176b4] 3600                      move.w     d0,d3
 [000176b6] 3801                      move.w     d1,d4
 [000176b8] 3a02                      move.w     d2,d5
 [000176ba] 3c2f 0018                 move.w     24(a7),d6
-[000176be] 6100 fbe4                 bsr        $000172A4
+[000176be] 6100 fbe4                 bsr        vdi_ref
 [000176c2] 4a43                      tst.w      d3
 [000176c4] 6b04                      bmi.s      $000176CA
 [000176c6] 3543 0012                 move.w     d3,18(a2)
@@ -10863,81 +10889,83 @@ J16:
 [000176e6] b06a 002c                 cmp.w      44(a2),d0
 [000176ea] 6706                      beq.s      $000176F2
 [000176ec] 204a                      movea.l    a2,a0
-[000176ee] 6100 faac                 bsr        $0001719C
+[000176ee] 6100 faac                 bsr        set_effects
 [000176f2] 302a 0018                 move.w     24(a2),d0
 [000176f6] b06a 002a                 cmp.w      42(a2),d0
 [000176fa] 670a                      beq.s      $00017706
 [000176fc] 302a 002a                 move.w     42(a2),d0
 [00017700] 204a                      movea.l    a2,a0
-[00017702] 6100 f946                 bsr        $0001704A
+[00017702] 6100 f946                 bsr        select_font
 [00017706] 204a                      movea.l    a2,a0
-[00017708] 6100 fbbe                 bsr        $000172C8
+[00017708] 6100 fbbe                 bsr        vdi_unref
 [0001770c] 4cdf 0478                 movem.l    (a7)+,d3-d6/a2
 [00017710] 4e75                      rts
+vdi_get_fontwidth:
 [00017712] 2f0a                      move.l     a2,-(a7)
 [00017714] 2f0b                      move.l     a3,-(a7)
 [00017716] 2448                      movea.l    a0,a2
 [00017718] 2649                      movea.l    a1,a3
-[0001771a] 6100 fb88                 bsr        $000172A4
+[0001771a] 6100 fb88                 bsr        vdi_ref
 [0001771e] 302a 0014                 move.w     20(a2),d0
 [00017722] b06a 001e                 cmp.w      30(a2),d0
 [00017726] 6706                      beq.s      $0001772E
 [00017728] 204a                      movea.l    a2,a0
-[0001772a] 6100 fb06                 bsr        $00017232
+[0001772a] 6100 fb06                 bsr        set_wrmode
 [0001772e] 302a 0012                 move.w     18(a2),d0
 [00017732] b06a 002e                 cmp.w      46(a2),d0
 [00017736] 670e                      beq.s      $00017746
 [00017738] 3540 002e                 move.w     d0,46(a2)
 [0001773c] 322a 0012                 move.w     18(a2),d1
 [00017740] 3012                      move.w     (a2),d0
-[00017742] 6100 ab1e                 bsr        vst_color
+[00017742] 6100 ab1e                 bsr        vst_colo
 [00017746] 302a 0016                 move.w     22(a2),d0
 [0001774a] b06a 002c                 cmp.w      44(a2),d0
 [0001774e] 6706                      beq.s      $00017756
 [00017750] 204a                      movea.l    a2,a0
-[00017752] 6100 fa48                 bsr        $0001719C
+[00017752] 6100 fa48                 bsr        set_effects
 [00017756] 302a 0018                 move.w     24(a2),d0
 [0001775a] b06a 002a                 cmp.w      42(a2),d0
 [0001775e] 6706                      beq.s      $00017766
 [00017760] 204a                      movea.l    a2,a0
-[00017762] 6100 f8e6                 bsr        $0001704A
+[00017762] 6100 f8e6                 bsr        select_font
 [00017766] 36aa 001a                 move.w     26(a2),(a3)
 [0001776a] 206f 000c                 movea.l    12(a7),a0
 [0001776e] 30aa 001c                 move.w     28(a2),(a0)
 [00017772] 204a                      movea.l    a2,a0
-[00017774] 6100 fb52                 bsr        $000172C8
+[00017774] 6100 fb52                 bsr        vdi_unref
 [00017778] 265f                      movea.l    (a7)+,a3
 [0001777a] 245f                      movea.l    (a7)+,a2
 [0001777c] 4e75                      rts
+vdi_draw_text:
 [0001777e] 48e7 1e30                 movem.l    d3-d6/a2-a3,-(a7)
 [00017782] 2448                      movea.l    a0,a2
 [00017784] 3c00                      move.w     d0,d6
 [00017786] 3a01                      move.w     d1,d5
 [00017788] 2649                      movea.l    a1,a3
 [0001778a] 3602                      move.w     d2,d3
-[0001778c] 6100 fb16                 bsr        $000172A4
+[0001778c] 6100 fb16                 bsr        vdi_ref
 [00017790] 302a 0014                 move.w     20(a2),d0
 [00017794] b06a 001e                 cmp.w      30(a2),d0
 [00017798] 6706                      beq.s      $000177A0
 [0001779a] 204a                      movea.l    a2,a0
-[0001779c] 6100 fa94                 bsr        $00017232
+[0001779c] 6100 fa94                 bsr        set_wrmode
 [000177a0] 302a 0012                 move.w     18(a2),d0
 [000177a4] b06a 002e                 cmp.w      46(a2),d0
 [000177a8] 670e                      beq.s      $000177B8
 [000177aa] 3540 002e                 move.w     d0,46(a2)
 [000177ae] 322a 0012                 move.w     18(a2),d1
 [000177b2] 3012                      move.w     (a2),d0
-[000177b4] 6100 aaac                 bsr        vst_color
+[000177b4] 6100 aaac                 bsr        vst_colo
 [000177b8] 302a 0016                 move.w     22(a2),d0
 [000177bc] b06a 002c                 cmp.w      44(a2),d0
 [000177c0] 6706                      beq.s      $000177C8
 [000177c2] 204a                      movea.l    a2,a0
-[000177c4] 6100 f9d6                 bsr        $0001719C
+[000177c4] 6100 f9d6                 bsr        set_effects
 [000177c8] 302a 0018                 move.w     24(a2),d0
 [000177cc] b06a 002a                 cmp.w      42(a2),d0
 [000177d0] 6706                      beq.s      $000177D8
 [000177d2] 204a                      movea.l    a2,a0
-[000177d4] 6100 f874                 bsr        $0001704A
+[000177d4] 6100 f874                 bsr        select_font
 [000177d8] 1833 3000                 move.b     0(a3,d3.w),d4
 [000177dc] 4233 3000                 clr.b      0(a3,d3.w)
 [000177e0] 204b                      movea.l    a3,a0
@@ -10947,20 +10975,21 @@ J16:
 [000177e8] 6100 abba                 bsr        v_gtext
 [000177ec] 1784 3000                 move.b     d4,0(a3,d3.w)
 [000177f0] 204a                      movea.l    a2,a0
-[000177f2] 6100 fad4                 bsr        $000172C8
+[000177f2] 6100 fad4                 bsr        vdi_unref
 [000177f6] 4cdf 0c78                 movem.l    (a7)+,d3-d6/a2-a3
 [000177fa] 4e75                      rts
+vdi_get_textwidth:
 [000177fc] 48e7 1830                 movem.l    d3-d4/a2-a3,-(a7)
 [00017800] 4fef fff0                 lea.l      -16(a7),a7
 [00017804] 2448                      movea.l    a0,a2
 [00017806] 2649                      movea.l    a1,a3
 [00017808] 3600                      move.w     d0,d3
-[0001780a] 6100 fa98                 bsr        $000172A4
+[0001780a] 6100 fa98                 bsr        vdi_ref
 [0001780e] 302a 0014                 move.w     20(a2),d0
 [00017812] b06a 001e                 cmp.w      30(a2),d0
 [00017816] 6706                      beq.s      $0001781E
 [00017818] 204a                      movea.l    a2,a0
-[0001781a] 6100 fa16                 bsr        $00017232
+[0001781a] 6100 fa16                 bsr        set_wrmode
 [0001781e] 302a 0012                 move.w     18(a2),d0
 [00017822] b06a 002e                 cmp.w      46(a2),d0
 [00017826] 670e                      beq.s      $00017836
@@ -10972,12 +11001,12 @@ J16:
 [0001783a] b06a 002c                 cmp.w      44(a2),d0
 [0001783e] 6706                      beq.s      $00017846
 [00017840] 204a                      movea.l    a2,a0
-[00017842] 6100 f958                 bsr        $0001719C
+[00017842] 6100 f958                 bsr        set_effects
 [00017846] 302a 0018                 move.w     24(a2),d0
 [0001784a] b06a 002a                 cmp.w      42(a2),d0
 [0001784e] 6706                      beq.s      $00017856
 [00017850] 204a                      movea.l    a2,a0
-[00017852] 6100 f7f6                 bsr        $0001704A
+[00017852] 6100 f7f6                 bsr        select_font
 [00017856] 1833 3000                 move.b     0(a3,d3.w),d4
 [0001785a] 4233 3000                 clr.b      0(a3,d3.w)
 [0001785e] 43d7                      lea.l      (a7),a1
@@ -10986,11 +11015,12 @@ J16:
 [00017864] 6100 ab88                 bsr        vqt_extent
 [00017868] 1784 3000                 move.b     d4,0(a3,d3.w)
 [0001786c] 204a                      movea.l    a2,a0
-[0001786e] 6100 fa58                 bsr        $000172C8
+[0001786e] 6100 fa58                 bsr        vdi_unref
 [00017872] 302f 0004                 move.w     4(a7),d0
 [00017876] 4fef 0010                 lea.l      16(a7),a7
 [0001787a] 4cdf 0c18                 movem.l    (a7)+,d3-d4/a2-a3
 [0001787e] 4e75                      rts
+vdi_force_text_attributes:
 [00017880] 48e7 1c20                 movem.l    d3-d5/a2,-(a7)
 [00017884] 554f                      subq.w     #2,a7
 [00017886] 2448                      movea.l    a0,a2
@@ -11002,7 +11032,7 @@ J16:
 [00017892] 3012                      move.w     (a2),d0
 [00017894] 4241                      clr.w      d1
 [00017896] 7405                      moveq.l    #5,d2
-[00017898] 6100 a9d6                 bsr        vst_alignment
+[00017898] 6100 a9d6                 bsr        vst_alig
 [0001789c] 357c ffff 001e            move.w     #$FFFF,30(a2)
 [000178a2] 357c ffff 002e            move.w     #$FFFF,46(a2)
 [000178a8] 357c ffff 002c            move.w     #$FFFF,44(a2)
@@ -11012,42 +11042,45 @@ J16:
 [000178ba] 3204                      move.w     d4,d1
 [000178bc] 3005                      move.w     d5,d0
 [000178be] 204a                      movea.l    a2,a0
-[000178c0] 6100 fdec                 bsr        $000176AE
+[000178c0] 6100 fdec                 bsr        vdi_text_attributes
 [000178c4] 544f                      addq.w     #2,a7
 [000178c6] 544f                      addq.w     #2,a7
 [000178c8] 4cdf 0438                 movem.l    (a7)+,d3-d5/a2
 [000178cc] 4e75                      rts
+vdi_defaults:
 [000178ce] 2f0a                      move.l     a2,-(a7)
 [000178d0] 2448                      movea.l    a0,a2
 [000178d2] 7001                      moveq.l    #1,d0
 [000178d4] 3f00                      move.w     d0,-(a7)
 [000178d6] 3400                      move.w     d0,d2
 [000178d8] 7203                      moveq.l    #3,d1
-[000178da] 6100 fa2c                 bsr        $00017308
+[000178da] 6100 fa2c                 bsr        vdi_force_line_attributes
 [000178de] 544f                      addq.w     #2,a7
 [000178e0] 7407                      moveq.l    #7,d2
 [000178e2] 7203                      moveq.l    #3,d1
 [000178e4] 7001                      moveq.l    #1,d0
 [000178e6] 204a                      movea.l    a2,a0
-[000178e8] 6100 fcaa                 bsr        $00017594
+[000178e8] 6100 fcaa                 bsr        vdi_force_fill_attributes
 [000178ec] 7001                      moveq.l    #1,d0
 [000178ee] 3f00                      move.w     d0,-(a7)
 [000178f0] 4242                      clr.w      d2
 [000178f2] 7207                      moveq.l    #7,d1
 [000178f4] 204a                      movea.l    a2,a0
-[000178f6] 6100 ff88                 bsr.w      $00017880
+[000178f6] 6100 ff88                 bsr.w      vdi_force_text_attributes
 [000178fa] 544f                      addq.w     #2,a7
 [000178fc] 245f                      movea.l    (a7)+,a2
 [000178fe] 4e75                      rts
+vdi_clip:
 [00017900] 2f0a                      move.l     a2,-(a7)
 [00017902] 2449                      movea.l    a1,a2
 [00017904] 200a                      move.l     a2,d0
 [00017906] 6708                      beq.s      $00017910
 [00017908] 3010                      move.w     (a0),d0
 [0001790a] 204a                      movea.l    a2,a0
-[0001790c] 6100 0948                 bsr        $00018256
+[0001790c] 6100 0948                 bsr        v_clip
 [00017910] 245f                      movea.l    (a7)+,a2
 [00017912] 4e75                      rts
+vdi_draw_bitmap:
 [00017914] 48e7 1e3c                 movem.l    d3-d6/a2-a5,-(a7)
 [00017918] 4fef ffc0                 lea.l      -64(a7),a7
 [0001791c] 2448                      movea.l    a0,a2
@@ -11065,7 +11098,7 @@ J16:
 [00017946] 7001                      moveq.l    #1,d0
 [00017948] 6000 00de                 bra        $00017A28
 [0001794c] 204a                      movea.l    a2,a0
-[0001794e] 6100 f954                 bsr        $000172A4
+[0001794e] 6100 f954                 bsr        vdi_ref
 [00017952] b644                      cmp.w      d4,d3
 [00017954] 6604                      bne.s      $0001795A
 [00017956] ba46                      cmp.w      d6,d5
@@ -11130,15 +11163,16 @@ J16:
 [00017a12] 204b                      movea.l    a3,a0
 [00017a14] 322f 0074                 move.w     116(a7),d1
 [00017a18] 3012                      move.w     (a2),d0
-[00017a1a] 6100 a8f0                 bsr        vrt_cpyfm
+[00017a1a] 6100 a8f0                 bsr        vrt_cpyf
 [00017a1e] 504f                      addq.w     #8,a7
 [00017a20] 204a                      movea.l    a2,a0
-[00017a22] 6100 f8a4                 bsr        $000172C8
+[00017a22] 6100 f8a4                 bsr        vdi_unref
 [00017a26] 4240                      clr.w      d0
 [00017a28] 4fef 0040                 lea.l      64(a7),a7
 [00017a2c] 4cdf 3c78                 movem.l    (a7)+,d3-d6/a2-a5
 [00017a30] 4e75                      rts
-[00017a32] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
+dither_image:
+[00017a32] 48e7 1f3e                 movem.l    d3-d7/a2-a6,-(a7)
 [00017a36] 4fef ffd4                 lea.l      -44(a7),a7
 [00017a3a] 2f48 0022                 move.l     a0,34(a7)
 [00017a3e] 3f40 0020                 move.w     d0,32(a7)
@@ -11178,7 +11212,7 @@ J16:
 [00017aa0] 2f40 0014                 move.l     d0,20(a7)
 [00017aa4] 220a                      move.l     a2,d1
 [00017aa6] 6626                      bne.s      $00017ACE
-[00017aa8] 43f9 0001 9256            lea.l      $00019256,a1
+[00017aa8] 4df9 0001 9256            lea.l      $00019256,a6
 [00017aae] 302f 001c                 move.w     28(a7),d0
 [00017ab2] 5540                      subq.w     #2,d0
 [00017ab4] 670a                      beq.s      $00017AC0
@@ -11187,16 +11221,16 @@ J16:
 [00017aba] 5340                      subq.w     #1,d0
 [00017abc] 670c                      beq.s      $00017ACA
 [00017abe] 600e                      bra.s      $00017ACE
-[00017ac0] 2449                      movea.l    a1,a2
+[00017ac0] 244e                      movea.l    a6,a2
 [00017ac2] 600a                      bra.s      $00017ACE
-[00017ac4] 45e9 0024                 lea.l      36(a1),a2
+[00017ac4] 45ee 0024                 lea.l      36(a6),a2
 [00017ac8] 6004                      bra.s      $00017ACE
-[00017aca] 45e9 0060                 lea.l      96(a1),a2
+[00017aca] 45ee 0060                 lea.l      96(a6),a2
 [00017ace] 2f6f 0022 0010            move.l     34(a7),16(a7)
-[00017ad4] 2f6f 0054 000c            move.l     84(a7),12(a7)
+[00017ad4] 2f6f 0058 000c            move.l     88(a7),12(a7)
 [00017ada] 426f 0006                 clr.w      6(a7)
 [00017ade] 6000 01de                 bra        $00017CBE
-[00017ae2] 6100 ad02                 bsr        $000127E6
+[00017ae2] 6100 ad02                 bsr        should_abort
 [00017ae6] 4a40                      tst.w      d0
 [00017ae8] 6708                      beq.s      $00017AF2
 [00017aea] 3ebc 0001                 move.w     #$0001,(a7)
@@ -11216,18 +11250,18 @@ J16:
 [00017b14] 422f 000a                 clr.b      10(a7)
 [00017b18] 426f 0008                 clr.w      8(a7)
 [00017b1c] 6000 0170                 bra        $00017C8E
-[00017b20] 224c                      movea.l    a4,a1
+[00017b20] 2c4c                      movea.l    a4,a6
 [00017b22] 4247                      clr.w      d7
 [00017b24] 7c01                      moveq.l    #1,d6
 [00017b26] 3007                      move.w     d7,d0
 [00017b28] 6012                      bra.s      $00017B3C
 [00017b2a] 4241                      clr.w      d1
-[00017b2c] 1211                      move.b     (a1),d1
+[00017b2c] 1216                      move.b     (a6),d1
 [00017b2e] c245                      and.w      d5,d1
 [00017b30] 6702                      beq.s      $00017B34
 [00017b32] 8e46                      or.w       d6,d7
 [00017b34] dc46                      add.w      d6,d6
-[00017b36] d3ef 0014                 adda.l     20(a7),a1
+[00017b36] ddef 0014                 adda.l     20(a7),a6
 [00017b3a] 5240                      addq.w     #1,d0
 [00017b3c] b06f 001c                 cmp.w      28(a7),d0
 [00017b40] 6de8                      blt.s      $00017B2A
@@ -11387,8 +11421,9 @@ J16:
 [00017cce] 6100 9bba                 bsr        free
 [00017cd2] 3017                      move.w     (a7),d0
 [00017cd4] 4fef 002c                 lea.l      44(a7),a7
-[00017cd8] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
+[00017cd8] 4cdf 7cf8                 movem.l    (a7)+,d3-d7/a2-a6
 [00017cdc] 4e75                      rts
+is_truecolor:
 [00017cde] 2f0b                      move.l     a3,-(a7)
 [00017ce0] 4fef fdde                 lea.l      -546(a7),a7
 [00017ce4] 2648                      movea.l    a0,a3
@@ -11409,6 +11444,7 @@ J16:
 [00017d10] 4fef 0222                 lea.l      546(a7),a7
 [00017d14] 265f                      movea.l    (a7)+,a3
 [00017d16] 4e75                      rts
+draw_image:
 [00017d18] 48e7 1f2c                 movem.l    d3-d7/a2/a4-a5,-(a7)
 [00017d1c] 4fef ffc0                 lea.l      -64(a7),a7
 [00017d20] 2448                      movea.l    a0,a2
@@ -11432,7 +11468,7 @@ J16:
 [00017d58] 48c0                      ext.l      d0
 [00017d5a] 2f40 0038                 move.l     d0,56(a7)
 [00017d5e] 204a                      movea.l    a2,a0
-[00017d60] 6100 f542                 bsr        $000172A4
+[00017d60] 6100 f542                 bsr        vdi_ref
 [00017d64] bc44                      cmp.w      d4,d6
 [00017d66] 6604                      bne.s      $00017D6C
 [00017d68] be45                      cmp.w      d5,d7
@@ -11492,11 +11528,12 @@ J16:
 [00017e12] 6100 a52e                 bsr        vro_cpyfm
 [00017e16] 584f                      addq.w     #4,a7
 [00017e18] 204a                      movea.l    a2,a0
-[00017e1a] 6100 f4ac                 bsr        $000172C8
+[00017e1a] 6100 f4ac                 bsr        vdi_unref
 [00017e1e] 4240                      clr.w      d0
 [00017e20] 4fef 0040                 lea.l      64(a7),a7
 [00017e24] 4cdf 34f8                 movem.l    (a7)+,d3-d7/a2/a4-a5
 [00017e28] 4e75                      rts
+
 [00017e2a] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
 [00017e2e] 4fef fff0                 lea.l      -16(a7),a7
 [00017e32] 2648                      movea.l    a0,a3
@@ -11536,7 +11573,7 @@ J16:
 [00017e8c] 2f6f 0038 0004            move.l     56(a7),4(a7)
 [00017e92] 4257                      clr.w      (a7)
 [00017e94] 6000 010c                 bra        $00017FA2
-[00017e98] 6100 a94c                 bsr        $000127E6
+[00017e98] 6100 a94c                 bsr        should_abort
 [00017e9c] 4a40                      tst.w      d0
 [00017e9e] 6706                      beq.s      $00017EA6
 [00017ea0] 7001                      moveq.l    #1,d0
@@ -11652,16 +11689,17 @@ J16:
 [00017fae] 4fef 0010                 lea.l      16(a7),a7
 [00017fb2] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
 [00017fb6] 4e75                      rts
+vdi_draw_image:
 [00017fb8] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
 [00017fbc] 4fef ffee                 lea.l      -18(a7),a7
 [00017fc0] 2648                      movea.l    a0,a3
 [00017fc2] 2449                      movea.l    a1,a2
-[00017fc4] 3f40 0008                 move.w     d0,8(a7)
-[00017fc8] 3f41 0006                 move.w     d1,6(a7)
-[00017fcc] 3f42 0004                 move.w     d2,4(a7)
-[00017fd0] 3e2f 003a                 move.w     58(a7),d7
-[00017fd4] 3c2f 003c                 move.w     60(a7),d6
-[00017fd8] 3a2f 003e                 move.w     62(a7),d5
+[00017fc4] 3f40 0008                 move.w     d0,8(a7) /* x
+[00017fc8] 3f41 0006                 move.w     d1,6(a7) /* y
+[00017fcc] 3f42 0004                 move.w     d2,4(a7) /* dstwidth
+[00017fd0] 3e2f 003a                 move.w     58(a7),d7 /* dstheight
+[00017fd4] 3c2f 003c                 move.w     60(a7),d6 /* srcwidth
+[00017fd8] 3a2f 003e                 move.w     62(a7),d5 /* srcheight
 [00017fdc] 2a6f 0048                 movea.l    72(a7),a5
 [00017fe0] 4243                      clr.w      d3
 [00017fe2] 0c6f 0001 0040            cmpi.w     #$0001,64(a7)
@@ -11673,7 +11711,7 @@ J16:
 [00017ffa] 3f05                      move.w     d5,-(a7)
 [00017ffc] 3f06                      move.w     d6,-(a7)
 [00017ffe] 3f07                      move.w     d7,-(a7)
-[00018000] 6100 f912                 bsr        $00017914
+[00018000] 6100 f912                 bsr        vdi_draw_bitmap
 [00018004] 4fef 000e                 lea.l      14(a7),a7
 [00018008] 4240                      clr.w      d0
 [0001800a] 6000 0102                 bra        $0001810E
@@ -11690,7 +11728,7 @@ J16:
 [00018024] 6100 9f88                 bsr        _lmul
 [00018028] 2800                      move.l     d0,d4
 [0001802a] 204b                      movea.l    a3,a0
-[0001802c] 6100 fcb0                 bsr        $00017CDE
+[0001802c] 6100 fcb0                 bsr        is_truecolor
 [00018030] 4a40                      tst.w      d0
 [00018032] 6754                      beq.s      $00018088
 [00018034] 2004                      move.l     d4,d0
@@ -11722,7 +11760,7 @@ J16:
 [00018074] 204b                      movea.l    a3,a0
 [00018076] 302f 0012                 move.w     18(a7),d0
 [0001807a] 322f 0010                 move.w     16(a7),d1
-[0001807e] 6100 fc98                 bsr        $00017D18
+[0001807e] 6100 fc98                 bsr        draw_image
 [00018082] 4fef 000a                 lea.l      10(a7),a7
 [00018086] 605a                      bra.s      $000180E2
 [00018088] 2e84                      move.l     d4,(a7)
@@ -11739,7 +11777,7 @@ J16:
 [000180a2] 3205                      move.w     d5,d1
 [000180a4] 3006                      move.w     d6,d0
 [000180a6] 204a                      movea.l    a2,a0
-[000180a8] 6100 f988                 bsr        $00017A32
+[000180a8] 6100 f988                 bsr        dither_image
 [000180ac] 584f                      addq.w     #4,a7
 [000180ae] 3600                      move.w     d0,d3
 [000180b0] 4a40                      tst.w      d0
@@ -11757,7 +11795,7 @@ J16:
 [000180d0] 204b                      movea.l    a3,a0
 [000180d2] 302f 0016                 move.w     22(a7),d0
 [000180d6] 322f 0014                 move.w     20(a7),d1
-[000180da] 6100 f838                 bsr        $00017914
+[000180da] 6100 f838                 bsr        vdi_draw_bitmap
 [000180de] 4fef 000e                 lea.l      14(a7),a7
 [000180e2] 204c                      movea.l    a4,a0
 [000180e4] 6100 97a4                 bsr        free
@@ -11770,13 +11808,16 @@ J16:
 [00018100] 3b47 0006                 move.w     d7,6(a5)
 [00018104] 224d                      movea.l    a5,a1
 [00018106] 204b                      movea.l    a3,a0
-[00018108] 6100 f378                 bsr        $00017482
+[00018108] 6100 f378                 bsr        vdi_draw_rect
 [0001810c] 3003                      move.w     d3,d0
 [0001810e] 4fef 0012                 lea.l      18(a7),a7
 [00018112] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
 [00018116] 4e75                      rts
+
+x18118
 [00018118] 4240                      clr.w      d0
 [0001811a] 4e75                      rts
+
 [0001811c] 2f0a                      move.l     a2,-(a7)
 [0001811e] 4fef ff8e                 lea.l      -114(a7),a7
 [00018122] 2448                      movea.l    a0,a2
@@ -11832,6 +11873,7 @@ can_scale_bitmaps:
 [000181b0] 4240                      clr.w      d0
 [000181b2] 4fef 0072                 lea.l      114(a7),a7
 [000181b6] 4e75                      rts
+
 [000181b8] 2f0a                      move.l     a2,-(a7)
 [000181ba] 2f0b                      move.l     a3,-(a7)
 [000181bc] 4fef ff8e                 lea.l      -114(a7),a7
@@ -11878,7 +11920,7 @@ vq_scrninfo:
 [0001824c] 4fef 0014                 lea.l      20(a7),a7
 [00018250] 4cdf 1408                 movem.l    (a7)+,d3/a2/a4
 [00018254] 4e75                      rts
-
+v_clip:
 [00018256] 2f03                      move.l     d3,-(a7)
 [00018258] 3f04                      move.w     d4,-(a7)
 [0001825a] 514f                      subq.w     #8,a7
@@ -11913,6 +11955,7 @@ vq_scrninfo:
 [000182aa] 381f                      move.w     (a7)+,d4
 [000182ac] 261f                      move.l     (a7)+,d3
 [000182ae] 4e75                      rts
+
 [000182b0] 3f03                      move.w     d3,-(a7)
 [000182b2] 2f0b                      move.l     a3,-(a7)
 [000182b4] 4fef ffe4                 lea.l      -28(a7),a7
@@ -11932,7 +11975,7 @@ vq_scrninfo:
 [000182e2] 3741 0006                 move.w     d1,6(a3)
 [000182e6] 41d7                      lea.l      (a7),a0
 [000182e8] 3003                      move.w     d3,d0
-[000182ea] 6100 ff6a                 bsr        $00018256
+[000182ea] 6100 ff6a                 bsr        v_clip
 [000182ee] 7201                      moveq.l    #1,d1
 [000182f0] 3003                      move.w     d3,d0
 [000182f2] 6100 9ffc                 bsr        vsf_interior
@@ -11949,6 +11992,7 @@ vq_scrninfo:
 [00018312] 265f                      movea.l    (a7)+,a3
 [00018314] 361f                      move.w     (a7)+,d3
 [00018316] 4e75                      rts
+
 [00018318] 48e7 1830                 movem.l    d3-d4/a2-a3,-(a7)
 [0001831c] 2448                      movea.l    a0,a2
 [0001831e] 2649                      movea.l    a1,a3
@@ -12769,6 +12813,7 @@ emptystr:
 [00019250]                           dc.w $0009
 [00019252]                           dc.w $0001
 [00019254]                           dc.w $000a
+plane2mask:
 [00019256]                           dc.w $0000
 [00019258]                           dc.w $0000
 [0001925a]                           dc.w $0000
@@ -12787,6 +12832,7 @@ emptystr:
 [00019274]                           dc.w $0000
 [00019276]                           dc.w $0000
 [00019278]                           dc.w $0000
+plane3mask:
 [0001927a]                           dc.w $0000
 [0001927c]                           dc.w $0000
 [0001927e]                           dc.w $0000
@@ -12817,12 +12863,14 @@ emptystr:
 [000192b0]                           dc.w $0000
 [000192b2]                           dc.w $0000
 [000192b4]                           dc.w $0000
+plane4mask:
 [000192b6]                           dc.w $0000
 [000192b8]                           dc.w $0000
 [000192ba]                           dc.w $0000
 [000192bc]                           dc.w $0000
 [000192be]                           dc.w $ffff
 [000192c0]                           dc.w $0010
+
 [000192c2]                           dc.w $ffff
 [000192c4]                           dc.w $ffff
 [000192c6]                           dc.w $ffff
@@ -12847,7 +12895,9 @@ emptystr:
 [000192ec]                           dc.w $aaaa
 [000192ee]                           dc.w $aaaa
 [000192f0]                           dc.w $aaaa
-[000192f2]                           dc.b 'UUUUUU'
+[000192f2]                           dc.w $5555
+[000192f4]                           dc.w $5555
+[000192f6]                           dc.w $5555
 [000192f8]                           dc.w $aaaa
 [000192fa]                           dc.w $0000
 [000192fc]                           dc.w $0000
@@ -12863,12 +12913,15 @@ emptystr:
 [00019310]                           dc.w $aaaa
 [00019312]                           dc.w $0000
 [00019314]                           dc.w $aaaa
+
 [00019316]                           dc.w $0000
 [00019318]                           dc.w $aaaa
 [0001931a]                           dc.w $aaaa
+
 [0001931c]                           dc.w $0000
 [0001931e]                           dc.w $0000
 [00019320]                           dc.w $0000
+
 [00019322]                           dc.w $7262
 [00019324]                           dc.w $0000
 [00019326]                           dc.b 'HOME',0
@@ -13256,8 +13309,8 @@ emptystr:
 18a4c: verbose
 18a4e: magicmac
 18a52: macroman_cset
-18b52:
-18b54:
+18b52: standard_font_id
+18b54: typewriter_font_id
 18b56:
 18b58:
 18b5a: expand_spaces
@@ -13321,11 +13374,25 @@ emptystr:
 1a178: hypfold
 1a478: katalog
 
+1a578: left
+1ad6e: right
+1b564: c_len
+1b762: pt_len
+1b776: c_table
+1d776: pt_table
 1d976: bitbuf
 1d978: subbitbuf
 1d97a: bitcount
 1d97c: blocksize
+1d97e: lh5_packedMem
+1d982: lh5_compsize
+1d986: lh5_buffer
+1d98a: lh5_origsize
 1d98e: dec_j
+1d990: dec_i
+
+1d994: fonttable
+1d9c4: print_handle
 
 1dac8: sysvarptr
 

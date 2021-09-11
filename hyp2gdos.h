@@ -45,9 +45,9 @@
 struct file {
 	FILE *fp;
 	_BOOL eof;
-	short o6;
-	short o8;
-	long o10;
+	_BOOL overflow;
+	int lastc;
+	long lineno;
 	long pos;
 	long avail;
 	unsigned char buf[1024];
@@ -82,10 +82,6 @@ struct hypfile {
 	/* 306 */ short width;
 };
 
-
-struct font {
-	_BOOL used;
-};
 
 struct histent {
 	Path filename;
@@ -158,12 +154,11 @@ struct layout {
 	long last_line;
 };
 
-extern struct font fonttable[8];
-extern _WORD x1d9c4;
 extern struct layout layout;
 extern int hyp_errno;
 extern char hypfold[MAXPATH];
 extern char katalog[MAXPATH];
+extern _WORD fonts[];
 
 
 size_t conv_macroman(const char *src, char *dst);
@@ -174,10 +169,56 @@ _BOOL should_abort(void);
 int verboseout(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 
-
+/*
+ * file.c
+ */
 struct file *openfile(const char *filename);
 int closefile(struct file *fp);
 long readline(struct file *fp, char *line, size_t len);
+
+
+/*
+ * font.c
+ */
+extern _WORD print_handle;
+
+int new_font_id(void);
+int set_font(int fontidx, _WORD font_id, _WORD size);
+struct vdi;
+#if defined(__PUREC__) && !defined(__HVDI_IMPLEMENTATION__)
+struct vdi { int dummy; };
+#endif
+_WORD vdi_get_handle(struct vdi *v);
+struct vdi *vdi_alloc(void);
+void vdi_free(struct vdi *v);
+void vdi_ref(struct vdi *v);
+void vdi_unref(struct vdi *v);
+void vdi_line_attributes(struct vdi *v, _WORD line_color, _WORD line_mode, _WORD line_type, _WORD line_width);
+void vdi_draw_line(struct vdi *v, _WORD *pxy);
+void vdi_draw_arrowed(struct vdi *v, _WORD *pxy, _WORD ends);
+void vdi_draw_rect(struct vdi *v, const GRECT *gr);
+void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr);
+void vdi_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern);
+void vdi_draw_bar(struct vdi *v, const GRECT *gr);
+void vdi_draw_rounded_box(struct vdi *v, const GRECT *gr);
+void vdi_text_attributes(struct vdi *v, _WORD text_color, _WORD text_mode, _WORD text_effects, _WORD font_idx);
+void vdi_get_fontwidth(struct vdi *v, _WORD *cell_width, _WORD *cell_height);
+void vdi_draw_text(struct vdi *v, _WORD x, _WORD y, char *str, _WORD len);
+_WORD vdi_get_textwidth(struct vdi *v, char *str, _WORD len);
+void vdi_defaults(struct vdi *v);
+void vdi_clip(struct vdi *v, const GRECT *gr);
+void v_clip(_WORD handle, const GRECT *gr);
+int vdi_draw_bitmap(struct vdi *v, void *data,
+	_WORD x, _WORD y, _WORD dstwidth, _WORD dstheight,
+	_WORD srcwidth, _WORD srcheight,
+	_WORD planes, _WORD mode,
+	_WORD unused1, _WORD unused2);
+int vdi_draw_image(struct vdi *v, void *data,
+	_WORD x, _WORD y, _WORD dstwidth, _WORD dstheight,
+	_WORD srcwidth, _WORD srcheight,
+	_WORD planes, _WORD mode,
+	_WORD unused1, _WORD unused2, void *mask);
+
 
 /*
  * util.c
@@ -213,8 +254,6 @@ struct hypfile *hyp_new(void);
 void hyp_delete(struct hypfile **hyp);
 void hyp_free(struct hypfile *hyp);
 int hyp_load(struct hypfile *hyp, const Path *filename);
-int x16fd8(void);
-int x17008(int fontidx, _WORD font_id, _WORD size);
 _BOOL can_scale_bitmaps(_WORD handle);
 int hyp_init_pageinfo(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, _BOOL history);
 hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);

@@ -14,21 +14,6 @@ FILE *x14f38(const Path *filename)
 }
 
 
-int x16fd8(void)
-{
-	return 0;
-}
-
-
-int x17008(int fontidx, _WORD font_id, _WORD size)
-{
-	(void) fontidx;
-	(void) font_id;
-	(void) size;
-	return 0;
-}
-
-
 _BOOL can_scale_bitmaps(_WORD handle)
 {
 	_WORD workout[57];
@@ -155,30 +140,11 @@ char *dec_255_encode(char *data, short val)
 #endif
 
 
-int x18118(char *data, short width, short height, short planes)
-{
-	UNUSED(data);
-	UNUSED(width);
-	UNUSED(height);
-	UNUSED(planes);
-	return 0;
-}
-
-
 static int x185c8(void)
 {
 	sprintf(sysvarptr, "hello");
-	ftell(0);
-	fseek(0, 0, 0);
-	strcat(sysvarptr, " ");
-	*strchr(sysvarptr, 10) = 0;
-	strncmp(sysvarptr, " ", 0);
 	if (strcmp(sysvarptr, " ")){}
-	strnicmp(0, 0, 0);
-	memcmp(sysvarptr, " ", 1);
-	memcpy(sysvarptr, " ", 1);
 	if (toupper(0)){}
-	memset(sysvarptr, 0, 1);
 	
 	if (timezone * timezone)
 		return 0;
@@ -186,145 +152,19 @@ static int x185c8(void)
 		return 0;
 	
 	(void) Tgetdate();
-	conv_macroman(0, 0);
 	
 	v_updwk(0);
-	v_rbox(0, 0);
-	v_pline(0, 0, 0);
 	v_clrwk(0);
-	v_bar(0, 0);
 	vs_clip(0, 0, 0);
-	vst_point(0, 0, 0, 0, 0, 0);
-	vst_font(0, 0);
-	vst_alignment(0, 0, 0, 0, 0);
-	vsf_style(0, 0);
 	vrt_cpyfm(0, 0, 0, 0, 0, 0);
 	vro_cpyfm(0, 0, 0, 0, 0);
-	v_gtext(0, 0, 0, 0);
-	vqt_extent(0, 0, 0);
 
-	get_basename(0, 0);
-	get_dirname(0, 0);
-	get_name(0, 0);
-	append_path(0, 0, 0);
-	myfopen(0, 0);
-	
 	return 1;
 }
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
 /**************************************************************************/
-
-struct file *openfile(const char *filename)
-{
-	struct file *f;
-	FILE *fp;
-	
-	fp = fopen(filename, "rb");
-	if (fp == NULL)
-		return NULL;
-	f = malloc(sizeof(*f));
-	if (f == NULL)
-	{
-		fclose(fp);
-		return NULL;
-	}
-	memset(f, 0, sizeof(*f));
-	f->fp = fp;
-	f->avail = sizeof(f->buf);
-	f->pos = f->avail;
-	f->eof = FALSE;
-	f->o6 = 0;
-	f->o8 = 0;
-	f->o10 = 0;
-	return f;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int closefile(struct file *f)
-{
-	fclose(f->fp);
-	free(f);
-	return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-static int f_getc(struct file *f)
-{
-	if (f->pos >= f->avail)
-	{
-		if (f->avail <= 0)
-			return EOF;
-		f->avail = fread(f->buf, 1, sizeof(f->buf), f->fp);
-		f->pos = 0;
-		if (f->avail <= 0)
-			return EOF;
-	}
-	return f->buf[f->pos++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-long readline(struct file *f, char *line, size_t len)
-{
-	int c;
-	size_t pos;
-	
-	f->o6 = 0;
-	pos = 0;
-	for (;;)
-	{
-		c = f_getc(f);
-		switch (c)
-		{
-		case EOF:
-			line[pos] = '\0';
-			if (f->eof)
-				return EOF;
-			++f->o10;
-			f->eof = TRUE;
-			return pos;
-		
-		case 0x0d:
-			f->o8 = 0x17;
-			c = f_getc(f);
-			switch (c)
-			{
-			default:
-				f->o8 = 0x0d;
-				f->pos--;
-				break;
-			case 0x0a:
-			case EOF:
-				break;
-			}
-			line[pos] = '\0';
-			++f->o10;
-			return pos;
-	
-		case 0x0a:
-			f->o8 = 0x0a;
-			line[pos] = '\0';
-			++f->o10;
-			return pos;
-		
-		default:
-			if (pos == len - 1)
-			{
-				f->pos--;
-				line[pos] = '\0';
-				f->o6 = TRUE;
-				return pos;
-			}
-			line[pos] = c;
-			pos++;
-			break;
-		}
-	}
-}
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */

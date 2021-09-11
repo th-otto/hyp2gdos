@@ -3,9 +3,16 @@
 ***********************************************************/
 #include <stdio.h>
 
-/* io.c */
+#define LH5_NO_CRC 1
 
-extern FILE *infile, *outfile;
+#ifndef LH5_NO_CRC
 extern unsigned int crc;
+#endif
 
-void decode_lh5(unsigned long orgsize, unsigned long pacsize);
+extern unsigned char *lh5_buffer;
+extern unsigned char *lh5_packedMem;
+extern unsigned long lh5_compsize;
+extern unsigned long lh5_origsize;
+
+void lh5_decode1(unsigned int count);
+void lh5_decode(unsigned long origsize, unsigned long pacsize);

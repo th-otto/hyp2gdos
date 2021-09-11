@@ -2,7 +2,7 @@ CROSS=m68k-atari-mint-
 
 CC=$(CROSS)gcc
 CFLAGS=-O2 -fomit-frame-pointer -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror
-LDFLAGS = -s
+LDFLAGS = # -s
 
 all: hyp2gdos.ttp
 
@@ -10,6 +10,8 @@ OBJS = \
 	main.o \
 	hyp.o \
 	lh5d.o \
+	file.o \
+	font.o \
 	util.o \
 	$(empty)
 

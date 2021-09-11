@@ -26,9 +26,23 @@
 #define CODE_BIT  16  /* codeword length */
 
 
+#define NP (DICBIT + 1)
+#define NT (CODE_BIT + 3)
+#define PBIT 4							/* smallest integer such that (1U << PBIT) > NP */
+#define TBIT 5							/* smallest integer such that (1U << TBIT) > NT */
+#if NT > NP
+#define NPT NT
+#else
+#define NPT NP
+#endif
 
-static unsigned char buffer[DICSIZ];
+static unsigned short left[2 * NC - 1];
+static unsigned short right[2 * NC - 1];
 
+static unsigned char c_len[NC];
+static unsigned char pt_len[NPT];
+static unsigned short c_table[4096];
+static unsigned short pt_table[256];
 
 
 #define CRCPOLY  0xA001					/* ANSI CRC-16 */
@@ -36,33 +50,29 @@ static unsigned char buffer[DICSIZ];
 #define UPDATE_CRC(c) \
 	crc = crctable[(crc ^ (c)) & 0xFF] ^ (crc >> CHAR_BIT)
 
-FILE *infile;
-FILE *outfile;
-
+#ifndef LH5_NO_CRC
 unsigned int crc;
+unsigned short crctable[UCHAR_MAX + 1];
+#endif
 
-static unsigned long origsize;
-static unsigned long compsize;
-static unsigned char *packedMem;
 
 static unsigned int bitbuf;
 static unsigned int subbitbuf;
-
 static int bitcount;
-
-unsigned short crctable[UCHAR_MAX + 1];
-
-static unsigned int subbitbuf;
-
-static int bitcount;
+static int blocksize;
+unsigned char *lh5_packedMem;
+unsigned long lh5_compsize;
+unsigned char *lh5_buffer;
+unsigned long lh5_origsize;
 
 static int dec_j;						/* remaining bytes to copy */
+static size_t dec_i;
 
-/* maketbl.c */
+/**************************************************************************/
+/* ---------------------------------------------------------------------- */
+/**************************************************************************/
 
-static void make_table(unsigned int nchar, unsigned char bitlen[], unsigned int tablebits, unsigned short table[]);
-
-
+#if 0 /* not used here */
 static void error(char *fmt, ...)
 {
 	va_list args;
@@ -74,31 +84,39 @@ static void error(char *fmt, ...)
 	va_end(args);
 	exit(EXIT_FAILURE);
 }
+#endif
 
+/* ---------------------------------------------------------------------- */
+
+#ifndef LH5_NO_CRC
 static void make_crctable(void)
 {
-	unsigned int i,
-	 j,
-	 r;
+	unsigned int i;
+	unsigned int j;
+	unsigned int r;
 
 	static int crc_ready = 0;
 
 	if (crc_ready == 0)
 	{
-
 		for (i = 0; i <= UCHAR_MAX; i++)
 		{
 			r = i;
 			for (j = 0; j < CHAR_BIT; j++)
+			{
 				if (r & 1)
 					r = (r >> 1) ^ CRCPOLY;
 				else
 					r >>= 1;
+			}
 			crctable[i] = r;
 		}
 		crc_ready = 1;
 	}
 }
+#endif
+
+/* ---------------------------------------------------------------------- */
 
 static void fillbuf(int n)			/* Shift bitbuf n bits left, read n bits */
 {
@@ -106,10 +124,10 @@ static void fillbuf(int n)			/* Shift bitbuf n bits left, read n bits */
 	while (n > bitcount)
 	{
 		bitbuf |= subbitbuf << (n -= bitcount);
-		if (compsize != 0)
+		if (lh5_compsize != 0)
 		{
-			compsize--;
-			subbitbuf = *packedMem++;
+			lh5_compsize--;
+			subbitbuf = *lh5_packedMem++;
 		} else
 		{
 			subbitbuf = 0;
@@ -132,14 +150,18 @@ static unsigned int getbits(int n)
 
 /* ------------------------------------------------------------------------- */
 
-static void fwrite_crc(unsigned char * p, int n, FILE * f)
+#if 0 /* not used here */
+static void fwrite_crc(unsigned char *p, int n, FILE * f)
 {
 	if (f != NULL)
 		if ((int)fwrite(p, 1, n, f) < n)
 			error("Unable to write");
+#ifndef LH5_NO_CRC
 	while (--n >= 0)
 		UPDATE_CRC(*p++);
+#endif
 }
+#endif
 
 /* --------------------------- End of IO.C --------------------------- */
 
@@ -152,32 +174,99 @@ static void fwrite_crc(unsigned char * p, int n, FILE * f)
 /* ----------------------Start of huf.c ------------------------------- */
 
 /***********************************************************
-	huf.c -- static Huffman
+	maketbl.c -- make table for decoding
 ***********************************************************/
 
-#define NP (DICBIT + 1)
-#define NT (CODE_BIT + 3)
-#define PBIT 4							/* smallest integer such that (1U << PBIT) > NP */
-#define TBIT 5							/* smallest integer such that (1U << TBIT) > NT */
-#if NT > NP
-#define NPT NT
-#else
-#define NPT NP
+static void make_table(unsigned int nchar, unsigned char bitlen[], unsigned int tablebits, unsigned short table[])
+{
+	unsigned short count[17];
+	unsigned short weight[17];
+	unsigned short start[18];
+	unsigned short *p;
+	unsigned int i, k, len, ch, jutbits, avail, nextcode, mask;
+
+	for (i = 1; i <= 16; i++)
+		count[i] = 0;
+	for (i = 0; i < nchar; i++)
+		count[bitlen[i]]++;
+
+	start[1] = 0;
+	for (i = 1; i <= 16; i++)
+		start[i + 1] = start[i] + (count[i] << (16 - i));
+
+#if 0
+	if (start[17] != (unsigned short) (1U << 16))
+	{
+		/* error("Bad table"); */
+		return;
+	}
 #endif
 
-static unsigned short left[2 * NC - 1];
-static unsigned short right[2 * NC - 1];
+	jutbits = 16 - tablebits;
+	for (i = 1; i <= tablebits; i++)
+	{
+		start[i] >>= jutbits;
+		weight[i] = 1U << (tablebits - i);
+	}
+	while (i <= 16)
+	{
+#ifdef __GNUC__
+		weight[i] = 1U << (16 - i);
+		i++;
+#else
+		weight[i++] = 1U << (16 - i);
+#endif
+	}
 
-static unsigned char c_len[NC];
-static unsigned char pt_len[NPT];
+	i = *(start + tablebits + 1) >> jutbits;
+	if (i != (unsigned short) (1UL << 16))
+	{
+		k = 1U << tablebits;
+		while (i != k)
+			table[i++] = 0;
+	}
 
-static int blocksize;
-
-static unsigned short c_table[4096];
-static unsigned short pt_table[256];
-static unsigned short c_table[4096];
+	avail = nchar;
+	mask = 1U << (15 - tablebits);
+	for (ch = 0; ch < nchar; ch++)
+	{
+		if ((len = bitlen[ch]) == 0)
+			continue;
+		nextcode = start[len] + weight[len];
+		if (len <= tablebits)
+		{
+			for (i = start[len]; i < nextcode; i++)
+				table[i] = ch;
+		} else
+		{
+			k = start[len];
+			p = &table[k >> jutbits];
+			i = len - tablebits;
+			while (i != 0)
+			{
+				if (*p == 0)
+				{
+					right[avail] = left[avail] = 0;
+					*p = avail++;
+				}
+				if (k & mask)
+					p = &right[*p];
+				else
+					p = &left[*p];
+				k <<= 1;
+				i--;
+			}
+			*p = ch;
+		}
+		start[len] = nextcode;
+	}
+}
 
 /* ------------------------------------------------------------------------- */
+
+/***********************************************************
+	huf.c -- static Huffman
+***********************************************************/
 
 static void read_pt_len(int nn, int nbit, int i_special)
 {
@@ -341,93 +430,6 @@ static unsigned int decode_p(void)
 
 /* ----------------------End   of huf.c ------------------------------- */
 
-/***********************************************************
-	maketbl.c -- make table for decoding
-***********************************************************/
-
-static void make_table(unsigned int nchar, unsigned char bitlen[], unsigned int tablebits, unsigned short table[])
-{
-	unsigned short count[17];
-	unsigned short weight[17];
-	unsigned short start[18];
-	unsigned short *p;
-	unsigned int i, k, len, ch, jutbits, avail, nextcode, mask;
-
-	for (i = 1; i <= 16; i++)
-		count[i] = 0;
-	for (i = 0; i < nchar; i++)
-		count[bitlen[i]]++;
-
-	start[1] = 0;
-	for (i = 1; i <= 16; i++)
-		start[i + 1] = start[i] + (count[i] << (16 - i));
-
-	if (start[17] != (unsigned short) (1U << 16))
-	{
-		/* error("Bad table"); */
-		return;
-	}
-
-	jutbits = 16 - tablebits;
-	for (i = 1; i <= tablebits; i++)
-	{
-		start[i] >>= jutbits;
-		weight[i] = 1U << (tablebits - i);
-	}
-	while (i <= 16)
-	{
-#ifdef __GNUC__
-		weight[i] = 1U << (16 - i);
-		i++;
-#else
-		weight[i++] = 1U << (16 - i);
-#endif
-	}
-
-	i = start[tablebits + 1] >> jutbits;
-	if (i != (unsigned short) (1UL << 16))
-	{
-		k = 1U << tablebits;
-		while (i != k)
-			table[i++] = 0;
-	}
-
-	avail = nchar;
-	mask = 1U << (15 - tablebits);
-	for (ch = 0; ch < nchar; ch++)
-	{
-		if ((len = bitlen[ch]) == 0)
-			continue;
-		nextcode = start[len] + weight[len];
-		if (len <= tablebits)
-		{
-			for (i = start[len]; i < nextcode; i++)
-				table[i] = ch;
-		} else
-		{
-			k = start[len];
-			p = &table[k >> jutbits];
-			i = len - tablebits;
-			while (i != 0)
-			{
-				if (*p == 0)
-				{
-					right[avail] = left[avail] = 0;
-					*p = avail++;
-				}
-				if (k & mask)
-					p = &right[*p];
-				else
-					p = &left[*p];
-				k <<= 1;
-				i--;
-			}
-			*p = ch;
-		}
-		start[len] = nextcode;
-	}
-}
-
 /* ------------------------------------------------------------------------- */
 
 /* The calling function must keep the number of
@@ -437,38 +439,55 @@ static void make_table(unsigned int nchar, unsigned char bitlen[], unsigned int 
    'DICSIZ' or more.
    Call decode_start() once for each new file
    before calling this function. */
-static void decode5(unsigned int count, unsigned char buffer[])
+void lh5_decode1(unsigned int count)
 {
-	static unsigned int dec_i;
-
 	unsigned int c;
-	unsigned int r;
+	size_t r;
 
 	r = 0;
-	while (--dec_j >= 0)
+	if (count != 0)
 	{
-		buffer[r] = buffer[dec_i];
-		dec_i = (dec_i + 1) & (DICSIZ - 1);
-		if (++r == count)
-			return;
+		bitbuf = 0;
+		subbitbuf = 0;
+		bitcount = 0;
+		fillbuf((int)BITBUFSIZ);
+		blocksize = 0;
+		dec_j = 0;
+	} else
+	{
+		while (--dec_j >= 0)
+		{
+			lh5_buffer[r] = lh5_buffer[dec_i];
+#if 0
+			dec_i = (dec_i + 1) & (DICSIZ - 1);
+#else
+			++dec_i;
+#endif
+			if (++r == lh5_origsize)
+				return;
+		}
 	}
 	for (;;)
 	{
 		c = decode_c();
 		if (c <= UCHAR_MAX)
 		{
-			buffer[r] = c;
-			if (++r == count)
+			lh5_buffer[r] = c;
+			if (++r == lh5_origsize)
 				return;
 		} else
 		{
 			dec_j = c - (UCHAR_MAX + 1 - THRESHOLD);
-			dec_i = (r - decode_p() - 1) & (DICSIZ - 1);
+			dec_i = ((r - decode_p() - 1)) /* & (DICSIZ - 1) */;
 			while (--dec_j >= 0)
 			{
-				buffer[r] = buffer[dec_i];
+				lh5_buffer[r] = lh5_buffer[dec_i];
+#if 0
 				dec_i = (dec_i + 1) & (DICSIZ - 1);
-				if (++r == count)
+#else
+				++dec_i;
+#endif
+				if (++r == lh5_origsize)
 					return;
 			}
 		}
@@ -477,14 +496,16 @@ static void decode5(unsigned int count, unsigned char buffer[])
 
 /* ------------------------------------------------------------------------- */
 
-void decode_lh5(unsigned long orgsize, unsigned long pacsize)
+#if 0 /* not used here */
+void lh5_decode(unsigned long origsize, unsigned long pacsize)
 {
 	int n;
 
+#ifndef LH5_NO_CRC
 	make_crctable();
-	origsize = orgsize;
-	compsize = pacsize;
 	crc = INIT_CRC;
+#endif
+	lh5_compsize = pacsize;
 
 	bitbuf = 0;
 	subbitbuf = 0;
@@ -496,8 +517,10 @@ void decode_lh5(unsigned long orgsize, unsigned long pacsize)
 	while (origsize != 0)
 	{
 		n = (unsigned int) ((origsize > DICSIZ) ? DICSIZ : origsize);
-		decode5(n, buffer);
-		fwrite_crc(buffer, n, outfile);
+
+		lh5_decode1(n);
+		fwrite_crc(lh5_buffer, n, outfile);
 		origsize -= n;
 	}
 }
+#endif

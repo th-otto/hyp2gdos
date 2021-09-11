@@ -9,7 +9,7 @@ x132c8:
 	move.w     d2,d5
 	lea.l      x1915c,a1
 	moveq.l    #1,d0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d3
 	lea.l      x1910c,a3
 	bra.s      x13310
@@ -28,7 +28,7 @@ x132fc:
 	move.w     d7,d1
 	move.w     d4,d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	move.w     d6,d0
 	muls.w     d3,d0
 	add.w      d0,d4
@@ -45,7 +45,7 @@ x13310:
 	move.w     d5,d0
 	sub.w      d3,d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 x1332c:
 	movem.l    (a7)+,d3-d7/a2-a3
 	rts
@@ -57,18 +57,18 @@ x13332:
 	movea.l    a0,a2
 	movea.l    20(a2),a3
 	movea.l    (a0),a0
-	bsr        x172a4
+	bsr        vdi_ref
 	move.w     2(a3),-(a7)
 	clr.w      d2
 	moveq.l    #7,d1
 	move.w     6(a3),d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	pea.l      4(a7)
 	lea.l      10(a7),a1
 	movea.l    (a2),a0
-	bsr        x17712
+	bsr        vdi_get_fontwidth
 	addq.w     #4,a7
 	movea.l    16(a3),a0
 	bsr        strlen
@@ -78,7 +78,7 @@ x13332:
 	move.w     d3,d0
 	movea.l    16(a3),a1
 	movea.l    (a2),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	ext.l      d0
 	divs.w     d3,d0
 	move.w     d0,6(a7)
@@ -88,12 +88,12 @@ x1338a:
 	moveq.l    #7,d1
 	move.w     6(a3),d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	pea.l      (a7)
 	lea.l      6(a7),a1
 	movea.l    (a2),a0
-	bsr        x17712
+	bsr        vdi_get_fontwidth
 	addq.w     #4,a7
 	move.w     (a7),d0
 	cmp.w      4(a7),d0
@@ -101,7 +101,7 @@ x1338a:
 	move.w     d0,4(a7)
 x133b6:
 	movea.l    (a2),a0
-	bsr        x172c8
+	bsr        vdi_unref
 	move.w     6(a7),12(a2)
 	move.w     4(a7),14(a2)
 	addq.w     #8,a7
@@ -135,7 +135,7 @@ x133d0:
 	move.w     d0,d1
 	movea.l    (a3),a0
 	move.w     4(a7),d0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	move.b     (a2)+,d3
 	ext.w      d3
@@ -165,7 +165,7 @@ x13460:
 	moveq.l    #1,d0
 	movea.l    a5,a1
 	movea.l    (a3),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	movea.l    50(a7),a0
 	add.w      d0,(a0)
 	addq.l     #1,(a4)
@@ -184,7 +184,7 @@ x1347e:
 	movea.l    20(a3),a0
 	move.w     6(a0),d0
 	movea.l    (a3),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	movea.l    a2,a0
 	lea.l      10(a7),a7
@@ -202,7 +202,7 @@ x134a2:
 	movea.l    56(a7),a5
 	movea.l    20(a2),a3
 	movea.l    (a1),a0
-	bsr        x172a4
+	bsr        vdi_ref
 	clr.w      d3
 	movea.l    8(a7),a0
 	movea.l    (a0),a1
@@ -221,7 +221,7 @@ x134e4:
 	moveq.l    #7,d1
 	move.w     6(a3),d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	clr.w      (a5)
 	moveq.l    #0,d5
@@ -273,7 +273,7 @@ x1356a:
 	moveq.l    #1,d0
 	movea.l    a4,a1
 	movea.l    (a2),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	add.w      d0,(a5)
 	bra.s      x135ce
 x13578:
@@ -308,7 +308,7 @@ x135be:
 	moveq.l    #1,d0
 	movea.l    a4,a1
 	movea.l    (a2),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	ext.l      d0
 	add.l      d0,d0
 	adda.l     d0,a5
@@ -357,7 +357,7 @@ x1362a:
 	moveq.l    #-1,d1
 	move.w     6(a3),d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	bra.s      x1367a
 x1364a:
@@ -379,7 +379,7 @@ x13666:
 	moveq.l    #-1,d1
 	move.w     6(a3),d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 x13678:
 	addq.w     #1,a4
@@ -416,10 +416,10 @@ x136b8:
 	moveq.l    #-1,d1
 	moveq.l    #-1,d0
 	movea.l    (a2),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	movea.l    (a2),a0
-	bsr        x172c8
+	bsr        vdi_unref
 	clr.w      d0
 	lea.l      12(a7),a7
 	movem.l    (a7)+,d3-d7/a2-a5
@@ -466,7 +466,7 @@ x136fa:
 	move.w     d0,d1
 	movea.l    (a3),a0
 	move.w     4(a7),d0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	move.b     (a2)+,d3
 	ext.w      d3
@@ -489,11 +489,11 @@ x136fa:
 	move.w     (a0),d1
 	move.w     (a5),d0
 	movea.l    (a3),a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	move.w     d3,d0
 	movea.l    a4,a1
 	movea.l    (a3),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d4
 	bra.s      x137b0
 x13790:
@@ -503,11 +503,11 @@ x13790:
 	move.w     (a0),d1
 	move.w     (a5),d0
 	movea.l    (a3),a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	move.w     d3,d0
 	movea.l    a2,a1
 	movea.l    (a3),a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d4
 	adda.w     d3,a2
 x137b0:
@@ -548,7 +548,7 @@ x13800:
 	moveq.l    #-1,d1
 	move.w     6(a3),d0
 	movea.l    a4,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	move.l     d6,d0
 	lsl.l      #2,d0
@@ -632,11 +632,11 @@ x138ca:
 	move.w     2(a7),d1
 	move.w     4(a7),d0
 	movea.l    a4,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	move.w     d6,d0
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	add.w      d0,4(a7)
 	add.w      d6,(a7)
 	bra        x139ec
@@ -674,11 +674,11 @@ x1393a:
 	move.w     2(a7),d1
 	move.w     4(a7),d0
 	movea.l    a4,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	moveq.l    #1,d0
 	movea.l    a2,a1
 	movea.l    a4,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	add.w      d0,4(a7)
 	addq.w     #1,a2
 	addq.w     #1,(a7)
@@ -712,7 +712,7 @@ x139a8:
 	moveq.l    #-1,d1
 	move.w     6(a3),d0
 	movea.l    a4,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	bra.s      x139ec
 x139bc:
@@ -734,7 +734,7 @@ x139d8:
 	moveq.l    #-1,d1
 	move.w     6(a3),d0
 	movea.l    a4,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 x139ea:
 	addq.w     #1,a2
@@ -758,7 +758,7 @@ x13a10:
 	moveq.l    #-1,d1
 	moveq.l    #-1,d0
 	movea.l    a4,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	lea.l      14(a7),a7
 	movem.l    (a7)+,d3-d6/a2-a5
@@ -1259,11 +1259,11 @@ x13f02:
 	move.w     d1,d0
 	moveq.l    #7,d1
 	move.w     d0,d2
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x17482
+	bsr        vdi_draw_rect
 	bra        x13ffa
 x13f6c:
 	movea.l    38(a7),a0
@@ -1284,7 +1284,7 @@ x13f6c:
 	movea.l    a4,a0
 	move.w     (a5),d0
 	move.w     2(a5),d1
-	bsr        x17914
+	bsr        vdi_draw_bitmap
 	lea.l      14(a7),a7
 	bra.s      x13ffa
 x13fa8:
@@ -1350,7 +1350,7 @@ x13ffa:
 	moveq.l    #7,d1
 	movea.l    a4,a0
 	move.w     36(a7),d0
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	bra        x14298
 x14066:
@@ -1415,12 +1415,12 @@ x14066:
 	movea.l    a4,a0
 	moveq.l    #7,d1
 	move.w     12(a7),d2
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	move.w     d6,d0
 	lea.l      32(a7),a1
 	movea.l    a4,a0
-	bsr        x173da
+	bsr        vdi_draw_arrowed
 	bra        x143bc
 x1414e:
 	lea.l      6(a7),a1
@@ -1521,21 +1521,21 @@ x14272:
 	moveq.l    #7,d1
 	moveq.l    #1,d0
 	movea.l    a4,a0
-	bsr        x17574
+	bsr        vdi_fill_attributes
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x175b2
+	bsr        vdi_draw_bar
 	moveq.l    #1,d0
 	move.w     d0,-(a7)
 	move.w     d0,d2
 	moveq.l    #7,d1
 	movea.l    a4,a0
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 x14298:
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x17482
+	bsr        vdi_draw_rect
 	bra        x143bc
 x142a4:
 	lea.l      6(a7),a1
@@ -1603,22 +1603,22 @@ x14364:
 	moveq.l    #7,d1
 	moveq.l    #1,d0
 	movea.l    a4,a0
-	bsr        x17574
+	bsr        vdi_fill_attributes
 	moveq.l    #10,d0
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x17630
+	bsr        vdi_draw_rounded_box
 	moveq.l    #1,d0
 	move.w     d0,-(a7)
 	move.w     d0,d2
 	moveq.l    #7,d1
 	movea.l    a4,a0
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	moveq.l    #10,d0
 	movea.l    a5,a1
 	movea.l    a4,a0
-	bsr        x174d6
+	bsr        vdi_draw_rounded_rect
 	bra.s      x143bc
 x14398:
 	move.b     2(a3),d0
@@ -1911,7 +1911,7 @@ x14678:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	cmp.b      #$20,d0
 	bne        x14718
 	moveq.l    #-1,d1
@@ -1919,7 +1919,7 @@ x14678:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	cmp.b      #$20,d0
 	beq.s      x146c2
 	cmp.b      #$2E,d0
@@ -1931,7 +1931,7 @@ x14678:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	cmp.b      #$2E,d0
 	bne.s      x14718
 x146c2:
@@ -1944,7 +1944,7 @@ x146ca:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	move.b     d0,(a4)+
 	addq.w     #1,d6
 x146da:
@@ -1959,7 +1959,7 @@ x146e0:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	cmp.b      #$20,d0
 	beq.s      x146e0
 x146f8:
@@ -1971,7 +1971,7 @@ x14700:
 	ext.l      d1
 	moveq.l    #0,d0
 	movea.l    a3,a0
-	bsr        x1665a
+	bsr        hyp_get_char_at
 	move.b     d0,(a4)+
 	addq.w     #1,d6
 x14710:
@@ -1997,13 +1997,13 @@ x14728:
 	movea.l    a1,a2
 	move.w     d0,d3
 	movea.l    (a0),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	movea.l    a2,a0
 	bsr        x1814c
 	lea.l      8(a2),a0
 	move.l     a0,-(a7)
 	movea.l    (a3),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	movea.l    (a7)+,a0
 	bsr        x1811c
 	lea.l      (a7),a1
@@ -2011,7 +2011,7 @@ x14728:
 	move.l     a1,-(a7)
 	move.l     a0,-(a7)
 	movea.l    (a3),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	movea.l    (a7)+,a0
 	movea.l    (a7)+,a1
 	bsr        x181b8
@@ -2175,7 +2175,7 @@ x1494a:
 	addq.w     #4,a7
 	lea.l      24(a5),a1
 	movea.l    a2,a0
-	bsr        x17900
+	bsr        vdi_clip
 	move.w     26(a5),d4
 	movea.l    392(a7),a0
 	move.w     (a0),-(a7)
@@ -2183,7 +2183,7 @@ x1494a:
 	moveq.l    #3,d1
 	move.w     6(a0),d0
 	movea.l    a2,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	lea.l      264(a7),a0
 	bsr        strlen
@@ -2192,12 +2192,12 @@ x1494a:
 	move.w     d4,d1
 	move.w     24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	movea.l    a3,a0
 	bsr        strlen
 	movea.l    a3,a1
 	movea.l    a2,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d5
 	movea.l    a3,a0
 	bsr        strlen
@@ -2208,12 +2208,12 @@ x1494a:
 	sub.w      d5,d0
 	add.w      24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	movea.l    a4,a0
 	bsr        strlen
 	movea.l    a4,a1
 	movea.l    a2,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d5
 	movea.l    a4,a0
 	bsr        strlen
@@ -2226,7 +2226,7 @@ x1494a:
 	divs.w     #2,d0
 	add.w      24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	add.w      d3,d4
 	move.w     layout+32,d0 /* head_sep */
 	beq.s      x14a44
@@ -2248,11 +2248,11 @@ x1494a:
 	movea.l    a2,a0
 	moveq.l    #7,d1
 	move.w     layout+32,d2
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	lea.l      (a7),a1
 	movea.l    a2,a0
-	bsr        x173d2
+	bsr        vdi_draw_line
 x14a44:
 	lea.l      400(a7),a7
 	movem.l    (a7)+,d3-d5/a2-a5
@@ -2310,7 +2310,7 @@ x14adc:
 	addq.w     #4,a7
 	lea.l      24(a5),a1
 	movea.l    a2,a0
-	bsr        x17900
+	bsr        vdi_clip
 	move.w     26(a5),d4
 	add.w      30(a5),d4
 	sub.w      d3,d4
@@ -2320,7 +2320,7 @@ x14adc:
 	moveq.l    #3,d1
 	move.w     6(a0),d0
 	movea.l    a2,a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	lea.l      264(a7),a0
 	bsr        strlen
@@ -2329,12 +2329,12 @@ x14adc:
 	move.w     d4,d1
 	move.w     24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	movea.l    a3,a0
 	bsr        strlen
 	movea.l    a3,a1
 	movea.l    a2,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d5
 	movea.l    a3,a0
 	bsr        strlen
@@ -2345,12 +2345,12 @@ x14adc:
 	sub.w      d5,d0
 	add.w      24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	movea.l    a4,a0
 	bsr        strlen
 	movea.l    a4,a1
 	movea.l    a2,a0
-	bsr        x177fc
+	bsr        vdi_get_textwidth
 	move.w     d0,d5
 	movea.l    a4,a0
 	bsr        strlen
@@ -2363,7 +2363,7 @@ x14adc:
 	divs.w     #2,d0
 	add.w      24(a5),d0
 	movea.l    a2,a0
-	bsr        x1777e
+	bsr        vdi_draw_text
 	move.w     layout+48,d0 /* foot_sep */
 	beq.s      x14bda
 	move.w     24(a5),(a7)
@@ -2384,11 +2384,11 @@ x14adc:
 	movea.l    a2,a0
 	moveq.l    #7,d1
 	move.w     layout+48,d2
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	lea.l      (a7),a1
 	movea.l    a2,a0
-	bsr        x173d2
+	bsr        vdi_draw_line
 x14bda:
 	lea.l      400(a7),a7
 	movem.l    (a7)+,d3-d5/a2-a5
@@ -2434,7 +2434,7 @@ x14c22:
 	move.w     d0,10(a7)
 	lea.l      4(a7),a1
 	movea.l    (a7),a0
-	bsr        x17900
+	bsr        vdi_clip
 	move.l     d3,d2
 	moveq.l    #0,d1
 	move.l     (a6),d0
@@ -2447,7 +2447,7 @@ x14c22:
 x14c68:
 	lea.l      32(a5),a1
 	movea.l    (a7),a0
-	bsr        x17900
+	bsr        vdi_clip
 	movea.l    (a3),a0
 	cmpi.l     #$48444F43,262(a0)
 	beq.s      x14c84
@@ -2464,7 +2464,7 @@ x14c8c:
 	moveq.l    #7,d1
 	move.w     6(a4),d0
 	movea.l    2(a7),a0
-	bsr        x176ae
+	bsr        vdi_text_attributes
 	addq.w     #2,a7
 	move.w     32(a5),d4
 	move.w     34(a5),d5
@@ -2508,27 +2508,27 @@ x14ce2:
 	beq.s      x14d3e
 	lea.l      8(a3),a1
 	movea.l    a2,a0
-	bsr        x17900
+	bsr        vdi_clip
 	moveq.l    #1,d0
 	move.w     d0,-(a7)
 	moveq.l    #3,d2
 	moveq.l    #3,d1
 	movea.l    a2,a0
-	bsr        x172de
+	bsr        vdi_line_attributes
 	addq.w     #2,a7
 	moveq.l    #1,d0
 	and.w      layout+54,d0
 	beq.s      x14d2a
 	lea.l      8(a3),a1
 	movea.l    a2,a0
-	bsr        x17482
+	bsr        vdi_draw_rect
 x14d2a:
 	moveq.l    #2,d0
 	and.w      layout+54,d0
 	beq.s      x14d3e
 	lea.l      24(a3),a1
 	movea.l    a2,a0
-	bsr        x17482
+	bsr        vdi_draw_rect
 x14d3e:
 	movea.l    (a7)+,a3
 	movea.l    (a7)+,a2
@@ -2544,14 +2544,14 @@ x14d44:
 	move.w     x19d24,d1
 	beq.s      x14d64
 	movea.l    (a0),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	bsr        v_clrwk
 x14d64:
 	move.w     #1,x19d24
 x14d6c:
 	bsr        should_abort
 	movea.l    (a2),a0
-	bsr        x172a4
+	bsr        vdi_ref
 	moveq.l    #1,d0
 	movea.l    (a7)+,a2
 	rts
@@ -2561,7 +2561,7 @@ x14d7c:
 	move.l     a2,-(a7)
 	movea.l    a0,a2
 	movea.l    (a0),a0
-	bsr        x172c8
+	bsr        vdi_unref
 	movea.l    16(a2),a0
 	move.w     72(a0),d0
 	bne.s      x14dae
@@ -2569,12 +2569,12 @@ x14d7c:
 	tst.w      d0
 	beq.s      x14da4
 	movea.l    (a2),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	bsr        x182b0
 	bra.s      x14dae
 x14da4:
 	movea.l    (a2),a0
-	bsr        x1726c
+	bsr        vdi_get_handle
 	bsr        v_updwk
 x14dae:
 	bsr        should_abort
@@ -2587,7 +2587,7 @@ x14db6:
 	lea.l      -72(a7),a7
 	movea.l    a0,a6
 	movea.l    a1,a2
-	bsr        x17270
+	bsr        vdi_alloc
 	move.l     a0,68(a7)
 	move.l     a0,d0
 	bne.s      x14dd4
@@ -2729,7 +2729,7 @@ x14f0e:
 	blt        x14e2e
 x14f24:
 	movea.l    68(a7),a0
-	bsr        x1729e
+	bsr        vdi_free
 	clr.w      d0
 x14f2e:
 	lea.l      72(a7),a7
@@ -3093,15 +3093,15 @@ x15234:
 	bra.s      x152b0
 x1523a:
 	lea.l      14(a2),a0
-	move.l     a0,x1d97e
-	move.l     d5,x1d982
+	move.l     a0,lh5_packedMem
+	move.l     d5,lh5_compsize
 	movea.l    (a6),a1
 	lea.l      14(a1),a1
-	move.l     a1,x1d986
-	move.l     d6,x1d98a
+	move.l     a1,lh5_buffer
+	move.l     d6,lh5_origsize
 	moveq.l    #1,d0
-	bsr        x16db6
-	move.l     x1d982,d0
+	bsr        lh5_decode1
+	move.l     lh5_compsize,d0
 	ble.s      x15284
 	movea.l    (a6),a0
 	bsr        free
@@ -3149,48 +3149,16 @@ x152d2:
 	movem.l    (a7)+,d3-d6/a2-a6
 	rts
 
-	.globl x177fc
-x177fc:
-	.globl x1777e
-x1777e:
-	.globl x172a4
-x172a4:
-	.globl x176ae
-x176ae:
-	.globl x17712
-x17712:
-	.globl x172c8
-x172c8:
-	.globl x172de
-x172de:
-	.globl x17482
-x17482:
-	.globl x17914
-x17914:
 	.globl x17fb8
 x17fb8:
 	.globl x18436
 x18436:
-	.globl x173da
-x173da:
-	.globl x17574
-x17574:
-	.globl x175b2
-x175b2:
-	.globl x17630
-x17630:
-	.globl x174d6
-x174d6:
 	.globl x1a076
 x1a076:
 	.globl x1a0f6
 x1a0f6:
 	.globl x186e4
 x186e4:
-	.globl x1665a
-x1665a:
-	.globl x1726c
-x1726c:
 	.globl x1814c
 x1814c:
 	.globl x1811c
@@ -3199,26 +3167,10 @@ x1811c:
 x181b8:
 	.globl x183b8
 x183b8:
-	.globl x17900
-x17900:
-	.globl x173d2
-x173d2:
 	.globl x182b0
 x182b0:
-	.globl x17270
-x17270:
-	.globl x1729e
-x1729e:
 	.globl x186bc
 x186bc:
-	.globl x1d97e
-x1d97e:
-	.globl x1d982
-x1d982:
-	.globl x1d986
-x1d986:
-	.globl x1d98a
-x1d98a:
 	.globl x186c2
 x186c2:
 

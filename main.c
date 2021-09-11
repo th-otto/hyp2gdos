@@ -73,14 +73,15 @@ static unsigned char const macroman_cset[256] = {
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f
 };
-int x18b52 = 12;
-int x18b54 = 12;
+int standard_font_id = 12;
+int typewriter_font_id = 12;
 int x18b56 = 0;
 int x18b58 = 1;
 _BOOL expand_spaces = TRUE;
 _BOOL x18b5c = TRUE;
 _BOOL use_standard = TRUE;
 int tabsize = 4;
+_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
@@ -188,7 +189,7 @@ static void init_wk(_WORD handle)
 	vsl_color(handle, G_BLACK);
 	vsl_ends(handle, 0, 0);
 	vsl_width(handle, 1);
-	vsl_type(handle, SOLID);
+	vsl_type(handle, LT_SOLID);
 	vst_color(handle, G_BLACK);
 	vst_effects(handle, 0);
 	vsf_color(handle, G_WHITE);
@@ -458,17 +459,17 @@ static int printfile(const Path *filename)
 					retcode = 2;
 				} else
 				{
-					x18b52 = x16fd8();
-					x18b54 = x16fd8();
-					x17008(x18b52, find_font(standard_font), standard_font_size);
-					x17008(x18b54, find_font(typewriter_font), typewriter_font_size);
+					standard_font_id = new_font_id();
+					typewriter_font_id = new_font_id();
+					set_font(standard_font_id, find_font(standard_font), standard_font_size);
+					set_font(typewriter_font_id, find_font(typewriter_font), typewriter_font_size);
 					scale_flag = can_scale_bitmaps(vdihandle);
 					/* BUG: interrupted() only checks for shift */
 					verboseout("Hyp2GDOS: Hold %s to cancel printing.\n", magicmac && (((long *)magicmac)[1] & 2) == 0 ? "Command-B" : "SHIFT+SHIFT");
 					wk_info();
 					verboseout("print document \"%s\"\n", pathbuf.buf);
 					init_wk(vdihandle);
-					x1d9c4 = vdihandle;
+					print_handle = vdihandle;
 					reset_abort();
 					if (scale_images)
 					{
@@ -495,7 +496,7 @@ static int printfile(const Path *filename)
 									fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 								} else
 								{
-									x14db6(&page, &page_num, &x18b52);
+									x14db6(&page, &page_num, &standard_font_id);
 								}
 							}
 						} else
@@ -515,7 +516,7 @@ static int printfile(const Path *filename)
 											fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 										} else
 										{
-											x14db6(&page, &page_num, &x18b52);
+											x14db6(&page, &page_num, &standard_font_id);
 											if (page_num >= layout.last_page)
 												break;
 										}
@@ -542,7 +543,7 @@ static int printfile(const Path *filename)
 							} else
 							{
 								trace(">>>Try to print page (index=%d)\n", (int)node);
-								x14db6(&page, &page_num, &x18b52);
+								x14db6(&page, &page_num, &standard_font_id);
 								if (page_num >= layout.last_page)
 									break;
 							}
