@@ -1317,7 +1317,7 @@ x13fc0:
 	move.w     (a5),d0
 	move.w     2(a5),d1
 	move.w     4(a5),d2
-	bsr        x17fb8
+	bsr        vdi_draw_image
 	lea.l      18(a7),a7
 x13ffa:
 	lea.l      9(a3),a3
@@ -1334,7 +1334,7 @@ x13ffa:
 	moveq.l    #-2,d1
 	moveq.l    #-2,d0
 	movea.l    a5,a0
-	bsr        x18436
+	bsr        rc_shrink
 	pea.l      32(a7)
 	lea.l      38(a7),a1
 	move.w     4(a7),d0
@@ -1849,7 +1849,7 @@ x145b8:
 	pea.l      76(a7)
 	lea.l      82(a7),a1
 	lea.l      84(a7),a0
-	bsr        x186e4
+	bsr        get_date
 	addq.w     #4,a7
 	move.w     76(a7),-(a7)
 	move.w     80(a7),-(a7)
@@ -1999,13 +1999,13 @@ x14728:
 	movea.l    (a0),a0
 	bsr        vdi_get_handle
 	movea.l    a2,a0
-	bsr        x1814c
+	bsr        vdi_get_pagesize
 	lea.l      8(a2),a0
 	move.l     a0,-(a7)
 	movea.l    (a3),a0
 	bsr        vdi_get_handle
 	movea.l    (a7)+,a0
-	bsr        x1811c
+	bsr        vdi_get_outputsize
 	lea.l      (a7),a1
 	lea.l      2(a7),a0
 	move.l     a1,-(a7)
@@ -2014,7 +2014,7 @@ x14728:
 	bsr        vdi_get_handle
 	movea.l    (a7)+,a0
 	movea.l    (a7)+,a1
-	bsr        x181b8
+	bsr        vdi_get_dpi
 	lea.l      layout,a4
 	move.l     2(a4),d0
 	move.w     2(a7),d1
@@ -2062,7 +2062,7 @@ x14728:
 	move.w     d1,30(a2)
 	lea.l      24(a2),a1
 	lea.l      8(a2),a0
-	bsr        x183b8
+	bsr        rc_intersect
 	lea.l      24(a2),a0
 	lea.l      32(a2),a1
 	move.l     (a0)+,(a1)+
@@ -2112,7 +2112,7 @@ x14880:
 	move.w     d1,28(a2)
 	lea.l      24(a2),a1
 	lea.l      8(a2),a0
-	bsr        x183b8
+	bsr        rc_intersect
 	move.w     24(a2),32(a2)
 	lea.l      32(a2),a0
 	lea.l      4(a3),a1
@@ -2570,7 +2570,7 @@ x14d7c:
 	beq.s      x14da4
 	movea.l    (a2),a0
 	bsr        vdi_get_handle
-	bsr        x182b0
+	bsr        vdi_clear_page
 	bra.s      x14dae
 x14da4:
 	movea.l    (a2),a0
@@ -3149,26 +3149,10 @@ x152d2:
 	movem.l    (a7)+,d3-d6/a2-a6
 	rts
 
-	.globl x17fb8
-x17fb8:
-	.globl x18436
-x18436:
 	.globl x1a076
 x1a076:
 	.globl x1a0f6
 x1a0f6:
-	.globl x186e4
-x186e4:
-	.globl x1814c
-x1814c:
-	.globl x1811c
-x1811c:
-	.globl x181b8
-x181b8:
-	.globl x183b8
-x183b8:
-	.globl x182b0
-x182b0:
 	.globl x186bc
 x186bc:
 	.globl x186c2

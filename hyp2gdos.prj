@@ -24,4 +24,7 @@ lh5d.c [-G]
 file.c [-P]
 font.c
 
-util.c [-P]
+util1.c
+util2.c [-P]
+util3.c
+util4.c [-P]

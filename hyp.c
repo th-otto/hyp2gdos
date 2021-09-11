@@ -3,7 +3,7 @@
 
 int hyp_errno;
 char hypfold[MAXPATH];
-char katalog[MAXPATH];
+char all_ref[MAXPATH];
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
@@ -358,7 +358,7 @@ static void add_history(struct history *hist, struct pageinfo *page)
 	strcpy(hist->entry[hist->curr].window_title, page->window_title);
 	hist->entry[hist->curr].lineno = get_real_lineno(page, page->lineno);
 	hist->entry[hist->curr].o518 = page->o60;
-	x183a6(hist->entry[hist->curr].o522, 0, 0, 0, 0);
+	set_lrect(hist->entry[hist->curr].o522, 0, 0, 0, 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -422,17 +422,17 @@ static int scan_ref(struct hypfile *hyp, const char *reffilename, char *data, cb
 		case REF_NODENAME:
 			conv_nodename(os, data + 2);
 			nodename = data + 2;
-			if (x1837c(nodename, &nodename[strlen(nodename)]) == 0)
+			if (ref_strcmp(nodename, &nodename[strlen(nodename)]) == 0)
 				goto do_callback;
 			break;
 		case REF_ALIASNAME:
 			conv_nodename(os, data + 2);
-			if (x1837c(data + 2, &data[strlen(data + 2)] + 2) == 0)
+			if (ref_strcmp(data + 2, &data[strlen(data + 2)] + 2) == 0)
 				goto do_callback;
 			break;
 		case REF_LABELNAME:
 			conv_nodename(os, data + 2);
-			if (x1837c(data + 2, &data[strlen(data + 2)] + 2) == 0)
+			if (ref_strcmp(data + 2, &data[strlen(data + 2)] + 2) == 0)
 			{
 				char *lineno_pos;
 
@@ -466,7 +466,7 @@ reterr:
 
 /* ---------------------------------------------------------------------- */
 
-static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, char *name, cb callback, int (*cancel)(void), Path *modulename, char *errmsg, long *lineno)
+static int search_ref(struct hypfile *hyp, const char *filename, _BOOL caseinsens, _BOOL d3, char *name, cb callback, int (*cancel)(void), Path *modulename, char *errmsg, long *lineno)
 {
 	FILE *fp;
 	char *data;
@@ -479,7 +479,7 @@ static int x15a8c(struct hypfile *hyp, const char *filename, int d5, int d3, cha
 	*errmsg = '\0';
 	if (lineno != NULL)
 		*lineno = 0;
-	if ((err = x18352(name, d5, d3)) != 0)
+	if ((err = set_ref_string(name, caseinsens, d3)) != 0)
 		return err;
 	if (hyp != NULL)
 	{
@@ -946,8 +946,8 @@ static void free_pageinfo(struct pageinfo *page)
 	page->text = NULL;
 	page->num_lines = 0;
 	page->max_text_width = 0;
-	x183a6(page->o22, 0, 0, 0, 0);
-	x183a6(page->o38, 0, 0, 0, 0);
+	set_lrect(page->o22, 0, 0, 0, 0);
+	set_lrect(page->o38, 0, 0, 0, 0);
 	page->lineno = 0;
 	page->o60 = 0;
 	if (page->errmsg != NULL)
@@ -990,8 +990,8 @@ static int reset_pageinfo(struct pageinfo *page, hyp_nodenr node)
 			return hyp_errno;
 		}
 		calc_max_textlen(page);
-		x183a6(page->o22, 0, 0, page->num_lines - 1, hyp_get_linewidth(page, page->num_lines - 1));
-		x183a6(page->o38, 0, 0, 0, 0);
+		set_lrect(page->o22, 0, 0, page->num_lines - 1, hyp_get_linewidth(page, page->num_lines - 1));
+		set_lrect(page->o38, 0, 0, 0, 0);
 		page->lineno = 0;
 		page->o60 = 0;
 		return 0;
@@ -1048,9 +1048,15 @@ static int load_page(struct pageinfo *page, const Path *filename, const char *pa
 			
 			if ((slash = strchr(name, '/')) == NULL)
 			{
+				/*
+				 * just a name; can be either filename or nodename
+				 */
 				setpath(name, newpath.buf);
 				if ((fp = x14f38(&newpath)) != NULL)
 				{
+					/*
+					 * was a valid filename
+					 */
 					fclose(fp);
 					free_pageinfo(page);
 					if (hyp_load(page->hyp, &newpath) != 0)
@@ -1061,7 +1067,7 @@ static int load_page(struct pageinfo *page, const Path *filename, const char *pa
 					node = page->hyp->main_page;
 				} else
 				{
-					if (x15a8c(NULL, katalog, 0, 0, name, 0, 0, &newpath, errmsg, lineno) == 0 && *errmsg != '\0')
+					if (search_ref(NULL, all_ref, FALSE, FALSE, name, 0, 0, &newpath, errmsg, lineno) == 0 && *errmsg != '\0')
 					{
 						free_pageinfo(page);
 						if (hyp_load(page->hyp, &newpath) != 0)

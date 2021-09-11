@@ -3969,7 +3969,7 @@ printfile:
 [000129fa] 3439 0001 8a42            move.w     typewriter_font_size,d2
 [00012a00] 6100 4606                 bsr        $00017008
 [00012a04] 302e 0084                 move.w     132(a6),d0
-[00012a08] 6100 578e                 bsr        can_scale_bitmaps
+[00012a08] 6100 578e                 bsr        vdi_can_scale_bitmaps
 [00012a0c] 3d40 0088                 move.w     d0,136(a6)
 [00012a10] 2239 0001 8a4e            move.l     magicmac,d1
 [00012a16] 6710                      beq.s      $00012A28
@@ -6425,7 +6425,7 @@ J9:
 [000145b8] 486f 004c                 pea.l      76(a7)
 [000145bc] 43ef 0052                 lea.l      82(a7),a1
 [000145c0] 41ef 0054                 lea.l      84(a7),a0
-[000145c4] 6100 411e                 bsr        $000186E4
+[000145c4] 6100 411e                 bsr        get_date
 [000145c8] 584f                      addq.w     #4,a7
 [000145ca] 3f2f 004c                 move.w     76(a7),-(a7)
 [000145ce] 3f2f 0050                 move.w     80(a7),-(a7)
@@ -6558,13 +6558,13 @@ J9:
 [00014734] 2050                      movea.l    (a0),a0
 [00014736] 6100 2b34                 bsr        vdi_get_handle
 [0001473a] 204a                      movea.l    a2,a0
-[0001473c] 6100 3a0e                 bsr        $0001814C
+[0001473c] 6100 3a0e                 bsr        vdi_get_pagesize
 [00014740] 41ea 0008                 lea.l      8(a2),a0
 [00014744] 2f08                      move.l     a0,-(a7)
 [00014746] 2053                      movea.l    (a3),a0
 [00014748] 6100 2b22                 bsr        vdi_get_handle
 [0001474c] 205f                      movea.l    (a7)+,a0
-[0001474e] 6100 39cc                 bsr        $0001811C
+[0001474e] 6100 39cc                 bsr        vdi_get_outputsize
 [00014752] 43d7                      lea.l      (a7),a1
 [00014754] 41ef 0002                 lea.l      2(a7),a0
 [00014758] 2f09                      move.l     a1,-(a7)
@@ -6573,7 +6573,7 @@ J9:
 [0001475e] 6100 2b0c                 bsr        vdi_get_handle
 [00014762] 205f                      movea.l    (a7)+,a0
 [00014764] 225f                      movea.l    (a7)+,a1
-[00014766] 6100 3a50                 bsr        $000181B8
+[00014766] 6100 3a50                 bsr        vdi_get_dpi
 [0001476a] 49f9 0001 a02a            lea.l      $0001A02A,a4
 [00014770] 202c 0002                 move.l     2(a4),d0
 [00014774] 322f 0002                 move.w     2(a7),d1
@@ -6621,7 +6621,7 @@ J9:
 [00014812] 3541 001e                 move.w     d1,30(a2)
 [00014816] 43ea 0018                 lea.l      24(a2),a1
 [0001481a] 41ea 0008                 lea.l      8(a2),a0
-[0001481e] 6100 3b98                 bsr        $000183B8
+[0001481e] 6100 3b98                 bsr        rc_intersect
 [00014822] 41ea 0018                 lea.l      24(a2),a0
 [00014826] 43ea 0020                 lea.l      32(a2),a1
 [0001482a] 22d8                      move.l     (a0)+,(a1)+
@@ -6665,7 +6665,7 @@ J9:
 [00014894] 3541 001c                 move.w     d1,28(a2)
 [00014898] 43ea 0018                 lea.l      24(a2),a1
 [0001489c] 41ea 0008                 lea.l      8(a2),a0
-[000148a0] 6100 3b16                 bsr        $000183B8
+[000148a0] 6100 3b16                 bsr        rc_intersect
 [000148a4] 356a 0018 0020            move.w     24(a2),32(a2)
 [000148aa] 41ea 0020                 lea.l      32(a2),a0
 [000148ae] 43eb 0004                 lea.l      4(a3),a1
@@ -7087,7 +7087,7 @@ J9:
 [00014d96] 670c                      beq.s      $00014DA4
 [00014d98] 2052                      movea.l    (a2),a0
 [00014d9a] 6100 24d0                 bsr        vdi_get_handle
-[00014d9e] 6100 3510                 bsr        $000182B0
+[00014d9e] 6100 3510                 bsr        vdi_clear_page
 [00014da2] 600a                      bra.s      $00014DAE
 [00014da4] 2052                      movea.l    (a2),a0
 [00014da6] 6100 24c4                 bsr        vdi_get_handle
@@ -8097,7 +8097,7 @@ add_history:
 [000158ae] d683                      add.l      d3,d3
 [000158b0] 41f3 3800                 lea.l      0(a3,d3.l),a0
 [000158b4] 41e8 020e                 lea.l      526(a0),a0
-[000158b8] 6100 2aec                 bsr        $000183A6
+[000158b8] 6100 2aec                 bsr        set_lrect
 [000158bc] 584f                      addq.w     #4,a7
 [000158be] 4cdf 0c18                 movem.l    (a7)+,d3-d4/a2-a3
 [000158c2] 4e75                      rts
@@ -8184,7 +8184,7 @@ J10:
 [000159a6] 6100 ba7c                 bsr        strlen
 [000159aa] 43f5 0800                 lea.l      0(a5,d0.l),a1
 [000159ae] 204d                      movea.l    a5,a0
-[000159b0] 6100 29ca                 bsr        $0001837C
+[000159b0] 6100 29ca                 bsr        ref_strcmp
 [000159b4] 4a40                      tst.w      d0
 [000159b6] 6770                      beq.s      $00015A28
 [000159b8] 6000 009e                 bra        $00015A58
@@ -8195,7 +8195,7 @@ J10:
 [000159ca] 6100 ba58                 bsr        strlen
 [000159ce] 43f4 0802                 lea.l      2(a4,d0.l),a1
 [000159d2] 41ec 0002                 lea.l      2(a4),a0
-[000159d6] 6100 29a4                 bsr        $0001837C
+[000159d6] 6100 29a4                 bsr        ref_strcmp
 [000159da] 4a40                      tst.w      d0
 [000159dc] 674a                      beq.s      $00015A28
 [000159de] 6000 0078                 bra.w      $00015A58
@@ -8206,7 +8206,7 @@ J10:
 [000159f0] 6100 ba32                 bsr        strlen
 [000159f4] 43f4 0802                 lea.l      2(a4,d0.l),a1
 [000159f8] 41ec 0002                 lea.l      2(a4),a0
-[000159fc] 6100 297e                 bsr        $0001837C
+[000159fc] 6100 297e                 bsr        ref_strcmp
 [00015a00] 4a40                      tst.w      d0
 [00015a02] 6654                      bne.s      $00015A58
 [00015a04] 102c 0001                 move.b     1(a4),d0
@@ -8946,14 +8946,14 @@ free_pageinfo:
 [0001621c] 7200                      moveq.l    #0,d1
 [0001621e] 7000                      moveq.l    #0,d0
 [00016220] 41ea 0016                 lea.l      22(a2),a0
-[00016224] 6100 2180                 bsr        $000183A6
+[00016224] 6100 2180                 bsr        set_lrect
 [00016228] 584f                      addq.w     #4,a7
 [0001622a] 42a7                      clr.l      -(a7)
 [0001622c] 7400                      moveq.l    #0,d2
 [0001622e] 7200                      moveq.l    #0,d1
 [00016230] 7000                      moveq.l    #0,d0
 [00016232] 41ea 0026                 lea.l      38(a2),a0
-[00016236] 6100 216e                 bsr        $000183A6
+[00016236] 6100 216e                 bsr        set_lrect
 [0001623a] 584f                      addq.w     #4,a7
 [0001623c] 42aa 0038                 clr.l      56(a2)
 [00016240] 42aa 003c                 clr.l      60(a2)
@@ -9018,14 +9018,14 @@ reset_pageinfo:
 [000162e2] 7200                      moveq.l    #0,d1
 [000162e4] 7000                      moveq.l    #0,d0
 [000162e6] 41ea 0016                 lea.l      22(a2),a0
-[000162ea] 6100 20ba                 bsr        $000183A6
+[000162ea] 6100 20ba                 bsr        set_lrect
 [000162ee] 584f                      addq.w     #4,a7
 [000162f0] 42a7                      clr.l      -(a7)
 [000162f2] 7400                      moveq.l    #0,d2
 [000162f4] 7200                      moveq.l    #0,d1
 [000162f6] 7000                      moveq.l    #0,d0
 [000162f8] 41ea 0026                 lea.l      38(a2),a0
-[000162fc] 6100 20a8                 bsr        $000183A6
+[000162fc] 6100 20a8                 bsr        set_lrect
 [00016300] 584f                      addq.w     #4,a7
 [00016302] 42aa 0038                 clr.l      56(a2)
 [00016306] 42aa 003c                 clr.l      60(a2)
@@ -11104,7 +11104,7 @@ vdi_draw_bitmap:
 [00017956] ba46                      cmp.w      d6,d5
 [00017958] 6732                      beq.s      $0001798C
 [0001795a] 3012                      move.w     (a2),d0
-[0001795c] 6100 083a                 bsr        can_scale_bitmaps
+[0001795c] 6100 083a                 bsr        vdi_can_scale_bitmaps
 [00017960] 4a40                      tst.w      d0
 [00017962] 6708                      beq.s      $0001796C
 [00017964] 006f 8000 006c            ori.w      #$8000,108(a7)
@@ -11474,7 +11474,7 @@ draw_image:
 [00017d68] be45                      cmp.w      d5,d7
 [00017d6a] 6730                      beq.s      $00017D9C
 [00017d6c] 3012                      move.w     (a2),d0
-[00017d6e] 6100 0428                 bsr        can_scale_bitmaps
+[00017d6e] 6100 0428                 bsr        vdi_can_scale_bitmaps
 [00017d72] 4a40                      tst.w      d0
 [00017d74] 6706                      beq.s      $00017D7C
 [00017d76] 867c 8000                 or.w       #$8000,d3
@@ -11525,7 +11525,7 @@ draw_image:
 [00017e0a] 41ef 0004                 lea.l      4(a7),a0
 [00017e0e] 3203                      move.w     d3,d1
 [00017e10] 3012                      move.w     (a2),d0
-[00017e12] 6100 a52e                 bsr        vro_cpyfm
+[00017e12] 6100 a52e                 bsr        vro_cpyf
 [00017e16] 584f                      addq.w     #4,a7
 [00017e18] 204a                      movea.l    a2,a0
 [00017e1a] 6100 f4ac                 bsr        vdi_unref
@@ -11533,8 +11533,8 @@ draw_image:
 [00017e20] 4fef 0040                 lea.l      64(a7),a7
 [00017e24] 4cdf 34f8                 movem.l    (a7)+,d3-d7/a2/a4-a5
 [00017e28] 4e75                      rts
-
-[00017e2a] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
+convert_image:
+[00017e2a] 48e7 1f3e                 movem.l    d3-d7/a2-a6,-(a7)
 [00017e2e] 4fef fff0                 lea.l      -16(a7),a7
 [00017e32] 2648                      movea.l    a0,a3
 [00017e34] 3f40 000e                 move.w     d0,14(a7)
@@ -11556,7 +11556,7 @@ draw_image:
 [00017e62] 2c00                      move.l     d0,d6
 [00017e64] 220a                      move.l     a2,d1
 [00017e66] 6624                      bne.s      $00017E8C
-[00017e68] 43f9 0001 9256            lea.l      $00019256,a1
+[00017e68] 49f9 0001 9256            lea.l      $00019256,a4
 [00017e6e] 3007                      move.w     d7,d0
 [00017e70] 5540                      subq.w     #2,d0
 [00017e72] 670a                      beq.s      $00017E7E
@@ -11565,12 +11565,12 @@ draw_image:
 [00017e78] 5340                      subq.w     #1,d0
 [00017e7a] 670c                      beq.s      $00017E88
 [00017e7c] 600e                      bra.s      $00017E8C
-[00017e7e] 2449                      movea.l    a1,a2
+[00017e7e] 244c                      movea.l    a4,a2
 [00017e80] 600a                      bra.s      $00017E8C
-[00017e82] 45e9 0024                 lea.l      36(a1),a2
+[00017e82] 45ec 0024                 lea.l      36(a4),a2
 [00017e86] 6004                      bra.s      $00017E8C
-[00017e88] 45e9 0060                 lea.l      96(a1),a2
-[00017e8c] 2f6f 0038 0004            move.l     56(a7),4(a7)
+[00017e88] 45ec 0060                 lea.l      96(a4),a2
+[00017e8c] 2f6f 003c 0004            move.l     60(a7),4(a7)
 [00017e92] 4257                      clr.w      (a7)
 [00017e94] 6000 010c                 bra        $00017FA2
 [00017e98] 6100 a94c                 bsr        should_abort
@@ -11579,22 +11579,22 @@ draw_image:
 [00017ea0] 7001                      moveq.l    #1,d0
 [00017ea2] 6000 010a                 bra        $00017FAE
 [00017ea6] 2a4b                      movea.l    a3,a5
-[00017ea8] 286f 0004                 movea.l    4(a7),a4
+[00017ea8] 2c6f 0004                 movea.l    4(a7),a6
 [00017eac] 3a3c 0080                 move.w     #$0080,d5
 [00017eb0] 426f 0002                 clr.w      2(a7)
 [00017eb4] 6000 00d0                 bra        $00017F86
-[00017eb8] 224d                      movea.l    a5,a1
+[00017eb8] 284d                      movea.l    a5,a4
 [00017eba] 4243                      clr.w      d3
 [00017ebc] 7801                      moveq.l    #1,d4
 [00017ebe] 3003                      move.w     d3,d0
 [00017ec0] 6010                      bra.s      $00017ED2
 [00017ec2] 4241                      clr.w      d1
-[00017ec4] 1211                      move.b     (a1),d1
+[00017ec4] 1214                      move.b     (a4),d1
 [00017ec6] c245                      and.w      d5,d1
 [00017ec8] 6702                      beq.s      $00017ECC
 [00017eca] 8644                      or.w       d4,d3
 [00017ecc] d844                      add.w      d4,d4
-[00017ece] d3c6                      adda.l     d6,a1
+[00017ece] d9c6                      adda.l     d6,a4
 [00017ed0] 5240                      addq.w     #1,d0
 [00017ed2] be40                      cmp.w      d0,d7
 [00017ed4] 6eec                      bgt.s      $00017EC2
@@ -11605,7 +11605,7 @@ draw_image:
 [00017ee0] 524d                      addq.w     #1,a5
 [00017ee2] 200a                      move.l     a2,d0
 [00017ee4] 6700 0084                 beq        $00017F6A
-[00017ee8] 421c                      clr.b      (a4)+
+[00017ee8] 421e                      clr.b      (a6)+
 [00017eea] 3403                      move.w     d3,d2
 [00017eec] 48c2                      ext.l      d2
 [00017eee] 2202                      move.l     d2,d1
@@ -11623,7 +11623,7 @@ draw_image:
 [00017f0a] 3401                      move.w     d1,d2
 [00017f0c] 2202                      move.l     d2,d1
 [00017f0e] 6100 a0e8                 bsr        _ldiv
-[00017f12] 18c0                      move.b     d0,(a4)+
+[00017f12] 1cc0                      move.b     d0,(a6)+
 [00017f14] 3403                      move.w     d3,d2
 [00017f16] 48c2                      ext.l      d2
 [00017f18] 2202                      move.l     d2,d1
@@ -11641,7 +11641,7 @@ draw_image:
 [00017f34] 3401                      move.w     d1,d2
 [00017f36] 2202                      move.l     d2,d1
 [00017f38] 6100 a0be                 bsr        _ldiv
-[00017f3c] 18c0                      move.b     d0,(a4)+
+[00017f3c] 1cc0                      move.b     d0,(a6)+
 [00017f3e] 3403                      move.w     d3,d2
 [00017f40] 48c2                      ext.l      d2
 [00017f42] 2202                      move.l     d2,d1
@@ -11659,7 +11659,7 @@ draw_image:
 [00017f5e] 3401                      move.w     d1,d2
 [00017f60] 2202                      move.l     d2,d1
 [00017f62] 6100 a094                 bsr        _ldiv
-[00017f66] 18c0                      move.b     d0,(a4)+
+[00017f66] 1cc0                      move.b     d0,(a6)+
 [00017f68] 6018                      bra.s      $00017F82
 [00017f6a] 3003                      move.w     d3,d0
 [00017f6c] e148                      lsl.w      #8,d0
@@ -11669,10 +11669,10 @@ draw_image:
 [00017f74] d244                      add.w      d4,d1
 [00017f76] 81c1                      divs.w     d1,d0
 [00017f78] 3600                      move.w     d0,d3
-[00017f7a] 421c                      clr.b      (a4)+
-[00017f7c] 18c3                      move.b     d3,(a4)+
-[00017f7e] 18c3                      move.b     d3,(a4)+
-[00017f80] 18c3                      move.b     d3,(a4)+
+[00017f7a] 421e                      clr.b      (a6)+
+[00017f7c] 1cc3                      move.b     d3,(a6)+
+[00017f7e] 1cc3                      move.b     d3,(a6)+
+[00017f80] 1cc3                      move.b     d3,(a6)+
 [00017f82] 526f 0002                 addq.w     #1,2(a7)
 [00017f86] 302f 0002                 move.w     2(a7),d0
 [00017f8a] b06f 000e                 cmp.w      14(a7),d0
@@ -11687,19 +11687,19 @@ draw_image:
 [00017fa8] 6d00 feee                 blt        $00017E98
 [00017fac] 4240                      clr.w      d0
 [00017fae] 4fef 0010                 lea.l      16(a7),a7
-[00017fb2] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
+[00017fb2] 4cdf 7cf8                 movem.l    (a7)+,d3-d7/a2-a6
 [00017fb6] 4e75                      rts
 vdi_draw_image:
 [00017fb8] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
 [00017fbc] 4fef ffee                 lea.l      -18(a7),a7
 [00017fc0] 2648                      movea.l    a0,a3
 [00017fc2] 2449                      movea.l    a1,a2
-[00017fc4] 3f40 0008                 move.w     d0,8(a7) /* x
-[00017fc8] 3f41 0006                 move.w     d1,6(a7) /* y
-[00017fcc] 3f42 0004                 move.w     d2,4(a7) /* dstwidth
-[00017fd0] 3e2f 003a                 move.w     58(a7),d7 /* dstheight
-[00017fd4] 3c2f 003c                 move.w     60(a7),d6 /* srcwidth
-[00017fd8] 3a2f 003e                 move.w     62(a7),d5 /* srcheight
+[00017fc4] 3f40 0008                 move.w     d0,8(a7)
+[00017fc8] 3f41 0006                 move.w     d1,6(a7)
+[00017fcc] 3f42 0004                 move.w     d2,4(a7)
+[00017fd0] 3e2f 003a                 move.w     58(a7),d7
+[00017fd4] 3c2f 003c                 move.w     60(a7),d6
+[00017fd8] 3a2f 003e                 move.w     62(a7),d5
 [00017fdc] 2a6f 0048                 movea.l    72(a7),a5
 [00017fe0] 4243                      clr.w      d3
 [00017fe2] 0c6f 0001 0040            cmpi.w     #$0001,64(a7)
@@ -11744,7 +11744,7 @@ vdi_draw_image:
 [0001804c] 3205                      move.w     d5,d1
 [0001804e] 204a                      movea.l    a2,a0
 [00018050] 3006                      move.w     d6,d0
-[00018052] 6100 fdd6                 bsr        $00017E2A
+[00018052] 6100 fdd6                 bsr        convert_image
 [00018056] 584f                      addq.w     #4,a7
 [00018058] 3600                      move.w     d0,d3
 [0001805a] 4a40                      tst.w      d0
@@ -11813,11 +11813,10 @@ vdi_draw_image:
 [0001810e] 4fef 0012                 lea.l      18(a7),a7
 [00018112] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
 [00018116] 4e75                      rts
-
-x18118
+x18118:
 [00018118] 4240                      clr.w      d0
 [0001811a] 4e75                      rts
-
+vdi_get_outputsize:
 [0001811c] 2f0a                      move.l     a2,-(a7)
 [0001811e] 4fef ff8e                 lea.l      -114(a7),a7
 [00018122] 2448                      movea.l    a0,a2
@@ -11835,6 +11834,7 @@ x18118
 [00018144] 4fef 0072                 lea.l      114(a7),a7
 [00018148] 245f                      movea.l    (a7)+,a2
 [0001814a] 4e75                      rts
+vdi_get_pagesize:
 [0001814c] 3f03                      move.w     d3,-(a7)
 [0001814e] 2f0b                      move.l     a3,-(a7)
 [00018150] 4fef ff8e                 lea.l      -114(a7),a7
@@ -11845,7 +11845,7 @@ x18118
 [0001815c] 6100 a212                 bsr        vq_extnd
 [00018160] 204b                      movea.l    a3,a0
 [00018162] 3003                      move.w     d3,d0
-[00018164] 6100 ffb6                 bsr.w      $0001811C
+[00018164] 6100 ffb6                 bsr.w      vdi_get_outputsize
 [00018168] 302f 0050                 move.w     80(a7),d0
 [0001816c] 9153                      sub.w      d0,(a3)
 [0001816e] 302f 0052                 move.w     82(a7),d0
@@ -11860,7 +11860,7 @@ x18118
 [00018192] 265f                      movea.l    (a7)+,a3
 [00018194] 361f                      move.w     (a7)+,d3
 [00018196] 4e75                      rts
-can_scale_bitmaps:
+vdi_can_scale_bitmaps:
 [00018198] 4fef ff8e                 lea.l      -114(a7),a7
 [0001819c] 41d7                      lea.l      (a7),a0
 [0001819e] 7201                      moveq.l    #1,d1
@@ -11873,7 +11873,7 @@ can_scale_bitmaps:
 [000181b0] 4240                      clr.w      d0
 [000181b2] 4fef 0072                 lea.l      114(a7),a7
 [000181b6] 4e75                      rts
-
+vdi_get_dpi:
 [000181b8] 2f0a                      move.l     a2,-(a7)
 [000181ba] 2f0b                      move.l     a3,-(a7)
 [000181bc] 4fef ff8e                 lea.l      -114(a7),a7
@@ -11955,13 +11955,13 @@ v_clip:
 [000182aa] 381f                      move.w     (a7)+,d4
 [000182ac] 261f                      move.l     (a7)+,d3
 [000182ae] 4e75                      rts
-
+vdi_clear_page:
 [000182b0] 3f03                      move.w     d3,-(a7)
 [000182b2] 2f0b                      move.l     a3,-(a7)
 [000182b4] 4fef ffe4                 lea.l      -28(a7),a7
 [000182b8] 3600                      move.w     d0,d3
 [000182ba] 41d7                      lea.l      (a7),a0
-[000182bc] 6100 fe5e                 bsr        $0001811C
+[000182bc] 6100 fe5e                 bsr        vdi_get_outputsize
 [000182c0] 47ef 0008                 lea.l      8(a7),a3
 [000182c4] 3697                      move.w     (a7),(a3)
 [000182c6] 376f 0002 0002            move.w     2(a7),2(a3)
@@ -11978,13 +11978,13 @@ v_clip:
 [000182ea] 6100 ff6a                 bsr        v_clip
 [000182ee] 7201                      moveq.l    #1,d1
 [000182f0] 3003                      move.w     d3,d0
-[000182f2] 6100 9ffc                 bsr        vsf_interior
+[000182f2] 6100 9ffc                 bsr        vsf_inte
 [000182f6] 7201                      moveq.l    #1,d1
 [000182f8] 3003                      move.w     d3,d0
-[000182fa] 6100 9ef4                 bsr        vswr_mode
+[000182fa] 6100 9ef4                 bsr        vswr_mod
 [000182fe] 4241                      clr.w      d1
 [00018300] 3003                      move.w     d3,d0
-[00018302] 6100 9ffa                 bsr        vsf_color
+[00018302] 6100 9ffa                 bsr        vsf_colo
 [00018306] 204b                      movea.l    a3,a0
 [00018308] 3003                      move.w     d3,d0
 [0001830a] 6100 9eac                 bsr        v_bar
@@ -11992,7 +11992,7 @@ v_clip:
 [00018312] 265f                      movea.l    (a7)+,a3
 [00018314] 361f                      move.w     (a7)+,d3
 [00018316] 4e75                      rts
-
+mystrcasecmp:
 [00018318] 48e7 1830                 movem.l    d3-d4/a2-a3,-(a7)
 [0001831c] 2448                      movea.l    a0,a2
 [0001831e] 2649                      movea.l    a1,a3
@@ -12035,7 +12035,7 @@ v_clip:
 [00018376] 245f                      movea.l    (a7)+,a2
 [00018378] 361f                      move.w     (a7)+,d3
 [0001837a] 4e75                      rts
-
+ref_strcmp:
 [0001837c] 2f0a                      move.l     a2,-(a7)
 [0001837e] 2f0b                      move.l     a3,-(a7)
 [00018380] 2448                      movea.l    a0,a2
@@ -12044,7 +12044,7 @@ v_clip:
 [0001838c] 670a                      beq.s      $00018398
 [0001838e] 224a                      movea.l    a2,a1
 [00018390] 204b                      movea.l    a3,a0
-[00018392] 6100 ff84                 bsr.w      $00018318
+[00018392] 6100 ff84                 bsr.w      mystrcasecmp
 [00018396] 6008                      bra.s      $000183A0
 [00018398] 224a                      movea.l    a2,a1
 [0001839a] 204b                      movea.l    a3,a0
@@ -12052,12 +12052,13 @@ v_clip:
 [000183a0] 265f                      movea.l    (a7)+,a3
 [000183a2] 245f                      movea.l    (a7)+,a2
 [000183a4] 4e75                      rts
-
+set_lrect:
 [000183a6] 2080                      move.l     d0,(a0)
 [000183a8] 2141 0004                 move.l     d1,4(a0)
 [000183ac] 2142 0008                 move.l     d2,8(a0)
 [000183b0] 216f 0004 000c            move.l     4(a7),12(a0)
 [000183b6] 4e75                      rts
+rc_intersect:
 [000183b8] 3f03                      move.w     d3,-(a7)
 [000183ba] 3f04                      move.w     d4,-(a7)
 [000183bc] 3011                      move.w     (a1),d0
@@ -12106,6 +12107,7 @@ v_clip:
 [00018430] 381f                      move.w     (a7)+,d4
 [00018432] 361f                      move.w     (a7)+,d3
 [00018434] 4e75                      rts
+rc_shrink:
 [00018436] 3400                      move.w     d0,d2
 [00018438] d442                      add.w      d2,d2
 [0001843a] 9568 0004                 sub.w      d2,4(a0)
@@ -12123,14 +12125,12 @@ v_clip:
 [0001845e] d150                      add.w      d0,(a0)
 [00018460] d368 0002                 add.w      d1,2(a0)
 [00018464] 4e75                      rts
-
 clearpath:
 [00018466] 223c 0000 0100            move.l     #$00000100,d1
 [0001846c] 4240                      clr.w      d0
 [0001846e] 6100 9770                 bsr        memset
 [00018472] 4240                      clr.w      d0
 [00018474] 4e75                      rts
-
 mybasename:
 [00018476] 1010                      move.b     (a0),d0
 [00018478] 670a                      beq.s      $00018484
@@ -12279,7 +12279,6 @@ pathequal:
 [000185c2] 4e75                      rts
 [000185c4] 4240                      clr.w      d0
 [000185c6] 4e75                      rts
-
 get_cwd:
 [000185c8] 6100 00c0                 bsr        get_curdir
 [000185cc] 7001                      moveq.l    #1,d0
@@ -12371,7 +12370,6 @@ get_curdir:
 [000186b2] 6100 ff62                 bsr        addslash
 [000186b6] 4cdf 0c08                 movem.l    (a7)+,d3/a2-a3
 [000186ba] 4e75                      rts
-
 xmalloc:
 [000186bc] 6100 9102                 bsr        malloc
 [000186c0] 4e75                      rts
@@ -12389,6 +12387,7 @@ interrupted:
 [000186de] 4e75                      rts
 [000186e0] 4240                      clr.w      d0
 [000186e2] 4e75                      rts
+get_date:
 [000186e4] 2f0a                      move.l     a2,-(a7)
 [000186e6] 2f0b                      move.l     a3,-(a7)
 [000186e8] 2448                      movea.l    a0,a2
@@ -13372,7 +13371,7 @@ plane4mask:
 
 1a176: hyp_errno
 1a178: hypfold
-1a478: katalog
+1a478: all_ref
 
 1a578: left
 1ad6e: right
@@ -13393,6 +13392,8 @@ plane4mask:
 
 1d994: fonttable
 1d9c4: print_handle
+1d9c6: refstr
+1dac6: refnr
 
 1dac8: sysvarptr
 

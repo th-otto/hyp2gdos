@@ -157,7 +157,7 @@ struct layout {
 extern struct layout layout;
 extern int hyp_errno;
 extern char hypfold[MAXPATH];
-extern char katalog[MAXPATH];
+extern char all_ref[MAXPATH];
 extern _WORD fonts[];
 
 
@@ -217,44 +217,71 @@ int vdi_draw_image(struct vdi *v, void *data,
 	_WORD x, _WORD y, _WORD dstwidth, _WORD dstheight,
 	_WORD srcwidth, _WORD srcheight,
 	_WORD planes, _WORD mode,
-	_WORD unused1, _WORD unused2, void *mask);
-
-
-/*
- * util.c
- */
-void *xmalloc(size_t size);
-void xfree(void *ptr);
-_BOOL interrupted(void);
-
-const char *mybasename(const char *filename);
-int get_cwd(char *path);
-void get_curdir(char *path);
-char *get_bootdir(char *path);
-char *gethomedir(char *path);
-int setpath(const char *value, char *path);
-_BOOL is_relative_path(const char *filename);
-_BOOL get_basename(const char *filename, char *name);
-_BOOL get_dirname(const char *filename, char *name);
-_BOOL get_name(char *name, const char *filename);
-_BOOL append_path(const char *dirname, const char *filename, char *buf);
-_BOOL strmcpy(const char *src, char *dst, int len);
-FILE *myfopen(const char *filename, const char *mode);
-int clearpath(Path *path);
-_BOOL pathequal(const Path *p1, const Path *p2);
-int pathcopy(Path *dst, const Path *src);
-_BOOL fexists(const char *filename);
+	_WORD unused1, _WORD unused2, const unsigned short params[][3]);
+void vdi_get_outputsize(_WORD handle, GRECT *gr);
+void vdi_get_pagesize(_WORD handle, GRECT *gr);
+_BOOL vdi_can_scale_bitmaps(_WORD handle);
+void vdi_get_dpi(_WORD handle, _WORD *hdpi, _WORD *vdpi);
+void vdi_clear_page(_WORD handle);
 
 #ifndef __PORTVDI_H__
 void vq_scrninfo(_WORD handle, _WORD *workout);
 #endif
 
 
+/*
+ * util1.c
+ */
+int set_ref_string(const char *str, _BOOL caseinsens, _BOOL d1);
+int ref_strcmp(const char *str1, const char *str2);
+void set_lrect(long *dst, long a, long b, long c, long d);
+_WORD rc_intersect(const GRECT *r1, GRECT *r2);
+void rc_shrink(GRECT *gr, _WORD dx, _WORD dy);
+int clearpath(Path *path);
+const char *mybasename(const char *filename);
+_BOOL get_name(char *name, const char *filename);
+_BOOL is_relative_path(const char *filename);
+_BOOL get_basename(const char *filename, char *name);
+_BOOL get_dirname(const char *filename, char *name);
+_BOOL append_path(const char *dirname, const char *filename, char *buf);
+_BOOL strmcpy(const char *src, char *dst, int len);
+int setpath(const char *value, char *path);
+FILE *myfopen(const char *filename, const char *mode);
+int pathcopy(Path *dst, const Path *src);
+_BOOL pathequal(const Path *p1, const Path *p2);
+int get_cwd(char *path);
+_BOOL fexists(const char *filename);
+
+
+/*
+ * util2.c
+ */
+char *get_bootdir(char *path);
+char *gethomedir(char *path);
+void get_curdir(char *path);
+
+
+/*
+ * util3.c
+ */
+void *xmalloc(size_t size);
+void xfree(void *ptr);
+
+
+/*
+ * util4.c
+ */
+_BOOL interrupted(void);
+void get_date(int *day, int *month, int *year);
+
+
+/*
+ * hyp.c
+ */
 struct hypfile *hyp_new(void);
 void hyp_delete(struct hypfile **hyp);
 void hyp_free(struct hypfile *hyp);
 int hyp_load(struct hypfile *hyp, const Path *filename);
-_BOOL can_scale_bitmaps(_WORD handle);
 int hyp_init_pageinfo(struct pageinfo *page, struct hypfile *hyp, _WORD font_width, _WORD font_height, _BOOL history);
 hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename);
 int hyp_load_page(struct pageinfo *page, const Path *filename, hyp_nodenr node, _BOOL addhist, long *lineno);
@@ -267,9 +294,6 @@ size_t conv_nodename(unsigned char os, char *name);
 void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type);
 
 
-void x183a6(long *dst, long a, long b, long c, long d);
-int x1837c(char *str, char *end);
-int x18352(const char *str, int d3, int d1);
 int x15132(struct hypfile *hyp, struct xo4 **data, hyp_nodenr node);
 void x1509e(struct hypfile *hyp, struct xo4 **data);
 char *dec_255_decode(char *data, short *val);

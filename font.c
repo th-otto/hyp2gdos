@@ -583,7 +583,7 @@ int vdi_draw_bitmap(struct vdi *v, void *data,
 	vdi_ref(v);
 	if (srcwidth != dstwidth || srcheight != dstheight)
 	{
-		if (can_scale_bitmaps(v->handle))
+		if (vdi_can_scale_bitmaps(v->handle))
 		{
 			mode |= 0x8000;
 		} else
@@ -623,6 +623,50 @@ int vdi_draw_bitmap(struct vdi *v, void *data,
 
 /* ---------------------------------------------------------------------- */
 
+static unsigned short const plane2_params[][3] = {
+	{ 0x0000, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0004 },
+	
+	{ 0xffff, 0xffff, 0xffff },
+	{ 0xffff, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0000 },
+	{ 0x0000, 0x0000, 0x0000 }
+};
+static unsigned short const plane3_params[][3] = {
+	{ 0x0000, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0008 },
+	
+	{ 0xffff, 0xffff, 0xffff },
+	{ 0xffff, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0000 },
+	{ 0xffff, 0xffff, 0x0000 },
+	{ 0x0000, 0x0000, 0xffff },
+	{ 0xffff, 0x0000, 0xffff },
+	{ 0x0000, 0xffff, 0xffff },
+	{ 0x0000, 0x0000, 0x0000 }
+};
+static unsigned short const plane4_params[][3] = {
+	{ 0x0000, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0010 },
+	
+	{ 0xffff, 0xffff, 0xffff },
+	{ 0xffff, 0x0000, 0x0000 },
+	{ 0x0000, 0xffff, 0x0000 },
+	{ 0xffff, 0xffff, 0x0000 },
+	{ 0x0000, 0x0000, 0xffff },
+	{ 0xffff, 0x0000, 0xffff },
+	{ 0x0000, 0xffff, 0xffff },
+	{ 0xaaaa, 0xaaaa, 0xaaaa },
+	{ 0x5555, 0x5555, 0x5555 },
+	{ 0xaaaa, 0x0000, 0x0000 },
+	{ 0x0000, 0xaaaa, 0x0000 },
+	{ 0xaaaa, 0xaaaa, 0x0000 },
+	{ 0x0000, 0x0000, 0xaaaa },
+	{ 0xaaaa, 0x0000, 0xaaaa },
+	{ 0x0000, 0xaaaa, 0xaaaa },
+	{ 0x0000, 0x0000, 0x0000 }
+};
+		
 static int dither_image(const void *data, _WORD width, _WORD height, _WORD planes, const unsigned short params[][3], void *mono)
 {
 	long bytes_per_line;
@@ -662,50 +706,6 @@ static int dither_image(const void *data, _WORD width, _WORD height, _WORD plane
 	planesize = bytes_per_line * height;
 	if (params == NULL)
 	{
-		static unsigned short const plane2_params[][3] = {
-			{ 0x0000, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0004 },
-			
-			{ 0xffff, 0xffff, 0xffff },
-			{ 0xffff, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0000 },
-			{ 0x0000, 0x0000, 0x0000 }
-		};
-		static unsigned short const plane3_params[][3] = {
-			{ 0x0000, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0008 },
-			
-			{ 0xffff, 0xffff, 0xffff },
-			{ 0xffff, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0000 },
-			{ 0xffff, 0xffff, 0x0000 },
-			{ 0x0000, 0x0000, 0xffff },
-			{ 0xffff, 0x0000, 0xffff },
-			{ 0x0000, 0xffff, 0xffff },
-			{ 0x0000, 0x0000, 0x0000 }
-		};
-		static unsigned short const plane4_params[][3] = {
-			{ 0x0000, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0010 },
-			
-			{ 0xffff, 0xffff, 0xffff },
-			{ 0xffff, 0x0000, 0x0000 },
-			{ 0x0000, 0xffff, 0x0000 },
-			{ 0xffff, 0xffff, 0x0000 },
-			{ 0x0000, 0x0000, 0xffff },
-			{ 0xffff, 0x0000, 0xffff },
-			{ 0x0000, 0xffff, 0xffff },
-			{ 0xaaaa, 0xaaaa, 0xaaaa },
-			{ 0x5555, 0x5555, 0x5555 },
-			{ 0xaaaa, 0x0000, 0x0000 },
-			{ 0x0000, 0xaaaa, 0x0000 },
-			{ 0xaaaa, 0xaaaa, 0x0000 },
-			{ 0x0000, 0x0000, 0xaaaa },
-			{ 0xaaaa, 0x0000, 0xaaaa },
-			{ 0x0000, 0xaaaa, 0xaaaa },
-			{ 0x0000, 0x0000, 0x0000 }
-		};
-				
 		switch (planes)
 		{
 			case 2: params = plane2_params; break;
@@ -761,13 +761,13 @@ static int dither_image(const void *data, _WORD width, _WORD height, _WORD plane
 				quant_error = 255;
 			if (params != NULL)
 			{
-				short o42;
-				short o40;
-				short o38;
-				o42 = ((long)params[pixval + 2][0] * 255) / (params[1][1] - 1);
-				o40 = ((long)params[pixval + 2][1] * 255) / (params[1][1] - 1);
-				o38 = ((long)params[pixval + 2][2] * 255) / (params[1][1] - 1);
-				quant_error += (o42 * 30L + o40 * 59L + o38 * 11L) / 100;
+				short r;
+				short g;
+				short b;
+				r = ((long)params[pixval + 2][0] * 255) / (params[1][1] - 1);
+				g = ((long)params[pixval + 2][1] * 255) / (params[1][1] - 1);
+				b = ((long)params[pixval + 2][2] * 255) / (params[1][1] - 1);
+				quant_error += (r * 30L + g * 59L + b * 11L) / 100;
 			} else
 			{
 				quant_error += (pixval * 255) / (pixmask - 1);
@@ -810,8 +810,224 @@ static _BOOL is_truecolor(struct vdi *v)
 {
 	_WORD workout[273];
 	
+	memset(workout, 0, sizeof(workout));
 	vq_scrninfo(v->handle, workout);
 	return workout[0] == 2 && workout[2] == 32;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static int draw_image(struct vdi *v, void *data,
+	_WORD x, _WORD y, _WORD dstwidth, _WORD dstheight,
+	_WORD srcwidth, _WORD srcheight,
+	_WORD planes, _WORD mode)
+{
+	long words;
+	MFDB src;
+	MFDB dst;
+	_WORD pxy[8];
+	
+	mode = S_ONLY; /* WTF */
+	if (planes != 32)
+		return 1;
+	words = (srcwidth + 15) / 16;
+
+	vdi_ref(v);
+	if (srcwidth != dstwidth || srcheight != dstheight)
+	{
+		if (vdi_can_scale_bitmaps(v->handle))
+		{
+			mode |= 0x8000;
+		} else
+		{
+			x += (dstwidth - srcwidth) / 2;
+			y += (dstheight - srcheight) / 2;
+			dstwidth = srcwidth;
+			dstheight = srcheight;
+		}
+	}
+	
+	pxy[0] = 0;
+	pxy[1] = 0;
+	pxy[2] = srcwidth - 1;
+	pxy[3] = srcheight - 1;
+	pxy[4] = x;
+	pxy[5] = y;
+	pxy[6] = x + dstwidth - 1;
+	pxy[7] = y + dstheight - 1;
+	src.fd_addr = data;
+	src.fd_w = srcwidth;
+	src.fd_h = srcheight;
+	src.fd_wdwidth = (short)words;
+	src.fd_stand = FALSE;
+	src.fd_nplanes = 32;
+	src.fd_r1 = 0;
+	src.fd_r2 = 0;
+	src.fd_r3 = 0;
+	dst.fd_addr = NULL;
+	vro_cpyfm(v->handle, mode, pxy, &src, &dst);
+	vdi_unref(v);
+	return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static int convert_image(const unsigned char *inputptr, _WORD width, _WORD height, _WORD planes, const unsigned short params[][3], void *color)
+{
+	long words;
+	long bytes_per_line; /* 8 */
+	long planesize; /* d6 */
+	unsigned char *outputline; /* 4 */
+	_WORD x;
+	_WORD y; /* 0 */
+	const unsigned char *srcptr; /* a5 */
+	unsigned char *dstptr; /* a4 */
+	short inputmask; /* d5 */
+	
+/*
+ * temporary hack to get reigster assignments mostly right
+ */
+#ifdef __PUREC__
+	(void) params;
+	(void) inputptr;
+#endif
+	
+	words = (width + 15) / 16;
+	bytes_per_line = words * 2;
+	planesize = bytes_per_line * height;
+
+	if (params == NULL)
+	{
+		switch (planes)
+		{
+			case 2: params = plane2_params; break;
+			case 3: params = plane3_params; break;
+			case 4: params = plane4_params; break;
+		}
+	}
+	
+	outputline = color;
+	for (y = 0; y < height; y++)
+	{
+		if (should_abort())
+			return 1;
+		srcptr = inputptr;
+		dstptr = outputline;
+		inputmask = 0x80;
+		for (x = 0; x < width; x++)
+		{
+			short plane;
+			short pixval;
+			short pixmask;
+			const unsigned char *planeptr;
+			
+			planeptr = srcptr;
+			pixval = 0;
+			pixmask = 1;
+			for (plane = pixval; plane < planes; plane++)
+			{
+				if (*planeptr & inputmask)
+					pixval |= pixmask;
+				pixmask += pixmask;
+				planeptr += planesize;
+			}
+			inputmask >>= 1;
+			if (inputmask == 0)
+			{
+				inputmask = 0x80;
+				srcptr++;
+			}
+			if (params != NULL)
+			{
+				*dstptr++ = 0;
+				*dstptr++ = ((long)params[pixval + 2][0] * 255) / (params[1][1] - 1);
+				*dstptr++ = ((long)params[pixval + 2][1] * 255) / (params[1][1] - 1);
+				*dstptr++ = ((long)params[pixval + 2][2] * 255) / (params[1][1] - 1);
+			} else
+			{
+				pixval = (pixval * 255) / (pixmask - 1);
+				*dstptr++ = 0;
+				*dstptr++ = pixval;
+				*dstptr++ = pixval;
+				*dstptr++ = pixval;
+			}
+			
+		}
+		inputptr = inputptr + bytes_per_line;
+		outputline += bytes_per_line * 32;
+	}
+	return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int vdi_draw_image(struct vdi *v, void *data,
+	_WORD x, _WORD y, _WORD dstwidth, _WORD dstheight,
+	_WORD srcwidth, _WORD srcheight,
+	_WORD planes, _WORD mode,
+	_WORD unused1, _WORD unused2, const unsigned short params[][3])
+{
+	int ret;
+	long words;
+	long bytes_per_line;
+	long planesize;
+	void *tmp;
+	long allocsize;
+	
+	ret = 0;
+	if (planes == 1)
+	{
+		vdi_draw_bitmap(v, data, x, y, dstwidth, dstheight, srcwidth, srcheight, planes, mode, unused1, unused2);
+		return 0;
+	}
+	
+	words = (srcwidth + 15) / 16;
+	bytes_per_line = words * 2;
+	planesize = bytes_per_line * srcheight;
+	if (is_truecolor(v))
+	{
+		allocsize = planesize * 32;
+		tmp = malloc(allocsize);
+		if (tmp == NULL)
+		{
+			ret = 2;
+		} else
+		{
+			ret = convert_image(data, srcwidth, srcheight, planes, params, tmp);
+			if (ret == 0)
+			{
+				draw_image(v, tmp, x, y, dstwidth, dstheight, srcwidth, srcheight, 32, mode);
+			}
+			free(tmp);
+		}
+	} else
+	{
+		allocsize = planesize;
+		tmp = malloc(allocsize);
+		if (tmp == NULL)
+		{
+			ret = 2;
+		} else
+		{
+			ret = dither_image(data, srcwidth, srcheight, planes, params, tmp);
+			if (ret == 0)
+			{
+				vdi_draw_bitmap(v, tmp, x, y, dstwidth, dstheight, srcwidth, srcheight, 1, mode, unused1, unused2);
+			}
+			free(tmp);
+		}
+	}
+	if (ret != 0)
+	{
+		GRECT gr;
+
+		gr.g_x = x;
+		gr.g_y = y;
+		gr.g_w = dstwidth;
+		gr.g_h = dstheight;
+		vdi_draw_rect(v, &gr);
+	}
+	return ret;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -822,9 +1038,96 @@ int x18118(char *data, short width, short height, short planes)
 	UNUSED(width);
 	UNUSED(height);
 	UNUSED(planes);
-	dither_image(0, 0, 0, 0, 0, 0);
 	return 0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void vdi_get_outputsize(_WORD handle, GRECT *gr)
+{
+	_WORD workout[57];
+	
+	vq_extnd(handle, 0, workout);
+	gr->g_x = 0;
+	gr->g_y = 0;
+	gr->g_w = workout[0] + 1;
+	gr->g_h = workout[1] + 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void vdi_get_pagesize(_WORD handle, GRECT *gr)
+{
+	_WORD workout[57];
+	
+	vq_extnd(handle, 1, workout);
+	vdi_get_outputsize(handle, gr);
+	gr->g_x -= workout[40];
+	gr->g_y -= workout[41];
+	gr->g_w += workout[40] + workout[42];
+	gr->g_h += workout[41] + workout[43];
+}
+
+/* ---------------------------------------------------------------------- */
+
+_BOOL vdi_can_scale_bitmaps(_WORD handle)
+{
+	_WORD workout[57];
+	
+	vq_extnd(handle, 1, workout);
+	return (workout[30] & 1) != 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void vdi_get_dpi(_WORD handle, _WORD *hdpi, _WORD *vdpi)
+{
+	_WORD workout[57];
+	
+	vq_extnd(handle, 1, workout);
+	*hdpi = workout[23];
+	*vdpi = workout[24];
+}
+
+/* ---------------------------------------------------------------------- */
+
+#ifndef __GNUC__
+/*
+ * vq_scrninfo is missing in original Pure-C library
+ */
+#ifdef __PORTVDI_H__
+typedef struct
+{
+    int    control[15];
+    int    intin[132];
+    int    intout[140];
+    int    ptsin[145];
+    int    ptsout[145];
+} VDIPARBLK;
+extern VDIPARBLK _VDIParBlk;
+#else
+#define control contrl
+#endif
+
+void vq_scrninfo(_WORD handle, _WORD *workout)
+{
+	VDIPB pb;
+	
+	memset(&_VDIParBlk, 0, sizeof(_VDIParBlk));
+	pb.control = _VDIParBlk.control;
+	pb.intin = _VDIParBlk.intin;
+	pb.ptsin = _VDIParBlk.ptsin;
+	pb.intout = workout;
+	pb.ptsout = _VDIParBlk.ptsout;
+	pb.intin[0] = 2; /* vq_scrninfo call */
+	pb.control[0] = 102; /* vq_extnd */
+	pb.control[1] = 0; /* #ptsin */
+	pb.control[3] = 1; /* #intin */
+	pb.control[5] = 1; /* sub opcode */
+	pb.control[6] = handle;
+	vdi(&pb);
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -844,4 +1147,23 @@ void v_clip(_WORD handle, const GRECT *gr)
 		pxy[3] = gr->g_y + gr->g_h - 1;
 	}
 	vs_clip(handle, clip_flag, pxy);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void vdi_clear_page(_WORD handle)
+{
+	_WORD pxy[10]; /* FIXME: 4 are enough */
+	GRECT gr;
+	
+	vdi_get_outputsize(handle, &gr);
+	pxy[0] = gr.g_x;
+	pxy[1] = gr.g_y;
+	pxy[2] = gr.g_x + gr.g_w - 1;
+	pxy[3] = gr.g_y + gr.g_h - 1;
+	v_clip(handle, &gr);
+	vsf_interior(handle, FIS_SOLID);
+	vswr_mode(handle, MD_REPLACE);
+	vsf_color(handle, G_WHITE);
+	v_bar(handle, pxy);
 }

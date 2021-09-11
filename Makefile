@@ -12,7 +12,10 @@ OBJS = \
 	lh5d.o \
 	file.o \
 	font.o \
-	util.o \
+	util1.o \
+	util2.o \
+	util3.o \
+	util4.o \
 	$(empty)
 
 hyp2gdos.ttp: $(OBJS)

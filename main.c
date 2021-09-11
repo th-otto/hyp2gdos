@@ -463,7 +463,7 @@ static int printfile(const Path *filename)
 					typewriter_font_id = new_font_id();
 					set_font(standard_font_id, find_font(standard_font), standard_font_size);
 					set_font(typewriter_font_id, find_font(typewriter_font), typewriter_font_size);
-					scale_flag = can_scale_bitmaps(vdihandle);
+					scale_flag = vdi_can_scale_bitmaps(vdihandle);
 					/* BUG: interrupted() only checks for shift */
 					verboseout("Hyp2GDOS: Hold %s to cancel printing.\n", magicmac && (((long *)magicmac)[1] & 2) == 0 ? "Command-B" : "SHIFT+SHIFT");
 					wk_info();
