@@ -14,7 +14,7 @@ _WORD vdihandle;
 _BOOL abort_flag;
 _BOOL scale_flag;
 char x19c22[258];
-_WORD x19d24;
+_BOOL x19d24;
 _WORD num_loaded_fonts;
 _WORD x19d28;
 
@@ -73,14 +73,7 @@ static unsigned char const macroman_cset[256] = {
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f
 };
-int standard_font_id = 12;
-int typewriter_font_id = 12;
-int x18b56 = 0;
-int x18b58 = 1;
-_BOOL expand_spaces = TRUE;
-_BOOL x18b5c = TRUE;
-_BOOL use_standard = TRUE;
-int tabsize = 4;
+struct fontinfo fontinfo = { 12, 12, 0, G_BLACK, TRUE, TRUE, TRUE, 4 };
 _WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 /**************************************************************************/
@@ -292,7 +285,7 @@ static void wk_info(void)
 
 /* ---------------------------------------------------------------------- */
 
-size_t conv_macroman(const char *src, char *dst)
+int conv_macroman(const char *src, char *dst)
 {
 	char *start;
 	const unsigned char (*table)[256];
@@ -304,7 +297,7 @@ size_t conv_macroman(const char *src, char *dst)
 		*dst++ = (*table)[(unsigned char)*src++];
 	}
 	*dst = '\0';
-	return dst - start;
+	return (int)(dst - start);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -450,7 +443,7 @@ static int printfile(const Path *filename)
 				retcode = 1;
 			} else
 			{
-				x19d24 = 0;
+				x19d24 = FALSE;
 				num_loaded_fonts = workout[10];
 				num_loaded_fonts += vst_load_fonts(vdihandle, 0);
 				if (x19d28 == 0 && num_loaded_fonts == 0)
@@ -459,10 +452,10 @@ static int printfile(const Path *filename)
 					retcode = 2;
 				} else
 				{
-					standard_font_id = new_font_id();
-					typewriter_font_id = new_font_id();
-					set_font(standard_font_id, find_font(standard_font), standard_font_size);
-					set_font(typewriter_font_id, find_font(typewriter_font), typewriter_font_size);
+					fontinfo.standard_font_id = new_font_id();
+					fontinfo.typewriter_font_id = new_font_id();
+					set_font(fontinfo.standard_font_id, find_font(standard_font), standard_font_size);
+					set_font(fontinfo.typewriter_font_id, find_font(typewriter_font), typewriter_font_size);
 					scale_flag = vdi_can_scale_bitmaps(vdihandle);
 					/* BUG: interrupted() only checks for shift */
 					verboseout("Hyp2GDOS: Hold %s to cancel printing.\n", magicmac && (((long *)magicmac)[1] & 2) == 0 ? "Command-B" : "SHIFT+SHIFT");
@@ -496,7 +489,7 @@ static int printfile(const Path *filename)
 									fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 								} else
 								{
-									x14db6(&page, &page_num, &standard_font_id);
+									print_page(&page, &page_num, &fontinfo);
 								}
 							}
 						} else
@@ -516,7 +509,7 @@ static int printfile(const Path *filename)
 											fprintf(stderr, "Couldn't load page \"%s\"!\n", pagename);
 										} else
 										{
-											x14db6(&page, &page_num, &standard_font_id);
+											print_page(&page, &page_num, &fontinfo);
 											if (page_num >= layout.last_page)
 												break;
 										}
@@ -543,7 +536,7 @@ static int printfile(const Path *filename)
 							} else
 							{
 								trace(">>>Try to print page (index=%d)\n", (int)node);
-								x14db6(&page, &page_num, &standard_font_id);
+								print_page(&page, &page_num, &fontinfo);
 								if (page_num >= layout.last_page)
 									break;
 							}
@@ -710,7 +703,7 @@ static void parseline(char *line)
 		break;
 	
 	case 18:
-		expand_spaces = atoi(line) != 0;
+		fontinfo.expand_spaces = atoi(line) != 0;
 		break;
 	
 	case 19:
@@ -734,11 +727,11 @@ static void parseline(char *line)
 		break;
 	
 	case 24:
-		use_standard = atoi(line);
+		fontinfo.use_standard = atoi(line);
 		break;
 	
 	case 25:
-		tabsize = atoi(line);
+		fontinfo.tabsize = atoi(line);
 		break;
 	
 	case 26:
@@ -890,7 +883,7 @@ int main(int argc, char **argv)
 			break;
 		case 'o':
 		case 'O':
-			tabsize = atoi(arg);
+			fontinfo.tabsize = atoi(arg);
 			break;
 		case 'g':
 		case 'G':

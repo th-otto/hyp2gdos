@@ -1,5 +1,6 @@
 #include "hyp2gdos.h"
 #include <errno.h>
+#include "lh5.h"
 
 int hyp_errno;
 char hypfold[MAXPATH];
@@ -8,6 +9,288 @@ char all_ref[MAXPATH];
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
 /**************************************************************************/
+
+FILE *hyp_find_in_hypfold(Path *filename)
+{
+	Path dirname;
+	Path basename;
+	FILE *fp;
+	
+	if (is_relative_path(filename->buf))
+	{
+		get_basename(filename->buf, basename.buf);
+		append_path(hypfold, basename.buf, filename->buf);
+	}
+	fp = myfopen(filename->buf, "rb");
+	if (fp == NULL)
+	{
+		/* BUG: nonsense, filename has already been modified above */
+		get_dirname(filename->buf, dirname.buf);
+		get_basename(filename->buf, basename.buf);
+		strcat(basename.buf, ".hyp");
+		append_path(dirname.buf, basename.buf, filename->buf);
+		fp = myfopen(filename->buf, "rb");
+	}
+	return fp;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* BUG: os should be unsigned */
+size_t conv_nodename(char os, char *name)
+{
+	switch (os)
+	{
+	case HYP_OS_MAC:
+		return conv_macroman(name, name);
+	}
+	return strlen(name);
+}
+
+/* ---------------------------------------------------------------------- */
+
+hyp_nodenr hyp_find_pagename(struct hypfile *hyp, const char *pagename)
+{
+	hyp_nodenr i;
+	hyp_nodenr ret;
+	
+	if (*pagename == '\0')
+	{
+		ret = HYP_NOINDEX;
+		return ret;
+	}
+	for (i = 0; i < hyp->header.num_index; i++)
+	{
+		if (strcmp(hyp->indextable[i]->name, pagename) == 0)
+			return i;
+	}
+	if (strcmp("Main", pagename) == 0)
+		return 0;
+	return HYP_NOINDEX;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type)
+{
+	short *data;
+	
+	data = hyp->extdata;
+	if (data == NULL)
+		return NULL;
+	while (*data != 0)
+	{
+		if (*data == (short)type)
+			return data + 2;
+		data = (short *)((char *)data + 4 + data[1]);
+	}
+	return NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+char *decode_char(char *data, int *val)
+{
+	*val = (unsigned char)*data++ - 1;
+	return data;
+}
+
+/* ---------------------------------------------------------------------- */
+
+char *dec_255_decode(char *data, short *val)
+{
+	unsigned short lo;
+	
+	lo = (unsigned char)*data++ - 1U;
+	lo += ((unsigned char)*data++ - 1U) * 255;
+	*val = lo;
+	return data;
+}
+
+/* ---------------------------------------------------------------------- */
+
+char *dec_255_encode(char *data, short val)
+{
+	short hi;
+	short lo;
+	
+	hi = val / 255 + 1;
+	lo = val % 255 + 1;
+	*data++ = lo;
+	*data++ = hi;
+	return data;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void hyp_free_node(struct hypfile *hyp, struct node **node)
+{
+	UNUSED(hyp);
+	if (node == NULL)
+		return;
+	if (*node == NULL)
+		return;
+	(*node)->picdata = NULL;
+	(*node)->datalen = 0;
+	(*node)->nodenr = HYP_NOINDEX;
+	(*node)->o10 = NULL;
+	free(*node);
+	*node = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static void prepare_ascii(struct hypfile *hyp, struct node *node)
+{
+	char *data;
+	char *end;
+	char *dst;
+	
+	data = node->data;
+	end = data + node->datalen;
+	dst = data;
+	while (data < end)
+	{
+		if (*data == 0x0d)
+		{
+			if (hyp->header.compiler_os == HYP_OS_UNKNOWN)
+			{
+				hyp->header.compiler_os = data[1] == 0x0a ? HYP_OS_ATARI : HYP_OS_MAC;
+			}
+			if (data[1] == 0x0a)
+				data++;
+			*dst++ = '\0';
+			data++;
+		} else if (*data == 0x0a)
+		{
+			*dst++ = '\0';
+			data++;
+		} else
+		{
+			*dst++ = *data++;
+		}
+	}
+	*dst = '\0';
+	node->datalen = dst - node->data;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int hyp_load_node(struct hypfile *hyp, struct node **node, hyp_nodenr nodenr)
+{
+	char *data;
+	FILE *fp;
+	long offset;
+	long compressed_size;
+	long uncompressed_size;
+	long comp_diff;
+	
+	data = NULL;
+	fp = NULL;
+	if (nodenr < 0 || nodenr >= hyp->header.num_index)
+	{
+		hyp_errno = 1999;
+		goto reterror;
+	}
+	offset = hyp->indextable[nodenr]->seek_offset;
+	if (offset < 0)
+	{
+		hyp_errno = 1998;
+		goto reterror;
+	}
+	/*
+	 * BUG: may access illegal entry
+	 */
+	compressed_size = hyp->indextable[nodenr + 1]->seek_offset - offset;
+	comp_diff = hyp->indextable[nodenr]->comp_diff;
+	if (hyp->indextable[nodenr]->type == HYP_NODE_IMAGE)
+	{
+		/* BUG: next is sign-extended */
+		comp_diff |= ((long) hyp->indextable[nodenr]->next) << 16;
+	}
+	uncompressed_size = compressed_size + comp_diff;
+again:
+	if (compressed_size >= uncompressed_size)
+		data = malloc(compressed_size + sizeof(**node) + 1);
+	else
+		data = xmalloc(compressed_size + sizeof(**node) + 1);
+	if (data == NULL)
+	{
+		hyp_errno = 2;
+		goto reterror;
+	}
+	if (hyp->fp != NULL)
+	{
+		fp = hyp->fp;
+	} else
+	{
+		fp = myfopen(hyp->filename.buf, "rb");
+		if (fp == NULL)
+		{
+			hyp_errno = errno;
+			goto reterror;
+		}
+		if (hyp->flags & FLAG_40)
+			hyp->fp = fp;
+	}
+	if (fseek(fp, offset, SEEK_SET) != 0 ||
+		(long)fread(data + sizeof(**node), 1, compressed_size, fp) != compressed_size)
+	{
+		hyp_errno = errno;
+		goto reterror;
+	}
+	if (compressed_size >= uncompressed_size)
+	{
+		*node = (struct node *)data;
+		data = NULL;
+	} else
+	{
+		*node = malloc(uncompressed_size + sizeof(**node) + 1);
+		if (*node == NULL)
+		{
+			hyp_errno = 2;
+			goto reterror;
+		}
+		/*
+		 * setup globals for decoder
+		 */
+		lh5_packedMem = (unsigned char *)data + sizeof(**node);
+		lh5_compsize = compressed_size;
+		lh5_buffer = (unsigned char *)(*node)->data;
+		lh5_origsize = uncompressed_size;
+		lh5_decode1(TRUE);
+		if ((long)lh5_compsize > 0)
+		{
+			/* not all data decompressed: error */
+			free(*node);
+			*node = NULL;
+			xfree(data);
+			data = NULL;
+			uncompressed_size += 0x10000L;
+			goto again;
+		}
+	}
+	(*node)->picdata = NULL;
+	(*node)->datalen = uncompressed_size;
+	(*node)->nodenr = nodenr;
+	(*node)->o10 = NULL;
+	if (hyp->header.magic != HYP_MAGIC_HYP)
+		prepare_ascii(hyp, *node);
+	
+	hyp_errno = 0;
+	goto retok;
+	
+reterror:
+	hyp_free_node(hyp, node);
+retok:
+	if (hyp->fp == NULL && fp != NULL)
+		fclose(fp);
+	if (data != NULL)
+		xfree(data);
+	return hyp_errno;
+}
+
+/* ---------------------------------------------------------------------- */
 
 int get_nodetype(struct hypfile *hyp, hyp_nodenr node)
 {
@@ -98,7 +381,7 @@ int hyp_load(struct hypfile *hyp, const Path *filename)
 		hyp->fp = NULL;
 	}
 	pathcopy(&pathbuf, filename);
-	fp = x14f38(&pathbuf);
+	fp = hyp_find_in_hypfold(&pathbuf);
 	if (fp == NULL)
 	{
 		hyp_errno = errno;
@@ -346,7 +629,7 @@ static void add_history(struct history *hist, struct pageinfo *page)
 {
 	if (page == NULL)
 		return;
-	if (page->o4 == NULL)
+	if (page->node == NULL)
 		return;
 	if (hist->size < HISTSIZE)
 		hist->size++;
@@ -354,7 +637,7 @@ static void add_history(struct history *hist, struct pageinfo *page)
 	if (hist->curr >= HISTSIZE)
 		hist->curr = 0;
 	pathcopy(&hist->entry[hist->curr].filename, &page->hyp->filename);
-	hist->entry[hist->curr].nodenr = page->o4->nodenr;
+	hist->entry[hist->curr].nodenr = page->node->nodenr;
 	strcpy(hist->entry[hist->curr].window_title, page->window_title);
 	hist->entry[hist->curr].lineno = get_real_lineno(page, page->lineno);
 	hist->entry[hist->curr].o518 = page->o60;
@@ -498,14 +781,14 @@ static int search_ref(struct hypfile *hyp, const char *filename, _BOOL caseinsen
 		}
 		if (found != HYP_NOINDEX)
 		{
-			struct xo4 *o16;
+			struct node *node;
 
-			err = x15132(hyp, &o16, found);
+			err = hyp_load_node(hyp, &node, found);
 			if (err == 0)
 			{
-				data = o16->data + 4;
+				data = node->data + 4;
 				err = scan_ref(hyp, filename, data, callback, modulename, errmsg, lineno);
-				x1509e(hyp, &o16);
+				hyp_free_node(hyp, &node);
 			}
 			if (err == 1423)
 				goto retok;
@@ -690,10 +973,10 @@ static char *skip_gfx_cmds(struct pageinfo *page, char *data, short *y_offset, s
 	
 	if (data == NULL)
 	{
-		data = page->o4->data;
+		data = page->node->data;
 		*y_offset = -1;
 	}
-	end = page->o4->data + page->o4->datalen;
+	end = page->node->data + page->node->datalen;
 	if (page->hyp->header.magic == HYP_MAGIC_HYP)
 	{
 		while (data < end && *data == HYP_ESC)
@@ -752,8 +1035,8 @@ static int prepare_page(struct pageinfo *page)
 	char *end;
 	int ypos;
 	int num_lines;
-	struct xo4 *a0;
-	struct xo4 *a5;
+	struct node *a0;
+	struct node *a5;
 	char *picdata;
 	char *starttext; /* o14 */
 	hyp_nodenr picnode; /* o12 */
@@ -764,7 +1047,7 @@ static int prepare_page(struct pageinfo *page)
 	short dithermask; /* o0 */
 	int i;
 	
-	a0 = page->o4;
+	a0 = page->node;
 	page->window_title = page->hyp->indextable[a0->nodenr]->name;
 	ypos = 0;
 	data = a0->data;
@@ -796,7 +1079,7 @@ static int prepare_page(struct pageinfo *page)
 					short height;
 					
 					dec_255_decode(data + 2, &picnode);
-					if (x15132(page->hyp, &a5->picdata, picnode) != 0)
+					if (hyp_load_node(page->hyp, &a5->picdata, picnode) != 0)
 						return 1;
 					picdata = a5->picdata->data;
 					planesize = ((*((short *)picdata) + 15) / 16) * 2; /* width */
@@ -936,8 +1219,8 @@ static int prepare_page(struct pageinfo *page)
 
 static void free_pageinfo(struct pageinfo *page)
 {
-	struct xo4 *xo4;
-	struct xo4 *next;
+	struct node *node;
+	struct node *next;
 	
 	if (page == NULL)
 		return;
@@ -953,14 +1236,14 @@ static void free_pageinfo(struct pageinfo *page)
 	if (page->errmsg != NULL)
 		free(page->errmsg);
 	page->errmsg = NULL;
-	xo4 = page->o4;
-	while (xo4 != NULL)
+	node = page->node;
+	while (node != NULL)
 	{
-		next = xo4->picdata;
-		x1509e(page->hyp, &xo4);
-		xo4 = next;
+		next = node->picdata;
+		hyp_free_node(page->hyp, &node);
+		node = next;
 	}
-	page->o4 = NULL;
+	page->node = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -983,7 +1266,7 @@ static int reset_pageinfo(struct pageinfo *page, hyp_nodenr node)
 		page->font_width = font_width;
 		page->font_height = font_height;
 		page->hist = hist;
-		if (x15132(hyp, &page->o4, node) != 0 ||
+		if (hyp_load_node(hyp, &page->node, node) != 0 ||
 			prepare_page(page) != 0)
 		{
 			free_pageinfo(page);
@@ -1030,7 +1313,7 @@ static int load_page(struct pageinfo *page, const Path *filename, const char *pa
 			node = hyp_find_pagename(page->hyp, pagename);
 		if (node == -11)
 			node = page->hyp->main_page;
-		if (page->o4 != NULL && page->o4->nodenr == node)
+		if (page->node != NULL && page->node->nodenr == node)
 			return 0;
 		switch (get_nodetype(page->hyp, node))
 		{
@@ -1052,7 +1335,7 @@ static int load_page(struct pageinfo *page, const Path *filename, const char *pa
 				 * just a name; can be either filename or nodename
 				 */
 				setpath(name, newpath.buf);
-				if ((fp = x14f38(&newpath)) != NULL)
+				if ((fp = hyp_find_in_hypfold(&newpath)) != NULL)
 				{
 					/*
 					 * was a valid filename
@@ -1338,7 +1621,8 @@ char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr)
 		return NULL;
 	if (tree_has_title(page->hyp, hyp_find_extheader(page->hyp, HYP_EXTH_TREEHEADER), nodenr) == 0)
 		return page->hyp->indextable[nodenr]->name;
-	if (page->o4 != NULL && page->o4->nodenr != nodenr)
+	/* BUG: will leak page->node if same node already loaded */
+	if (page->node != NULL && page->node->nodenr != nodenr)
 		free_pageinfo(page);
 	if (reset_pageinfo(page, nodenr) != 0)
 		return NULL;

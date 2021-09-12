@@ -8,6 +8,7 @@ all: hyp2gdos.ttp
 
 OBJS = \
 	main.o \
+	print.o \
 	hyp.o \
 	lh5d.o \
 	file.o \

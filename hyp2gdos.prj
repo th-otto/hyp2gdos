@@ -16,6 +16,7 @@ main.c
 
 hg1.s
 
+print.c
 hyp.c
 
 ;hg2.s

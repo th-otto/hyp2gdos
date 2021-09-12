@@ -1,0 +1,890 @@
+## created by hcp Version 1.0.4
+@if VERSION >= 6
+@os Atari
+@charset atarist
+@inputenc atarist
+@endif
+@database "Die Dokumentation zu Hyp2GDOS"
+@default "Titel"
+@author "Martin Osieka"
+@$VER: Version 1.1
+@subject "Dokumentation/ST-Guide"
+@width 75
+@remark ST-Guide flags: $0000
+
+
+@node "Titel"
+@{U}Titel                                                              Hyp2GDOS@{u}
+
+
+                           Die Dokumentation zu
+
+                                 Hyp2GDOS
+
+                                Version 1.1
+
+                                    von
+
+                               Martin Osieka
+
+                       Mausnet: Martin Osieka @@ of2
+                   Internet: Martin_Osieka@@of2.maus.de
+
+
+                            @{"Inhaltsverzeichnis" LINK "Main"}
+@endnode
+
+
+@node "Main" "Inhaltsverzeichnis"
+@symbol ar "Inhaltsverzeichnis"
+@{U}@{"Inhaltsverzeichnis" LINK "Main"}                                                 Hyp2GDOS@{u}
+
+
+ 1  Einleitung
+    1.1  Rechtliche Informationen
+    1.2  Installation
+    1.3  Systemvoraussetzungen
+
+ 2  Bedienung
+    2.1  Optionen
+    2.2  Konfigurationsvariablen
+         2.2.1  GerÑtetreiber
+         2.2.2  SeitenrÑnder
+         2.2.3  Kopf- und Fuûzeile
+         2.2.4  Seiteninhalt
+
+@{U}Anhang@{u}
+
+ A  Bekannte Probleme und Fehler
+
+ B  Hinweise fÅr Autoren von Hypertexten
+
+ C  Zukunft
+
+ D  Historie
+
+ E  Danksagungen
+
+ F  Aufbau einer Druckseite
+
+ G  Beispiel einer Konfigurationsdatei
+
+@endnode
+
+
+@node "Einleitung"
+@toc "Main"
+@{U}1  Einleitung                                                      Hyp2GDOS@{u}
+
+Hyp2GDOS ist ein Programm zur Ausgabe von Hypertexten im HYP-Format und 
+normalen ASCII-Texten Åber die VDI-Erweiterung @{"GDOS" LINK "gdos_faq.hyp"} an Drucker.
+
+Die Ausgabe Åber @{"GDOS" LINK "gdos_faq.hyp"} ist seitenorientiert, d.h. Druckseiten werden 
+zunÑchst komplett im Rechner aufgebaut und erst dann an den Drucker 
+versandt. Jede Hypertextseite wird auf einer bzw. mehreren Druckseiten 
+ausgegeben. Die Reihenfolge der Ausgabe aller Seiten des Hypertextes 
+entspricht ihrer internen Reihenfolge.
+
+Das Layout der Druckseiten kann Åber verschiedene Konfigurationsvariablen 
+festgelegt werden. So ist es z.B. mîglich die SeitenrÑnder einzustellen, 
+Kopf- und Fuûzeile frei zu definieren und ZeichensÑtze auszuwÑhlen. Die 
+Ausgabe des eigentlichen Seiteninhalts umfaût bei Hypertexten neben dem 
+reinen Text auch Bilder und andere grafische Objekte.
+
+@endnode
+
+
+@node "Rechtliche Informationen"
+@toc "Einleitung"
+@{U}1.1  Rechtliche Informationen                                      Hyp2GDOS@{u}
+
+                         Darmstadt, den 31.5.1997
+
+Das Copyright an Hyp2GDOS liegt beim Autor Martin Osieka.
+
+Das Programm Hyp2GDOS ist Freeware, d.h es darf kostenlos benutzt werden. 
+Eine Weitergabe beliebiger Art (auch Åber Mailboxen) ist gestattet, solange 
+das komplette Programmarchiv unverÑndert weitergegeben wird. Ein 
+kommerzieller Vertrieb ist gestattet, solange eine Unkostenpauschale nicht 
+wesentlich Åberschritten wird.
+
+Die Benutzung des Programms erfolgt auf eigenes Risiko. Trotz sorgfÑltiger 
+Entwicklung sind Fehler in Programmen nie auszuschlieûen.
+
+Neue Versionen des Programms findet man an folgenden Stellen:
+
+   ˘ Mausnetz: Maus OF2, Gruppenprogrammteil HYPERTEXT
+   ˘ WWW: <http://members.aol.com/softmo/index.htm>
+
+Den Autor selbst erreichen sie per Email unter den Adressen:
+
+   ˘ Martin_Osieka@@of2.maus.de (nur Mails < 32K)
+   ˘ softmo@@aol.com
+
+@endnode
+
+
+@node "Installation"
+@toc "Einleitung"
+@{U}1.2  Installation                                                  Hyp2GDOS@{u}
+
+Nach dem Auspacken des Archivs sollte man HYP2GDOS.HYP und HYP2GDOS.REF in 
+seinen Ordner fÅr Hypertexte legen (meistens der Guides-Ordner). Das 
+Programm HYP2GDOS kann an beliebiger Stelle stehen, am besten legt man es 
+aber zu seinen anderen Kommandozeilentools (wie z.B. @{"HCP" LINK "hcp.hyp"}).
+
+Nun sollte man noch seine @{"ST-GUIDE.INF" LINK "st-guide.hyp/Konfiguration"} anpassen. Wie dies geht, ist im 
+Kapitel Konfigurationsvariablen beschrieben. Sobald @{"ST-Guide" LINK "st-guide.hyp"} das Drucken 
+Åber Hyp2GDOS direkt unterstÅtzt, mÅssen vermutlich noch entsprechende 
+Variablen angepaût werden (siehe auch @{"ST-Guide" LINK "st-guide.hyp"}-Doku).
+
+@endnode
+
+
+@node "Systemvoraussetzungen"
+@toc "Einleitung"
+@{U}1.3  Systemvoraussetzungen                                         Hyp2GDOS@{u}
+
+Hyp2GDOS benîtigt die VDI-Erweiterung @{"GDOS" LINK "gdos_faq.hyp"} zur Ausgabe. Es gibt 
+verschiedene @{"GDOS" LINK "gdos_faq.hyp"}-Implementierungen, die auch verschiedene FÑhigkeiten 
+haben. Hyp2GDOS sollte mit allen @{"GDOS" LINK "gdos_faq.hyp"}-Implementierungen funktionieren, 
+prinzipiell gilt aber, je neuer das @{"GDOS" LINK "gdos_faq.hyp"} desto besser. Zum Beispiel kann 
+man Åber manche @{"GDOS" LINK "gdos_faq.hyp"}-Varianten nicht farbig drucken. Um farbig drucken zu 
+kînnen, muû der Druckertreiber TrueColor anbieten, bei weniger Farben wird 
+das Bild nach Schwarz/Weiû gerastert.
+
+Hyp2GDOS lÑuft in der MiNT-Domain, d.h. z.B. daû lange Dateinamen mîglich 
+sind (ACHTUNG: auch Groû-/Kleinschreibung wird unterschieden).
+
+@endnode
+
+
+@node "Bedienung"
+@toc "Main"
+@{U}2  Bedienung                                                       Hyp2GDOS@{u}
+
+Hyp2GDOS ist ein reines Kommandozeilentool, d.h. es hat keine grafische 
+BenutzeroberflÑche. Der Aufruf erfolgt durch Doppelklick auf das 
+Programmsymbol im Desktop bzw. Åber eine Kommandoshell. Beim Aufruf kînnen 
+verschiedene Optionen angegeben werden. Die Aufrufsyntax ist:
+
+     hyp2gdos {-option} hypfile
+
+Hyp2GDOS unterstÅtzt die öbergabe der Argumente Åber die 
+Environmentvariable ARGV=. Ansonsten sollten Argumente, die Leerzeichen 
+enthalten, mit " eingeschlossen werden (z.B.: "-tEin Beispiel").
+
+Das grundsÑtzliche Verhalten des Programms wird - wie in @{"ST-Guide" LINK "st-guide.hyp"} - Åber 
+Konfigurationsvariablen in der Datei @{"ST-GUIDE.INF" LINK "st-guide.hyp/Konfiguration"} definiert.
+
+@symbol i "Programmabbruch"
+Der Programmablauf kann durch gleichzeitiges DrÅcken der beiden SHIFT- 
+Tasten abgebrochen werden. Man sollte die Tasten solange gedrÅckt halten 
+bis Hyp2GDOS den Abbruch bestÑtigt, da das @{"GDOS" LINK "gdos_faq.hyp"} leider in einigen ZustÑnden 
+das Erkennen des Abbruchs nicht ermîglicht.
+
+@endnode
+
+
+@node "Optionen"
+@toc "Bedienung"
+@{U}2.1  Optionen                                                      Hyp2GDOS@{u}
+
+Die Auswertung der Programmoptionen erfolgt nach der Auswertung der 
+Konfigurationsvariablen in @{"ST-GUIDE.INF" LINK "st-guide.hyp/Konfiguration"}. Somit Åberschreiben die Optionen 
+entsprechende Konfigurationsvariablen. Die Auswertung der Optionen erfolgt 
+in der Reihenfolge ihrer Angabe in der Kommandozeile.
+
+@symbol ar "-fCONFIGFILE"
+ @{B}-fCONFIGFILE@{b} 
+     Konfigurationsvariablen aus der Datei CONFIGFILE lesen. Hiermit kann 
+     man individuelle Ausgabeformate definieren.
+
+@symbol ar "-dDEVICE"
+ @{B}-dDEVICE@{b} 
+     Ausgabe erfolgt auf das @{"GDOS" LINK "gdos_faq.hyp"}-GerÑt mit der Nummer DEVICE.
+
+@symbol ar "-tTITLE"
+ @{B}-tTITLE@{b} 
+     Statt dem kompletten Hypertext nur die Hypertextseite mit dem Titel 
+     TITLE ausgeben. ACHTUNG: Es wird mit dem Titel verglichen, der im 
+     Fenstertitel erscheint, und nicht mit dem internen Seitennamen.
+
+@symbol ar "-nNAME"
+ @{B}-nNAME@{b} 
+     Statt dem kompletten Hypertext nur die Hypertextseite mit dem internen 
+     Seitennamen NAME ausgeben.
+
+@symbol ar "-i"
+ @{B}-i@{b} 
+     Die Suche nach Hypertextseiten beachtet Groû-/Kleinschreibung der 
+     Namen nicht.
+
+@symbol ar "-pPAGE"
+ @{B}-pPAGE@{b} 
+     Nummer der ersten Seite (Default: PAGE=1).
+
+@symbol ar "-bPAGE"
+ @{B}-bPAGE@{b} 
+     Erste auszugebende Seite (Default: PAGE=Nummer der ersten Seite).
+
+@symbol ar "-ePAGE"
+ @{B}-ePAGE@{b} 
+     Letzte auszugebende Seite (Default: PAGE=letzte Seite des 
+     Hypertextes).
+
+@symbol ar "-sN"
+ @{B}-sN@{b} 
+     öberspringe Seiten beim Ausdruck (Default: N=0). Es gilt: 
+     N=0: alle Seite drucken 
+     N=1: Seiten mit ungerader Nummer Åberspringen 
+     N=2: Seiten mit gerader Nummer Åberspringen
+
+@symbol ar "-gLINE"
+ @{B}-gLINE@{b} 
+     Erste auszugebende Zeile (Default: 1, entspricht erster Zeile der 
+     aktuellen Seite).
+
+@symbol ar "-hLINE"
+ @{B}-hLINE@{b} 
+     Letzte auszugebende Zeile (Default: Letzte Zeile der aktuellen Seite).
+
+@symbol ar "-oN"
+ @{B}-oN@{b} 
+     Offset zwischen aufeinanderfolgenden Tabulatorpositionen auf den Wert 
+     N einstellen
+
+Beispiele:
+
+   ˘ drucke die Seiten 2 bis 4 der Dokumentation von Hyp2GDOS.
+
+         hyp2gdos -b2 -e4 hyp2gdos.hyp
+
+   ˘ drucke die ersten 10 Zeilen der Hypertextseite 
+     "Konfigurationsvariablen" der Dokumentation von Hyp2GDOS.
+
+         hyp2gdos -tKonfigurationsvariablen -h10 hyp2gdos.hyp
+
+   ˘ drucke den ASCII-Text README mit einer Tabulatorweite von 3.
+
+         hyp2gdos -o3 readme
+
+@endnode
+
+
+@node "Konfigurationsvariablen"
+@toc "Bedienung"
+@xref "Beispiel einer Konfigurationsdatei" "Beispiel"
+@xref "GerÑtetreiber"
+@xref "SeitenrÑnder"
+@xref "Kopf- und Fuûzeile"
+@xref "Seiteninhalt"
+@{U}2.2  Konfigurationsvariablen                                       Hyp2GDOS@{u}
+
+Alle Konfigurationsvariablen von Hyp2GDOS beginnen mit dem Prefix H2G_. Die 
+Reihenfolge der Variablen in der Konfigurationsdatei spielt keine Rolle. 
+Fehlt eine Variable, dann wird ihr Defaultwert benutzt. Man sollte 
+Variablen nicht aus der Datei lîschen, sondern durch das Voranstellen des 
+Zeichens '#' auskommentieren.
+
+Ein Beispiel einer Konfigurationsdatei findet sich im Anhang. Am 
+einfachsten kopiert man diese Hypertextseite ins Clipboard, fÅgt sie dann 
+mit einem Editor an die Datei @{"ST-GUIDE.INF" LINK "st-guide.hyp/Konfiguration"} an und modifiziert das Ergebnis 
+anschlieûend nach den eigenen WÅnschen.
+
+Im folgenden sind die einzelnen Variablen beschrieben, gegliedert in die 
+Unterkapitel:
+
+   ˘ GerÑtetreiber
+
+   ˘ SeitenrÑnder
+
+   ˘ Kopf- und Fuûzeile
+
+   ˘ Seiteninhalt
+
+@endnode
+
+
+@node "GerÑtetreiber"
+@symbol ar "Ausgabegeraet"
+@toc "Konfigurationsvariablen"
+@xref "Beispiel einer Konfigurationsdatei" "Beispiel"
+@xref "SeitenrÑnder"
+@xref "Kopf- und Fuûzeile"
+@xref "Seiteninhalt"
+@{U}2.2.1  GerÑtetreiber                                               Hyp2GDOS@{u}
+
+Die folgenden Variablen legen das AusgabegerÑte und das generelle Verhalten 
+des Druckertreibers fest.
+
+@symbol ar "H2G_DEVICE"
+ @{B}H2G_DEVICE=<GerÑtekennung>@{b} 
+     Kennung des AusgabegerÑts definieren (Default: 21). Die Kennungen von 
+     Druckern liegen im Bereich 21..30.
+
+@symbol ar "H2G_RESERVE_MEMORY"
+ @{B}H2G_RESERVE_MEMORY=<Grîûe>@{b} 
+     Der Druckertreiber belegt beim ôffnen unter UmstÑnden den kompletten 
+     freien Speicher, so daû fÅr andere Operationen kein Speicher mehr 
+     verfÅgbar ist. Mit dieser Variablen kann ein Speicherbereich der 
+     angegebenen Grîûe freigehalten werden (Default: 100.000).
+
+@endnode
+
+
+@node "SeitenrÑnder"
+@symbol ar "Seitenraender"
+@toc "Konfigurationsvariablen"
+@xref "Beispiel einer Konfigurationsdatei" "Beispiel"
+@xref "GerÑtetreiber"
+@xref "Kopf- und Fuûzeile"
+@xref "Seiteninhalt"
+@{U}2.2.2  SeitenrÑnder                                                Hyp2GDOS@{u}
+
+Jede Druckseite besteht normalerweise aus einem Randbereich, der nicht 
+bedruckt werden kann, und einem Ausgabebereich im Inneren. Die folgenden 
+Variablen erlauben es den Randbereich selbst festzulegen (in mm). Die vom 
+Drucker vorgegeben RÑnder kînnen natÅrlich nicht unterschritten werden. 
+Gibt man also einen Wert an, der kleiner ist als die Vorgabe, wird 
+automatisch die Vorgabe benutzt. öblicherweise gibt man 0 an, falls die 
+Vorgabe benutzt werden soll.
+
+@symbol ar "H2G_BORDER_LEFT"
+ @{B}H2G_BORDER_LEFT=<Breite>@{b} 
+     Linker (bzw. innerer) Seitenrand in mm (Default: 0)
+
+@symbol ar "H2G_BORDER_TOP"
+ @{B}H2G_BORDER_TOP=<Breite>@{b} 
+     Oberer Seitenrand in mm (Default: 0)
+
+@symbol ar "H2G_BORDER_RIGHT"
+ @{B}H2G_BORDER_RIGHT=<Breite>@{b} 
+     Rechter (bzw. Ñuûerer) Seitenrand in mm (Default: 0)
+
+@symbol ar "H2G_BORDER_BOTTOM"
+ @{B}H2G_BORDER_BOTTOM=<Breite>@{b} 
+     Unterer Seitenrand in mm (Default: 0)
+
+@symbol ar "H2G_SWAP_LAYOUT"
+ @{B}H2G_SWAP_LAYOUT=<Wert>@{b} 
+     Wert!=0: Layout bei Seiten mit gerader Seitennummer spiegeln (Default: 
+     0). Dieser Schalter vertauscht bei der Ausgabe zum einen den linken 
+     und rechten Rand (so daû man dann besser von einem inneren und einem 
+     Ñuûeren Rand spricht) und zum anderen den linken und rechten Text von 
+     Kopf- und Fuûzeile.
+
+@endnode
+
+
+@node "Kopf- und Fuûzeile"
+@symbol ar "Kopf- und Fusszeile"
+@toc "Konfigurationsvariablen"
+@xref "Beispiel einer Konfigurationsdatei" "Beispiel"
+@xref "GerÑtetreiber"
+@xref "SeitenrÑnder"
+@xref "Seiteninhalt"
+@{U}2.2.3  Kopf- und Fuûzeile                                          Hyp2GDOS@{u}
+
+Innerhalb des Ausgabebereichs kann am oberen Rand eine Kopfzeile und am 
+unteren Rand eine Fuûzeile definiert werden. Jede Zeile besteht aus einem 
+linksbÅndigen, einem mittigen und einem rechtsbÅndigen Text. Jeder Text 
+kann Platzhalter enthalten, die z.B. Informationen aus dem Hypertext in den 
+Text einfÅgen. Ein Platzhalter beginnt und endet mit dem Zeichen '@@'. 
+Zwischen diesen beiden Zeichen steht der Name des Platzhalters. Folgende 
+Platzhalter sind momentan definiert:
+
+ @@database@@       Der eigentliche Name des Hypertextdokuments.
+ @@subject@@        Die Rubrik unter der Hypertext im Katalog erscheint.
+ @@author@@         Der Autor des Hypertextes.
+ @@version@@        Die Versionszeile des Hypertextes.
+ @@title@@          Der Titel der Hypertextseite, die gerade ausgegeben 
+                  wird.
+ @@prev@@           Der Titel der vorangehenden Hypertextseite.
+ @@next@@           Der Titel der nachfolgenden Hypertextseite.
+ @@toc@@            Der Titel der Åbergeordneten Hypertextseite.
+ @@page@@           Die fortlaufende Nummer der Ausgabeseite.
+ @@date@@           Das aktuelle Datum.
+ @@udodatabase@@    Der Name des Hypertextdokuments aus der von @{"UDO" LINK "udo.hyp"} 
+                  generierten Kopfzeile (falls dieser fehlt wird 
+                  @@database@@ benutzt).
+ @@udotitle@@       Der Titel des Hypertextseite aus der von @{"UDO" LINK "udo.hyp"} 
+                  generierten Kopfzeile (falls dieser fehlt wird @@title@@ 
+                  benutzt).
+ @@@@               Das Zeichen '@@'.
+
+Kopf- und Fuûzeile kînnen mit einer Trennlinie vom eigentlichen Seitentext 
+abgesetzt werden.
+
+@symbol ar "H2G_ADD_HEAD"
+ @{B}H2G_ADD_HEAD=<Wert>@{b} 
+     Wert!=0: Kopfzeile anfÅgen (Default: 0). Nur wenn dieser Schalter 
+     eingeschaltet ist, werden die Variablen mit dem Prefix H2G_HEAD_ 
+     ausgewertet.
+
+@symbol ar "H2G_HEAD_LEFT"
+ @{B}H2G_HEAD_LEFT=<FormatString>@{b} 
+     LinksbÅndigen Text fÅr Kopfzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_HEAD_CENTER"
+ @{B}H2G_HEAD_CENTER=<FormatString>@{b} 
+     Mittigen Text fÅr Kopfzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_HEAD_RIGHT"
+ @{B}H2G_HEAD_RIGHT=<FormatString>@{b} 
+     RechtsbÅndigen Text fÅr Kopfzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_HEAD_SEP"
+ @{B}H2G_HEAD_SEP=<Wert>@{b} 
+     Wert!=0: Trennlinie nach Kopfzeile anfÅgen (Default: 0).
+
+@symbol ar "H2G_ADD_FOOT"
+ @{B}H2G_ADD_FOOT=<Wert>@{b} 
+     Wert!=0: Fuûzeile anfÅgen (Default: 0). Nur wenn dieser Schalter 
+     eingeschaltet ist, werden die Variablen mit dem Prefix H2G_FOOT_ 
+     ausgewertet.
+
+@symbol ar "H2G_FOOT_LEFT"
+ @{B}H2G_FOOT_LEFT=<FormatString>@{b} 
+     LinksbÅndigen Text fÅr Fuûzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_FOOT_CENTER"
+ @{B}H2G_FOOT_CENTER=<FormatString>@{b} 
+     Mittigen Text fÅr Fuûzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_FOOT_RIGHT"
+ @{B}H2G_FOOT_RIGHT=<FormatString>@{b} 
+     RechtsbÅndigen Text fÅr Fuûzeile definieren (Default: Nichts).
+
+@symbol ar "H2G_FOOT_SEP"
+ @{B}H2G_FOOT_SEP=<Wert>@{b} 
+     Wert!=0: Trennlinie vor Fuûzeile anfÅgen (Default: 0).
+
+@endnode
+
+
+@node "Seiteninhalt"
+@toc "Konfigurationsvariablen"
+@xref "Beispiel einer Konfigurationsdatei" "Beispiel"
+@xref "GerÑtetreiber"
+@xref "SeitenrÑnder"
+@xref "Kopf- und Fuûzeile"
+@{U}2.2.4  Seiteninhalt                                                Hyp2GDOS@{u}
+
+Die folgenden Variablen definieren das Aussehen des eigentlichen 
+Seiteninhalts.
+
+@symbol ar "H2G_STANDARD_FONT"
+ @{B}H2G_STANDARD_FONT=<Name>[,<Punktgrîûe>]@{b} 
+     Zeichensatz fÅr normalen Text definieren (Default: System,10). Fehlt 
+     die Grîûe, wird der Defaultwert benutzt. Auch Kopf- und Fuûzeile 
+     werden in diesem Zeichensatz ausgegeben. Als <Name> sollte der 
+     Familienname des Zeichensatzes angegeben werden. Textattribute (wie 
+     fett) werden von Hyp2GDOS Åber die entsprechende VDI-Funktion 
+     eingestellt. Statt dem Namen kann man alternativ auch eine FontID 
+     angeben.
+
+@symbol ar "H2G_TYPEWRITER_FONT"
+ @{B}H2G_TYPEWRITER_FONT=<Name>[,<Punktgrîûe>]@{b} 
+     Zeichensatz fÅr Schreibmaschinentext definieren (Default: System,10). 
+     Hier sollte unbedingt ein nichtproportionaler Zeichensatz angegeben 
+     werden. Fehlt die Grîûe, wird der Defaultwert benutzt.
+
+@symbol ar "H2G_NREF_EFFECTS"
+ @{B}H2G_NREF_EFFECTS=<Effekt>@{b} 
+     Darstellungsattribute fÅr Referenzen auf andere Seiten. Effekt kann 
+     aus folgenden Werten aufsummiert werden: 1: fett, 4: schrÑg und 8: 
+     unterstrichen (Default: 9 entspricht fett+unterstrichen).
+
+@symbol ar "H2G_PREF_EFFECTS"
+ @{B}H2G_PREF_EFFECTS=<Effekt>@{b} 
+     Darstellungsattribute fÅr Referenzen auf Popups. Effekt kann aus 
+     folgenden Werten aufsummiert werden: 1: fett, 4: schrÑg und 8: 
+     unterstrichen (Default: 9 entspricht fett+unterstrichen).
+
+@symbol ar "H2G_XREF_EFFECTS"
+ @{B}H2G_XREF_EFFECTS=<Effekt>@{b} 
+     Darstellungsattribute fÅr Referenzen auf Sonstiges. Effekt kann aus 
+     folgenden Werten aufsummiert werden: 1: fett, 4: schrÑg und 8: 
+     unterstrichen (Default: 9 entspricht fett+unterstrichen).
+
+@symbol ar "H2G_EXPAND_SPACES"
+ @{B}H2G_EXPAND_SPACES=<Wert>@{b} 
+     Wert!=0: Meerfachleerzeichen und Tabulatoren fÅhren zur Positionierung 
+     der Ausgabe auf die entsprechende Zellenposition (Default: 1).
+
+@symbol ar "H2G_SCALE_IMAGES"
+ @{B}H2G_SCALE_IMAGES=<Wert>@{b} 
+     Wert!=0: Bilder skalieren (Default: 1). Das funktioniert nur, bei der 
+     Benutzung eines geeigneten Druckertreibers.
+
+@symbol ar "H2G_SKIP_UDO_HEADER"
+ @{B}H2G_SKIP_UDO_HEADER=<Wert>@{b} 
+     Wert!=0: @{"UDO" LINK "udo.hyp"}-spezifische Kopfzeile einer Hypertextseite bei der 
+     Ausgabe unterdrÅcken (Default: 1). @{"UDO" LINK "udo.hyp"} erzeugt defaultmÑûig fÅr jede 
+     Seite eines Hypertextes eine eigene Kopfzeile. Da diese in Kombination 
+     mit der Kopfzeile von Hyp2GDOS nicht besonders gut wirkt, kann man sie 
+     mit diesem Schalter unterdrÅcken. öber die Platzhalter @@udodatabase@@ 
+     und @@udotitle@@ kann man die entsprechenden Elemente in die eigene 
+     Kopfzeile Åbernehmen. Die @{"UDO" LINK "udo.hyp"}-spezifische Kopfzeile wird Åbrigens an 
+     einer durchgehenden Unterstreichung der ersten Zeile und einer leeren 
+     zweiten Zeile erkannt.
+
+@symbol ar "H2G_TABSIZE"
+ @{B}H2G_TABSIZE=<Wert>@{b} 
+     Offset zwischen aufeinanderfolgenden Tabulatorpositionen. Bei einem 
+     Wert von 4 ergeben sich z.B. die Zeichenzellenpositionen 1, 5, 9, 
+     usw.. Die gebrÑuchlichsten Werte sind 4 und 8 (Default: 4).
+
+@symbol ar "H2G_USE_STANDARD"
+ @{B}H2G_USE_STANDARD=<Wert>@{b} 
+     Wert!=0: ASCII-Texte mit @{"H2G_STANDARD_FONT" LINK "Seiteninhalt" "H2G_STANDARD_FONT"} ausgegeben 
+     Wert==0: ASCII-Texte mit @{"H2G_TYPEWRITER_FONT" LINK "Seiteninhalt" "H2G_TYPEWRITER_FONT"} ausgegeben
+
+@symbol ar "H2G_DITHER_METHOD"
+ @{B}H2G_DITHER_METHOD=<Wert>@{b} 
+     Legt die Methode fest mit der Farbbilder auf Schwarz/Weiû-GerÑten 
+     ausgegeben werden. Wert=0: Farbreduktion entprechend @{"ST-Guide" LINK "st-guide.hyp"} Wert=1: 
+     Dithern nach Floyd-Steinberg
+
+
+@endnode
+
+
+@node "Bekannte Probleme und Fehler"
+@toc "Main"
+@{U}A  Bekannte Probleme und Fehler                                    Hyp2GDOS@{u}
+
+   ˘ Bei der Ausgabe von Hypertexten im Macintosh-HYP-Format kînnen nicht 
+     alle Zeichen dargestellt werden, selbst wenn man einen passenden Font 
+     hat. Grund: Diese Hypertexte werden zunÑchst in das Atari-HYP-Format 
+     gewandelt, wodurch Zeichen verloren gehen kînnen.
+
+   ˘ Bilder mÅssen in der Regel skaliert werden, damit sie in den 
+     Proportionen noch zum umgebenden Text passen (die Druckauflîsung ist 
+     hîher als die des Bildschirms). Leider bieten nicht alle Treiber 
+     dieses Feature an. Kann der Treiber nicht skalieren, wird das Bild im 
+     skalierten Ausgabebereich zentriert. Eventuell erhÑlt Hyp2GDOS aber 
+     noch eine eigene Skalierfunktion.
+
+   ˘ Hyp2GDOS kann keine ObjektbÑume des AES ausgeben, da das AES nur auf 
+     den Bildschirm ausgeben kann. Hyp2GDOS mÅûte die komplette 
+     Ausgaberoutine nachbilden, was zu aufwendig ist.
+
+   ˘ Wird der Druck abgebrochen, wird in der Regel noch eine leere Seite 
+     ausgegeben. Da das VDI keine Funktion zum Entfernen einer Seite 
+     bereitstellt auf die bereits eine Teil der Ausgabe erfolgt ist, 
+     Åberschreibt Hyp2GDOS die komplette Seite mit weiû, wodurch sie wieder 
+     leer ist, und gibt diese dann aus.
+
+   ˘ Das @{"GDOS" LINK "gdos_faq.hyp"} liefert leider keine Fehlercodes, so daû es nicht mîglich ist 
+     den Druck abzubrechen, falls der Treiber Probleme mit der Ausgabe hat 
+     (z.B. zu wenig Speicher oder Abbruch durch den Anwender). Um das 
+     hinzukriegen mÅûte das VDI erweitert werden.
+
+   ˘ Die Erkennung von @@udodatabase@@ und @@udotitle@@ kann nicht in alle 
+     FÑllen korrekt funktionieren, vorallem wenn zwischen beiden Elementen 
+     nicht mindestens zwei Leerzeichen stehen.
+
+@endnode
+
+
+@node "Hinweise fÅr Autoren von Hypertexten"
+@toc "Main"
+@{U}B  Hinweise fÅr Autoren von Hypertexten                            Hyp2GDOS@{u}
+
+@{"Hyperion" LINK "hyperion.hyp"} erlaubt im Gegensatz zu @{"ST-Guide" LINK "st-guide.hyp"} die Darstellung von Hypertexten 
+mit proportionalen ZeichensÑtzen. Durch die unterschiedlichen 
+Zeichenbreiten kommt es natÅrlich unter UmstÑnden zu Problemen. Autoren 
+kînnen jedoch in vielen FÑllen fÅr Abhilfe sorgen:
+
+   ˘ Kein Blocksatz in AbsÑtzen verwenden. Da beim Blocksatz zum AuffÅllen 
+     Leerzeichen benutzt werden, fÅhrt dies bei eingeschalteter 
+     Expandierung von Mehrfachleerzeichen zu einem zerissenen Schriftbild.
+
+   ˘ Nach Satzzeichen immer nur ein Leerzeichen benutzen.
+
+   ˘ Damit Tabellenspalten korrekt untereinander plaziert werden kînnen 
+     mÅssen vor jedem Eintrag mindestens zwei Leerzeichen stehen.
+
+   ˘ Keine Worte innerhalb von Spalten durchgehend in Groûbuchstaben 
+     schreiben, da dies ziemlich wahrscheinlich die Spaltenbreite sprengen 
+     wird.
+
+   ˘ Zum Unterstreichen von Texten oder fÅr horizontale bzw. vertikale 
+     Linien sollten niemals die Zeichen '-' bzw. '|' benutzt werden, 
+     sondern immer die entsprechenden HYP-Kommandos fÅr Unterstreichung 
+     bzw. zur Erzeugung von Linien.
+
+   ˘ Innerhalb von AbsÑtzen an den Zeilenenden ein Leerzeichen anfÅgen, 
+     damit wird es eventuell in Zukunft mîglich AbsÑtze zur Ausgabe neu 
+     umzubrechen.
+
+@endnode
+
+
+@node "Zukunft"
+@toc "Main"
+@{U}C  Zukunft                                                         Hyp2GDOS@{u}
+
+Hier in lockerer Folge noch einige Punkte, die in zukÅnftigen Versionen 
+realisiert werden kînnten. Wer weitere VorschlÑge hat, kann sie gerne in 
+der Gruppe Hypertext des Mausnetzes zur Diskussion stellen. Interessant in 
+diesem Zusammenhang sind fÅr den Autor auch Kommentare wie: "Das will ich 
+unbedingt" oder "Das braucht kein Mensch".
+
+   ˘ Die Ausgabereihenfolge einzelner Seiten eines Hypertextes sollte 
+     definiert werden kînnen. Eventuell direkt im Hypertext selbst, wofÅr 
+     man natÅrlich einen entsprechenden Hypertextcompiler brÑuchte.
+
+   ˘ Der Zeilenumbruch von AbsÑtzen sollte abhÑngig vom eingestellten 
+     Zeichensatz erfolgen. Eine entsprechende Routine entsteht gerade fÅr 
+     @{"Hyperion" LINK "hyperion.hyp"} und wird dann auch in Hyp2GDOS Åbernommen.
+
+   ˘ Popup-Seiten kînnten entweder auf einer eigenen Seite zusammen 
+     ausgegeben oder als Fuûnoten erzeugt werden.
+
+   ˘ Nicht fÅr jede Hypertextseite sollte eine eigene Druckseite erzeugt 
+     werden. Stattdessen sollten die Seitentitel als KapitelÅberschriften 
+     ausgegeben werden kînnen (mit mehreren Kapiteln auf einer Seite).
+
+   ˘ Die Indexseite des Hypertextes kînnte durch eine eigene ersetzt 
+     werden, die Seitennummern enthÑlt.
+
+@endnode
+
+
+@node "Historie"
+@toc "Main"
+@{U}D  Historie                                                        Hyp2GDOS@{u}
+
+   ˘ Version 1.1 vom 31.5.1997
+
+        - Neu: Fehlt die Pfadangabe im Name des Hypertextes, wird er jetzt 
+          im Pfad der Konfigurationsvariable HYPFOLD gesucht.
+        - Neu: Optionen @{"-gLINE" LINK "Optionen" "-gLINE"} und @{"-hLINE" LINK "Optionen" "-hLINE"} zur BeschrÑnkung der Ausgabe auf 
+          einen Zeilenbereich.
+        - Neu: Hyp2GDOS kann jetzt auch normale ASCII-Texte ausdrucken 
+          (falls sie nicht zu groû sind!). Tab-Zeichen werden dabei wie 
+          Mehrfachleerzeichen expandiert, so daû auch eine Ausgabe mit 
+          proportionalem Zeichensatz mîglich ist. Dateien im Macintosh- 
+          Zeichensatz werden automatisch konvertiert.
+        - Neu: Option @{"-oN" LINK "Optionen" "-oN"}: Zum Einstellen der Tabulatorbreite
+        - Neu: Konfigurationsvariable @{"H2G_TABSIZE" LINK "Seiteninhalt" "H2G_TABSIZE"} (siehe @{"-oN" LINK "Optionen" "-oN"})
+        - Bugfix: @@udotitle@@ war unter UmstÑnden nicht korrekt
+        - Neu: Konfigurationsvariable @{"H2G_USE_STANDARD" LINK "Seiteninhalt" "H2G_USE_STANDARD"}: Zur Auswahl des 
+          Zeichensatzes mit dem normale ASCII-Texte ausgegeben werden 
+          sollen.
+        - Neu: @{"H2G_NREF_EFFECTS" LINK "Seiteninhalt" "H2G_NREF_EFFECTS"}, @{"H2G_PREF_EFFECTS" LINK "Seiteninhalt" "H2G_PREF_EFFECTS"} und @{"H2G_XREF_EFFECTS" LINK "Seiteninhalt" "H2G_XREF_EFFECTS"}: 
+          Einstellung der Darstellungsattribute von Referenzen.
+
+   ˘ Version 1.0 vom 2.5.1997
+
+        - Erste îffentliche Version.
+
+@endnode
+
+
+@node "Danksagungen"
+@toc "Main"
+@{U}E  Danksagungen                                                    Hyp2GDOS@{u}
+
+In alphabetischer Reihenfolge:
+
+ @{B}Gerd Castan@{b} fÅr seine @{"GDOS" LINK "gdos_faq.hyp"}-FAQ. Das Dokument, wenn es um Informationen zum 
+     @{"GDOS" LINK "gdos_faq.hyp"} geht.
+
+ @{B}Dirk Hagedorn@{b} fÅr @{"UDO" LINK "udo.hyp"} (dem Programm zur öbersetzung von Dokumenten im 
+     'Universal Document Format') und seiner UnterstÅtzung von @{"HypC" LINK "hypc.hyp"} und 
+     @{"Hyperion" LINK "hyperion.hyp"} auf Macintosh.
+
+ @{B}Holger Weets@{b} fÅr @{"ST-Guide" LINK "st-guide.hyp"}, @{"HCP" LINK "hcp.hyp"} und die Dokumentation des HYP-Formats.
+
+@endnode
+
+
+@node "Aufbau einer Druckseite"
+@toc "Main"
+@{U}F  Aufbau einer Druckseite                                         Hyp2GDOS@{u}
+
+
+@line 10 32 0 0 3
+@line 10 0 20 0 3
+@line 42 0 20 0 3
+@line 34 0 3 3 3
+
+           Randbereich                     @{"H2G_BORDER_TOP" LINK "SeitenrÑnder" "H2G_BORDER_TOP"}
+
+@line 16 20 0 0 3
+@line 16 0 14 0 3
+@line 36 0 14 0 3
+               L.       C.       R.        H2G_HEAD_L./C./R.
+@line 16 20 0 0 1
+                                           @{"H2G_HEAD_SEP" LINK "Kopf- und Fuûzeile" "H2G_HEAD_SEP"}
+
+@line 36 6 0 3 3
+                                           @{"H2G_BORDER_RIGHT" LINK "SeitenrÑnder" "H2G_BORDER_RIGHT"}
+
+
+
+                  Ausgabebereich
+
+
+                                           @{"H2G_BORDER_LEFT" LINK "SeitenrÑnder" "H2G_BORDER_LEFT"}
+@line 10 6 0 3 3
+
+                                           @{"H2G_FOOT_SEP" LINK "Kopf- und Fuûzeile" "H2G_FOOT_SEP"}
+@line 16 20 0 0 1
+               L.       C.       R.        H2G_FOOT_L./C./R.
+@line 16 20 0 0 3
+@line 34 0 3 3 3
+
+                                           @{"H2G_BORDER_BOTTOM" LINK "SeitenrÑnder" "H2G_BORDER_BOTTOM"}
+
+@line 10 32 0 0 3
+
+
+
+Bemerkungen:
+
+   ˘ die Konfigurationsvariablen H2G_HEAD_xxx werden nur benutzt, wenn 
+     @{"H2G_ADD_HEAD" LINK "Kopf- und Fuûzeile" "H2G_ADD_HEAD"}=1 (entsprechendes gilt fuer H2G_FOOT_xxx und 
+     @{"H2G_ADD_FOOT" LINK "Kopf- und Fuûzeile" "H2G_ADD_FOOT"}).
+
+@endnode
+
+
+@node "Beispiel einer Konfigurationsdatei"
+@toc "Main"
+@{U}G  Beispiel einer Konfigurationsdatei                              Hyp2GDOS@{u}
+
+# @{"Ausgabegeraet" LINK "GerÑtetreiber"}
+@{"H2G_DEVICE" LINK "GerÑtetreiber" "H2G_DEVICE"}=21
+# @{"H2G_RESERVE_MEMORY" LINK "GerÑtetreiber" "H2G_RESERVE_MEMORY"}=500000
+
+# Definition der @{"Seitenraender" LINK "SeitenrÑnder"} (in mm)
+@{"H2G_BORDER_LEFT" LINK "SeitenrÑnder" "H2G_BORDER_LEFT"}=25
+@{"H2G_BORDER_TOP" LINK "SeitenrÑnder" "H2G_BORDER_TOP"}=15
+@{"H2G_BORDER_RIGHT" LINK "SeitenrÑnder" "H2G_BORDER_RIGHT"}=15
+@{"H2G_BORDER_BOTTOM" LINK "SeitenrÑnder" "H2G_BORDER_BOTTOM"}=15
+@{"H2G_SWAP_LAYOUT" LINK "SeitenrÑnder" "H2G_SWAP_LAYOUT"}=0
+
+# Definition von @{"Kopf- und Fusszeile" LINK "Kopf- und Fuûzeile"}
+@{"H2G_ADD_HEAD" LINK "Kopf- und Fuûzeile" "H2G_ADD_HEAD"}=1
+@{"H2G_HEAD_LEFT" LINK "Kopf- und Fuûzeile" "H2G_HEAD_LEFT"}=@@udodatabase@@
+@{"H2G_HEAD_CENTER" LINK "Kopf- und Fuûzeile" "H2G_HEAD_CENTER"}=
+@{"H2G_HEAD_RIGHT" LINK "Kopf- und Fuûzeile" "H2G_HEAD_RIGHT"}=@@udotitle@@
+@{"H2G_HEAD_SEP" LINK "Kopf- und Fuûzeile" "H2G_HEAD_SEP"}=1
+@{"H2G_ADD_FOOT" LINK "Kopf- und Fuûzeile" "H2G_ADD_FOOT"}=1
+@{"H2G_FOOT_LEFT" LINK "Kopf- und Fuûzeile" "H2G_FOOT_LEFT"}=
+@{"H2G_FOOT_CENTER" LINK "Kopf- und Fuûzeile" "H2G_FOOT_CENTER"}=
+@{"H2G_FOOT_RIGHT" LINK "Kopf- und Fuûzeile" "H2G_FOOT_RIGHT"}=- @@page@@ -
+@{"H2G_FOOT_SEP" LINK "Kopf- und Fuûzeile" "H2G_FOOT_SEP"}=1
+
+# Eigentlicher Seiteninhalt
+@{"H2G_STANDARD_FONT" LINK "Seiteninhalt" "H2G_STANDARD_FONT"}=Geneva,10
+@{"H2G_TYPEWRITER_FONT" LINK "Seiteninhalt" "H2G_TYPEWRITER_FONT"}=Courier,10
+@{"H2G_NREF_EFFECTS" LINK "Seiteninhalt" "H2G_NREF_EFFECTS"}=9
+@{"H2G_PREF_EFFECTS" LINK "Seiteninhalt" "H2G_PREF_EFFECTS"}=9
+@{"H2G_XREF_EFFECTS" LINK "Seiteninhalt" "H2G_XREF_EFFECTS"}=9
+@{"H2G_USE_STANDARD" LINK "Seiteninhalt" "H2G_USE_STANDARD"}=1
+@{"H2G_TABSIZE" LINK "Seiteninhalt" "H2G_TABSIZE"}=4
+@{"H2G_EXPAND_SPACES" LINK "Seiteninhalt" "H2G_EXPAND_SPACES"}=1
+@{"H2G_SCALE_IMAGES" LINK "Seiteninhalt" "H2G_SCALE_IMAGES"}=1
+@{"H2G_SKIP_UDO_HEADER" LINK "Seiteninhalt" "H2G_SKIP_UDO_HEADER"}=1
+@{"H2G_DITHER_METHOD" LINK "Seiteninhalt" "H2G_DITHER_METHOD"}=1
+
+
+@endnode
+
+
+@node "UDO6"
+@toc "Main"
+@{U}UDO6                                                               Hyp2GDOS@{u}
+
+                       Dieser Text wurde erzeugt mit
+
+                                    UDO
+
+                          Release 6 Patchlevel 0 
+                                   MacOS
+
+                     Copyright (c) 1995, 1996, 1997 by 
+                               Dirk Hagedorn 
+                                 Asmecke 1 
+                              D-59846 Sundern 
+                        MausNet: Dirk Hagedorn@@MK2 
+                     America Online: DirkHage@@aol.com
+
+UDO ist ein Programm, welches Textdateien, die im Universal Document Format 
+  erstellt wurden, in das ASCII-, ST-Guide-, LaTeX-, Rich Text-, Pure-C- 
+   Help-, Manualpage-, HTML-, WinHelp-, Texinfo-, Linuxdoc-SGML-, LyX-, 
+       Apple-QuickView- und Turbo-Vision-Help-Format umwandeln kann.
+
+  Weitere Informationen sowie die aktuellen Versionen findet man im World 
+                              Wide Web unter 
+                  http://members.aol.com/UDODH/index.htm
+
+@endnode
+
+
+@node "Index"
+@next "Index"
+@autorefon
+ A  Aufbau einer Druckseite
+
+ B  Bedienung
+    Beispiel einer Konfigurationsdatei
+    Bekannte Probleme und Fehler
+
+ D  Danksagungen
+
+ E  Einleitung
+
+ G  GerÑtetreiber
+
+ H  Hinweise fÅr Autoren von Hypertexten
+    Historie                        @{"H2G_ADD_FOOT" LINK "Kopf- und Fuûzeile" "H2G_ADD_FOOT"}
+    @{"H2G_ADD_HEAD" LINK "Kopf- und Fuûzeile" "H2G_ADD_HEAD"}                    @{"H2G_BORDER_BOTTOM" LINK "SeitenrÑnder" "H2G_BORDER_BOTTOM"}
+    @{"H2G_BORDER_LEFT" LINK "SeitenrÑnder" "H2G_BORDER_LEFT"}                 @{"H2G_BORDER_RIGHT" LINK "SeitenrÑnder" "H2G_BORDER_RIGHT"}
+    @{"H2G_BORDER_TOP" LINK "SeitenrÑnder" "H2G_BORDER_TOP"}                  @{"H2G_DEVICE" LINK "GerÑtetreiber" "H2G_DEVICE"}
+    @{"H2G_DITHER_METHOD" LINK "Seiteninhalt" "H2G_DITHER_METHOD"}               @{"H2G_EXPAND_SPACES" LINK "Seiteninhalt" "H2G_EXPAND_SPACES"}
+    @{"H2G_FOOT_CENTER" LINK "Kopf- und Fuûzeile" "H2G_FOOT_CENTER"}                 @{"H2G_FOOT_LEFT" LINK "Kopf- und Fuûzeile" "H2G_FOOT_LEFT"}
+    @{"H2G_FOOT_RIGHT" LINK "Kopf- und Fuûzeile" "H2G_FOOT_RIGHT"}                  @{"H2G_FOOT_SEP" LINK "Kopf- und Fuûzeile" "H2G_FOOT_SEP"}
+    @{"H2G_HEAD_CENTER" LINK "Kopf- und Fuûzeile" "H2G_HEAD_CENTER"}                 @{"H2G_HEAD_LEFT" LINK "Kopf- und Fuûzeile" "H2G_HEAD_LEFT"}
+    @{"H2G_HEAD_RIGHT" LINK "Kopf- und Fuûzeile" "H2G_HEAD_RIGHT"}                  @{"H2G_HEAD_SEP" LINK "Kopf- und Fuûzeile" "H2G_HEAD_SEP"}
+    @{"H2G_NREF_EFFECTS" LINK "Seiteninhalt" "H2G_NREF_EFFECTS"}                @{"H2G_PREF_EFFECTS" LINK "Seiteninhalt" "H2G_PREF_EFFECTS"}
+    @{"H2G_RESERVE_MEMORY" LINK "GerÑtetreiber" "H2G_RESERVE_MEMORY"}              @{"H2G_SCALE_IMAGES" LINK "Seiteninhalt" "H2G_SCALE_IMAGES"}
+    @{"H2G_SKIP_UDO_HEADER" LINK "Seiteninhalt" "H2G_SKIP_UDO_HEADER"}             @{"H2G_STANDARD_FONT" LINK "Seiteninhalt" "H2G_STANDARD_FONT"}
+    @{"H2G_SWAP_LAYOUT" LINK "SeitenrÑnder" "H2G_SWAP_LAYOUT"}                 @{"H2G_TABSIZE" LINK "Seiteninhalt" "H2G_TABSIZE"}
+    @{"H2G_TYPEWRITER_FONT" LINK "Seiteninhalt" "H2G_TYPEWRITER_FONT"}             @{"H2G_USE_STANDARD" LINK "Seiteninhalt" "H2G_USE_STANDARD"}
+    @{"H2G_XREF_EFFECTS" LINK "Seiteninhalt" "H2G_XREF_EFFECTS"}
+
+ I  @{"Inhaltsverzeichnis" LINK "Main"}              Installation
+
+ K  Konfigurationsvariablen         Kopf- und Fuûzeile
+
+ M  Main
+
+ O  Optionen
+
+ P  @{"Programmabbruch" LINK "Bedienung" 17}
+
+ R  Rechtliche Informationen
+
+ S  Seiteninhalt                    SeitenrÑnder
+    Systemvoraussetzungen
+
+ T  Titel
+
+ U  UDO6
+
+ Z  Zukunft
+
+ *  @{"-bPAGE" LINK "Optionen" "-bPAGE"}                          @{"-dDEVICE" LINK "Optionen" "-dDEVICE"}
+    @{"-ePAGE" LINK "Optionen" "-ePAGE"}                          @{"-fCONFIGFILE" LINK "Optionen" "-fCONFIGFILE"}
+    @{"-gLINE" LINK "Optionen" "-gLINE"}                          @{"-hLINE" LINK "Optionen" "-hLINE"}
+    @{"-i" LINK "Optionen" "-i"}                              @{"-nNAME" LINK "Optionen" "-nNAME"}
+    @{"-oN" LINK "Optionen" "-oN"}                             @{"-pPAGE" LINK "Optionen" "-pPAGE"}
+    @{"-sN" LINK "Optionen" "-sN"}                             @{"-tTITLE" LINK "Optionen" "-tTITLE"}
+@endnode
