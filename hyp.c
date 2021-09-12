@@ -89,7 +89,7 @@ void *hyp_find_extheader(struct hypfile *hyp, hyp_ext_header type)
 
 /* ---------------------------------------------------------------------- */
 
-char *decode_char(char *data, int *val)
+char *decode_char(char *data, short *val)
 {
 	*val = (unsigned char)*data++ - 1;
 	return data;
@@ -133,7 +133,7 @@ void hyp_free_node(struct hypfile *hyp, struct node **node)
 	(*node)->picdata = NULL;
 	(*node)->datalen = 0;
 	(*node)->nodenr = HYP_NOINDEX;
-	(*node)->o10 = NULL;
+	(*node)->dither_params = NULL;
 	free(*node);
 	*node = NULL;
 }
@@ -273,7 +273,7 @@ again:
 	(*node)->picdata = NULL;
 	(*node)->datalen = uncompressed_size;
 	(*node)->nodenr = nodenr;
-	(*node)->o10 = NULL;
+	(*node)->dither_params = NULL;
 	if (hyp->header.magic != HYP_MAGIC_HYP)
 		prepare_ascii(hyp, *node);
 	
@@ -327,9 +327,9 @@ void hyp_free(struct hypfile *hyp)
 	if (hyp == NULL)
 		return;
 	hyp->flags &= ~FLAG_80;
-	if (hyp->o298 != NULL)
+	if (hyp->dither_params != NULL)
 	{
-		hyp->o298 = NULL;
+		hyp->dither_params = NULL;
 		hyp->o302 = NULL;
 	}
 	if (hyp->extdata != NULL)
@@ -1091,7 +1091,7 @@ static int prepare_page(struct pageinfo *page)
 					if (diff < 8 || *((long *)picend) != 0x4849434CL) /* 'HICL' */
 						picend = NULL;
 					if (picdata[4] > 1)
-						a5->picdata->o10 = picend;
+						a5->picdata->dither_params = picend;
 					a5 = a5->picdata;
 					picdata = a5->data;
 					if (picdata[4] > 1)

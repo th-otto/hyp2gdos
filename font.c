@@ -334,10 +334,11 @@ void vdi_draw_rect(struct vdi *v, const GRECT *gr)
 
 /* ---------------------------------------------------------------------- */
 
-void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr)
+void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr, _WORD unused)
 {
 	_WORD pxy[4];
 
+	UNUSED(unused);
 	vdi_ref(v);
 	if (v->line_mode != v->wrmode)
 		set_wrmode(v, v->line_mode);
@@ -369,6 +370,7 @@ void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr)
 
 void vdi_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern)
 {
+	/* BUG: why -1? */
 	if (color >= -1)
 		v->fill_color = color;
 	if (mode >= -1)
@@ -381,7 +383,6 @@ void vdi_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern)
 
 static void vdi_force_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern)
 {
-	/* BUG: why -1? */
 	v->wrmode = -1;
 	v->last_fill_color = -1;
 	v->last_pattern = -1;
@@ -414,10 +415,11 @@ void vdi_draw_bar(struct vdi *v, const GRECT *gr)
 
 /* ---------------------------------------------------------------------- */
 
-void vdi_draw_rounded_box(struct vdi *v, const GRECT *gr)
+void vdi_draw_rounded_box(struct vdi *v, const GRECT *gr, _WORD unused)
 {
 	_WORD pxy[4];
 
+	UNUSED(unused);
 	vdi_ref(v);
 	if (v->fill_mode != v->wrmode)
 		set_wrmode(v, v->fill_mode);

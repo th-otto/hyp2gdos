@@ -73,8 +73,6 @@ static unsigned char const macroman_cset[256] = {
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
 	0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f
 };
-struct fontinfo fontinfo = { 12, 12, 0, G_BLACK, TRUE, TRUE, TRUE, 4 };
-_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
@@ -302,12 +300,12 @@ int conv_macroman(const char *src, char *dst)
 
 /* ---------------------------------------------------------------------- */
 
-int get_effects(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effects)
+int get_effects(struct hypfile *hyp, hyp_nodenr node, _WORD *color, _WORD *effects)
 {
 	int type;
 	
 	type = get_nodetype(hyp, node);
-	*a3 = TRUE;
+	*color = G_BLACK;
 	switch (type)
 	{
 	case HYP_NODE_POPUP:
@@ -356,6 +354,9 @@ _BOOL should_abort(void)
 	return abort_flag;
 }
 
+struct fontinfo fontinfo = { 12, 12, 0, G_BLACK, TRUE, TRUE, TRUE, 4, "n", get_effects };
+_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
+
 /* ---------------------------------------------------------------------- */
 
 static _WORD find_font(const char *fontname)
@@ -392,11 +393,8 @@ static _WORD find_font(const char *fontname)
 #ifdef __PUREC__
 void unused2(void)
 {
-	static const char *n = "n";
-	printf(n);
 	printf(" %d", 0);
 }
-int (*p_get_effects)(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effects) = get_effects;
 #endif
 
 /* ---------------------------------------------------------------------- */

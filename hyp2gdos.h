@@ -77,7 +77,7 @@ struct hypfile {
 	/* 292 */ hyp_nodenr main_page;
 	/* 294 */ hyp_nodenr index_page;
 	/* 296 */ hyp_nodenr help_page;
-	/* 298 */ void *o298;
+	/* 298 */ void *dither_params;
 	/* 302 */ void *o302;
 	/* 306 */ short width;
 };
@@ -103,7 +103,7 @@ struct node {
 	struct node *picdata;
 	hyp_nodenr nodenr;
 	long datalen;
-	void *o10;
+	void *dither_params;
 	char data[0];
 };
 
@@ -171,13 +171,15 @@ struct fontinfo {
 	_BOOL x18b5c;
 	_BOOL use_standard;
 	int tabsize;
+	const char *x18b62;
+	int (*p_get_effects)(struct hypfile *hyp, hyp_nodenr node, _WORD *color, _WORD *effects);
 };
 
 
 /*
  * main.c
  */
-int get_effects(struct hypfile *hyp, hyp_nodenr node, int *a3, _WORD *effects);
+int get_effects(struct hypfile *hyp, hyp_nodenr node, _WORD *color, _WORD *effects);
 _BOOL should_abort(void);
 int verboseout(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
@@ -216,10 +218,10 @@ void vdi_line_attributes(struct vdi *v, _WORD line_color, _WORD line_mode, _WORD
 void vdi_draw_line(struct vdi *v, _WORD *pxy);
 void vdi_draw_arrowed(struct vdi *v, _WORD *pxy, _WORD ends);
 void vdi_draw_rect(struct vdi *v, const GRECT *gr);
-void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr);
+void vdi_draw_rounded_rect(struct vdi *v, const GRECT *gr, _WORD unused);
 void vdi_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern);
 void vdi_draw_bar(struct vdi *v, const GRECT *gr);
-void vdi_draw_rounded_box(struct vdi *v, const GRECT *gr);
+void vdi_draw_rounded_box(struct vdi *v, const GRECT *gr, _WORD unused);
 void vdi_text_attributes(struct vdi *v, _WORD text_color, _WORD text_mode, _WORD text_effects, _WORD font_idx);
 void vdi_get_fontwidth(struct vdi *v, _WORD *cell_width, _WORD *cell_height);
 void vdi_draw_text(struct vdi *v, _WORD x, _WORD y, char *str, _WORD len);
@@ -315,7 +317,7 @@ int get_nodetype(struct hypfile *hyp, hyp_nodenr node);
 
 int hyp_load_node(struct hypfile *hyp, struct node **node, hyp_nodenr nodenr);
 void hyp_free_node(struct hypfile *hyp, struct node **node);
-char *decode_char(char *data, int *val);
+char *decode_char(char *data, short *val);
 char *dec_255_decode(char *data, short *val);
 char *dec_255_encode(char *data, short val);
 
