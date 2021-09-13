@@ -3636,6 +3636,7 @@ J1:
 [0001275c] 4fef 022c                 lea.l      556(a7),a7
 [00012760] 4cdf 04f8                 movem.l    (a7)+,d3-d7/a2
 [00012764] 4e75                      rts
+conv_macroman:
 [00012766] 2f0a                      move.l     a2,-(a7)
 [00012768] 2f0b                      move.l     a3,-(a7)
 [0001276a] 2449                      movea.l    a1,a2

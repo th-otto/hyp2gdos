@@ -284,14 +284,11 @@ static void wk_info(void)
 int conv_macroman(const char *src, char *dst)
 {
 	char *start;
-	const unsigned char (*table)[256];
 	
-	/* XXX uses .w to index table */
 	start = dst;
-	table = &macroman_cset;
 	while (*src != '\0')
 	{
-		*dst++ = (*table)[(unsigned char)*src++];
+		*dst++ = macroman_cset[(unsigned char)*src++];
 	}
 	*dst = '\0';
 	return (int)(dst - start);
