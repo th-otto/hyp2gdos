@@ -5134,7 +5134,7 @@ J5:
 [000136f4] 504f                      addq.w     #8,a7
 [000136f6] 245f                      movea.l    (a7)+,a2
 [000136f8] 4e75                      rts
-
+print_link:
 [000136fa] 48e7 183e                 movem.l    d3-d4/a2-a6,-(a7)
 [000136fe] 5d4f                      subq.w     #6,a7
 [00013700] 2848                      movea.l    a0,a4
@@ -5364,7 +5364,7 @@ J6:
 [00013970] 226f 001a                 movea.l    26(a7),a1
 [00013974] 206f 0016                 movea.l    22(a7),a0
 [00013978] 2050                      movea.l    (a0),a0
-[0001397a] 6100 fd7e                 bsr        $000136FA
+[0001397a] 6100 fd7e                 bsr        print_link
 [0001397e] 4fef 0010                 lea.l      16(a7),a7
 [00013982] 2448                      movea.l    a0,a2
 [00013984] 6022                      bra.s      $000139A8
@@ -5375,7 +5375,7 @@ J6:
 [00013994] 226f 001a                 movea.l    26(a7),a1
 [00013998] 206f 0016                 movea.l    22(a7),a0
 [0001399c] 2050                      movea.l    (a0),a0
-[0001399e] 6100 fd5a                 bsr        $000136FA
+[0001399e] 6100 fd5a                 bsr        print_link
 [000139a2] 4fef 0010                 lea.l      16(a7),a7
 [000139a6] 2448                      movea.l    a0,a2
 [000139a8] 3f05                      move.w     d5,-(a7)
@@ -5426,7 +5426,7 @@ J6:
 [00013a20] 4fef 000e                 lea.l      14(a7),a7
 [00013a24] 4cdf 3c78                 movem.l    (a7)+,d3-d6/a2-a5
 [00013a28] 4e75                      rts
-
+calc_text_height:
 [00013a2a] 48e7 1f3e                 movem.l    d3-d7/a2-a6,-(a7)
 [00013a2e] 4fef ffe4                 lea.l      -28(a7),a7
 [00013a32] 2848                      movea.l    a0,a4

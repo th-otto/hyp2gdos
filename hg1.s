@@ -440,8 +440,8 @@ x136da:
 	movea.l    (a7)+,a2
 	rts
 
-	.globl x136fa
-x136fa:
+	.globl print_link
+print_link:
 	movem.l    d3-d4/a2-a6,-(a7)
 	subq.w     #6,a7
 	movea.l    a0,a4
@@ -518,6 +518,8 @@ x137b0:
 	addq.w     #6,a7
 	movem.l    (a7)+,d3-d4/a2-a6
 	rts
+
+	.ifne 0
 
 	.globl print_line
 print_line:
@@ -691,7 +693,7 @@ x13962:
 	movea.l    26(a7),a1
 	movea.l    22(a7),a0
 	movea.l    (a0),a0
-	bsr        x136fa
+	bsr        print_link
 	lea.l      16(a7),a7
 	movea.l    a0,a2
 	bra.s      x139a8
@@ -703,7 +705,7 @@ x13986:
 	movea.l    26(a7),a1
 	movea.l    22(a7),a0
 	movea.l    (a0),a0
-	bsr        x136fa
+	bsr        print_link
 	lea.l      16(a7),a7
 	movea.l    a0,a2
 x139a8:
@@ -763,292 +765,6 @@ x13a10:
 	lea.l      14(a7),a7
 	movem.l    (a7)+,d3-d6/a2-a5
 	rts
-
-	.globl x13a2a
-x13a2a:
-	movem.l    d3-d7/a2-a6,-(a7)
-	lea.l      -28(a7),a7
-	movea.l    a0,a4
-	move.l     a1,24(a7)
-	move.l     d0,d7
-	move.l     d1,20(a7)
-	move.l     d2,d6
-	movea.l    4(a1),a3
-	lea.l      14(a3),a3
-	movea.l    4(a1),a0
-	move.l     6(a0),d0
-	lea.l      0(a3,d0.l),a1
-	move.l     a1,16(a7)
-	movea.l    24(a7),a0
-	movea.l    (a0),a1
-	cmpi.l     #$48444F43,262(a1)
-	bne        x13cec
-	lea.l      6(a7),a5
-	lea.l      12(a7),a2
-	bra        x13cde
-x13a76:
-	move.b     1(a3),d0
-	ext.w      d0
-	sub.w      #$0023,d0
-	cmp.w      #$0012,d0
-	bhi        x13cda
-	add.w      d0,d0
-	move.w     x13a92(pc,d0.w),d0
-	jmp        x13a92(pc,d0.w)
-x13a92:
-	dc.w $0234   ; x13cc6-x13a92
-	dc.w $0248   ; x13cda-x13a92
-	dc.w $0248   ; x13cda-x13a92
-	dc.w $0248   ; x13cda-x13a92
-	dc.w $0248   ; x13cda-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0228   ; x13cba-x13a92
-	dc.w $0242   ; x13cd4-x13a92
-	dc.w $0026   ; x13ab8-x13a92
-	dc.w $01cc   ; x13c5e-x13a92
-	dc.w $01cc   ; x13c5e-x13a92
-	dc.w $01cc   ; x13c5e-x13a92
-x13ab8:
-	lea.l      14(a7),a1
-	lea.l      2(a3),a0
-	bsr        dec_255_decode
-	movea.l    24(a7),a0
-	movea.l    4(a0),a1
-	movea.l    (a1),a6
-	bra.s      x13ad2
-x13ad0:
-	movea.l    (a6),a6
-x13ad2:
-	move.l     a6,d0
-	beq.s      x13ae0
-	move.w     4(a6),d1
-	cmp.w      14(a7),d1
-	bne.s      x13ad0
-x13ae0:
-	move.l     a6,d0
-	bne.s      x13b1e
-	move.w     #1,8(a7)
-	move.w     #1,(a5)
-	moveq.l    #2,d1
-	movea.l    24(a7),a0
-	movea.l    (a0),a1
-	and.w      (a1),d1
-	beq.s      x13b0e
-	move.w     8(a7),d3
-	muls.w     12(a4),d3
-	ext.l      d3
-	move.w     (a5),d4
-	muls.w     14(a4),d4
-	ext.l      d4
-	bra.s      x13b72
-x13b0e:
-	move.w     8(a7),d3
-	lsl.w      #3,d3
-	ext.l      d3
-	move.w     (a5),d4
-	lsl.w      #4,d4
-	ext.l      d4
-	bra.s      x13b72
-x13b1e:
-	lea.l      14(a6),a6
-	moveq.l    #2,d0
-	movea.l    24(a7),a0
-	movea.l    (a0),a1
-	and.w      (a1),d0
-	beq.s      x13b68
-	move.w     (a6),d3
-	ext.l      d3
-	divs.w     #8,d3
-	muls.w     12(a4),d3
-	move.w     (a6),d1
-	ext.l      d1
-	divs.w     #8,d1
-	swap       d1
-	add.w      d1,d3
-	ext.l      d3
-	move.w     2(a6),d4
-	ext.l      d4
-	divs.w     #16,d4
-	muls.w     14(a4),d4
-	move.w     2(a6),d2
-	ext.l      d2
-	divs.w     #16,d2
-	swap       d2
-	add.w      d2,d4
-	ext.l      d4
-	bra.s      x13b72
-x13b68:
-	move.w     (a6),d3
-	ext.l      d3
-	move.w     2(a6),d4
-	ext.l      d4
-x13b72:
-	move.w     12(a4),d0
-	ext.l      d0
-	add.l      d3,d0
-	subq.l     #1,d0
-	move.w     12(a4),d1
-	ext.l      d1
-	bsr        _ldiv
-	move.w     d0,8(a7)
-	move.w     14(a4),d0
-	ext.l      d0
-	add.l      d4,d0
-	subq.l     #1,d0
-	move.w     14(a4),d1
-	ext.l      d1
-	bsr        _ldiv
-	move.w     d0,(a5)
-	lea.l      10(a7),a1
-	lea.l      4(a3),a0
-	bsr        decode_char
-	move.w     10(a7),d0
-	bpl.s      x13bf2
-	movea.l    24(a7),a0
-	movea.l    (a0),a1
-	move.w     306(a1),d0
-	muls.w     12(a4),d0
-	ext.l      d0
-	sub.l      d3,d0
-	moveq.l    #2,d1
-	bsr        _ldiv
-	move.l     d0,d5
-	tst.l      d5
-	bpl.s      x13bd2
-	moveq.l    #0,d5
-x13bd2:
-	move.w     4(a4),d0
-	add.w      d5,d0
-	move.w     d0,-(a7)
-	move.l     22(a7),d0
-	move.w     12(a4),d1
-	ext.l      d1
-	bsr        _lmul
-	move.w     (a7)+,d1
-	sub.w      d0,d1
-	ext.l      d1
-	move.l     d1,d5
-	bra.s      x13c0e
-x13bf2:
-	move.w     10(a7),d0
-	ext.l      d0
-	sub.l      20(a7),d0
-	move.w     12(a4),d1
-	ext.l      d1
-	bsr        _lmul
-	move.l     d0,d5
-	add.w      4(a4),d5
-	ext.l      d5
-x13c0e:
-	movea.l    a2,a1
-	lea.l      5(a3),a0
-	bsr        dec_255_decode
-	move.w     (a2),d0
-	ext.l      d0
-	sub.l      d7,d0
-	move.w     14(a4),d1
-	ext.l      d1
-	bsr        _lmul
-	add.w      6(a4),d0
-	ext.l      d0
-	move.l     d0,(a7)
-	move.w     (a5),d1
-	ext.l      d1
-	cmp.l      d1,d6
-	blt.s      x13c56
-	move.w     (a2),d2
-	ext.l      d2
-	cmp.l      d2,d7
-	bge.s      x13c56
-	move.l     d7,d0
-	add.l      d6,d0
-	cmp.l      d0,d2
-	bge.s      x13c56
-	move.w     (a2),d1
-	add.w      (a5),d1
-	ext.l      d1
-	cmp.l      d0,d1
-	ble.s      x13c56
-	move.l     d2,d6
-	sub.l      d7,d6
-x13c56:
-	lea.l      9(a3),a3
-	bra        x13cde
-x13c5e:
-	lea.l      10(a7),a1
-	lea.l      2(a3),a0
-	bsr        decode_char
-	movea.l    a0,a3
-	movea.l    a2,a1
-	bsr        dec_255_decode
-	movea.l    a0,a3
-	lea.l      8(a7),a1
-	bsr        decode_char
-	movea.l    a0,a3
-	movea.l    a5,a1
-	bsr        decode_char
-	movea.l    a0,a3
-	lea.l      4(a7),a1
-	bsr        decode_char
-	movea.l    a0,a3
-	addq.w     #1,(a5)
-	move.w     (a5),d0
-	ext.l      d0
-	cmp.l      d0,d6
-	blt.s      x13cde
-	move.w     (a2),d1
-	ext.l      d1
-	cmp.l      d1,d7
-	bge.s      x13cde
-	move.l     d7,d2
-	add.l      d6,d2
-	cmp.l      d2,d1
-	bge.s      x13cde
-	move.w     (a2),d0
-	add.w      (a5),d0
-	ext.l      d0
-	cmp.l      d2,d0
-	ble.s      x13cde
-	move.l     d1,d6
-	sub.l      d7,d6
-	bra.s      x13cde
-x13cba:
-	move.b     2(a3),d0
-	ext.w      d0
-	ext.l      d0
-	adda.l     d0,a3
-	bra.s      x13cde
-x13cc6:
-	addq.w     #2,a3
-	movea.l    a3,a0
-	bsr        strlen
-	addq.l     #1,d0
-	adda.l     d0,a3
-	bra.s      x13cde
-x13cd4:
-	lea.l      10(a3),a3
-	bra.s      x13cde
-x13cda:
-	movea.l    16(a7),a3
-x13cde:
-	cmpa.l     16(a7),a3
-	bcc.s      x13cec
-	cmpi.b     #$1B,(a3)
-	beq        x13a76
-x13cec:
-	move.l     d6,d0
-	lea.l      28(a7),a7
-	movem.l    (a7)+,d3-d7/a2-a6
-	rts
-
-	.ifne 0
 
 	.endc
 

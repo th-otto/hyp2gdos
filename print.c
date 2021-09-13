@@ -22,22 +22,15 @@ struct x40 {
 
 void x13332(struct printinfo *printinfo);
 void x136da(struct pageinfo *page, struct printinfo *printinfo, long y, long x, _WORD *x1);
-void print_line(struct printinfo *printinfo, struct pageinfo *page, long lineno, _WORD x, _WORD y);
-long x13a2a(long lineno, long d1, long height);
+char *print_link(struct hypfile *hyp, struct printinfo *printinfo, _WORD *x, _WORD *y, char *text, short *column);
+void x132c8(struct vdi *vdi, _WORD x, _WORD x1, _WORD x2);
+
 
 #ifdef __GNUC__
 void x13332(struct printinfo *printinfo)
 {
 	printinfo->line_height = 0;
 	printinfo->cell_width = 0;
-}
-void print_line(struct printinfo *printinfo, struct pageinfo *page, long lineno, _WORD x, _WORD y)
-{
-	(void) printinfo;
-	(void) page;
-	(void) lineno;
-	(void) x;
-	(void) y;
 }
 void x136da(struct pageinfo *page, struct printinfo *printinfo, long y, long x, _WORD *x1)
 {
@@ -46,12 +39,6 @@ void x136da(struct pageinfo *page, struct printinfo *printinfo, long y, long x, 
 	(void) x;
 	(void) y;
 	*x1 = 0;
-}
-long x13a2a(long lineno, long d1, long height)
-{
-	(void)lineno;
-	(void) d1;
-	return height;
 }
 #endif
 
@@ -62,6 +49,286 @@ static char udotitle[LINEMAX];
 /* ---------------------------------------------------------------------- */
 /**************************************************************************/
 
+static void print_line(struct printinfo *printinfo, struct pageinfo *page, long lineno, _WORD x, _WORD y)
+{
+	struct fontinfo *fonts;
+	struct vdi *vdi;
+	_WORD d3;
+	_WORD effects;
+	_WORD fontid;
+	char *text;
+	short column;
+	char *start;
+	
+	fonts = printinfo->fonts;
+	vdi = printinfo->vdi;
+	d3 = x;
+	effects = 0;
+	if (page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard)
+		fontid = fonts->standard_font_id;
+	else
+		fontid = fonts->typewriter_font_id;
+	vdi_text_attributes(vdi, fonts->text_color, -1, effects, fontid);
+	text = page->text[lineno];
+	column = 0;
+	while (*text)
+	{
+		if (*text != HYP_ESC)
+		{
+			start = text;
+			if (fonts->expand_spaces)
+			{
+				if (*text == '\t')
+				{
+					text++;
+					column = ((column + fonts->tabsize) / fonts->tabsize) * fonts->tabsize;
+					goto x13870;
+				} else
+				{
+					if (*text++ == ' ' && *text == ' ')
+					{
+						short x2;
+						
+						do
+							text++;
+						while (*text == ' ');
+						column += text - start;
+				x13870:
+						x2 = printinfo->cell_width * column + d3;
+						if (effects != 0)
+							x132c8(vdi, y, x, x2);
+						x = x2;
+					} else
+					{
+						for (;;)
+						{
+							switch (*text)
+							{
+							case HYP_EOL:
+							case HYP_ESC:
+							case '\t':
+								goto printout;
+							case ' ':
+								if (text[1] == ' ')
+									goto printout;
+								text++;
+								break;
+							default:
+								text++;
+								break;
+							}
+						}
+					}
+				}
+			} else
+			{
+				_WORD len;
+				
+				/* 138be */
+				text++;
+				while (*text != HYP_EOL && *text != HYP_ESC)
+					text++;
+				/* 138ca */
+			printout:
+				len = (_WORD)(text - start);
+				vdi_draw_text(vdi, x, y, start, len);
+				x += vdi_get_textwidth(vdi, start, len);
+				column += len;
+			}
+		} else
+		{
+			if (page->hyp->header.magic != HYP_MAGIC_HYP)
+			{
+				vdi_draw_text(vdi, x, y, text, 1);
+				x += vdi_get_textwidth(vdi, text, 1);
+				text++;
+				column += 1;
+			} else
+			{
+				text++;
+				switch (*text)
+				{
+				case HYP_ESC_ESC:
+					vdi_draw_text(vdi, x, y, text, 1);
+					x += vdi_get_textwidth(vdi, text, 1);
+					text++;
+					column += 1;
+					break;
+				
+				case HYP_ESC_LINK:
+				case HYP_ESC_ALINK:
+					text = print_link(page->hyp, printinfo, &x, &y, text + 1, &column);
+					vdi_text_attributes(vdi, fonts->text_color, -1, effects, fontid);
+					break;
+
+				case HYP_ESC_LINK_LINE:
+				case HYP_ESC_ALINK_LINE:
+					text = print_link(page->hyp, printinfo, &x, &y, text + 3, &column);
+					vdi_text_attributes(vdi, fonts->text_color, -1, effects, fontid);
+					break;
+				
+				default:
+					/*
+					 * BUG: should check for upper limit, too.
+					 */
+					if ((unsigned char) *text >= HYP_ESC_TEXTATTR_FIRST)
+					{
+						effects = (unsigned char) *text - HYP_ESC_TEXTATTR_FIRST;
+						if (effects & 0x40)
+							fontid = fonts->typewriter_font_id;
+						else
+							fontid = fonts->standard_font_id;
+						vdi_text_attributes(vdi, fonts->text_color, -1, effects, fontid);
+					}
+					text++;
+					break;
+				}
+			}
+		}
+	}
+	
+	vdi_text_attributes(vdi, -1, -1, 0, page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard ? fonts->standard_font_id : fonts->typewriter_font_id);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static long calc_text_height(struct printinfo *printinfo, struct pageinfo *page, long lineno, long column, long height)
+{
+	char *data;
+	char *end; /* 16 */
+	short picnode; /* 14 */
+	short y_offset; /* 12 */
+	short x_offset; /* 10 */
+	short char_width; /* 8 */
+	short char_height; /* 6 */
+	short attributes;
+	long y; /* 0 */
+	long pixwidth;
+	long pixheight;
+	long w;
+	struct node *pic;
+	char *picdata;
+	
+	data = page->node->data;
+	end = data + page->node->datalen;
+	if (page->hyp->header.magic == HYP_MAGIC_HYP)
+	{
+		while (data < end && *data == HYP_ESC)
+		{
+			switch (data[1])
+			{
+			case HYP_ESC_PIC:
+				dec_255_decode(data + 2, &picnode);
+				pic = page->node->picdata;
+				while (pic && pic->nodenr != picnode)
+					pic = pic->picdata;
+				if (pic == NULL)
+				{
+					char_width = 1;
+					char_height = 1;
+					if (page->hyp->flags & SCALE_IMAGES)
+					{
+						pixwidth = char_width * printinfo->cell_width;
+						pixheight = char_height * printinfo->line_height;
+					} else
+					{
+						pixwidth = char_width * HYP_PIC_FONTW;
+						pixheight = char_height * HYP_PIC_FONTH;
+					}
+				} else
+				{
+					picdata = pic->data;
+					if (page->hyp->flags & SCALE_IMAGES)
+					{
+						pixwidth = (*((short *)picdata) / HYP_PIC_FONTW) * printinfo->cell_width +
+							*((short *)picdata) % HYP_PIC_FONTW;
+						pixheight = (*((short *)(picdata + 2)) / HYP_PIC_FONTH) * printinfo->line_height +
+							*((short *)(picdata + 2)) % HYP_PIC_FONTH;
+					} else
+					{
+						pixwidth = *((short *)picdata);
+						pixheight = *((short *)(picdata + 2));
+					}
+				}
+				char_width = (pixwidth + printinfo->cell_width - 1) / printinfo->cell_width;
+				char_height = (pixheight + printinfo->line_height - 1) / printinfo->line_height;
+				decode_char(data + 4, &x_offset);
+				if (x_offset < 0)
+				{
+					w = (page->hyp->width * printinfo->cell_width - pixwidth) / 2;
+					if (w < 0)
+						w = 0;
+					w = (printinfo->text_area.g_x + (int)w) - (_WORD)(column * printinfo->cell_width);
+				} else
+				{
+					w = (_WORD)((x_offset - column) * printinfo->cell_width) + printinfo->text_area.g_x;
+				}
+				dec_255_decode(data + 5, &y_offset);
+				y = (_WORD)((y_offset - lineno) * printinfo->line_height) + printinfo->text_area.g_y;
+				if (char_height <= height && y_offset > lineno &&
+					y_offset < lineno + height &&
+					y_offset + char_height > lineno + height)
+				{
+					height = y_offset - lineno;
+				}
+				data += 9;
+				(void) &y; /* XXX */
+				break;
+	
+			case HYP_ESC_LINE:
+			case HYP_ESC_BOX:
+			case HYP_ESC_RBOX:
+				data = decode_char(data + 2, &x_offset);
+				data = dec_255_decode(data, &y_offset);
+				data = decode_char(data, &char_width);
+				data = decode_char(data, &char_height);
+				data = decode_char(data, &attributes);
+				char_height += 1;
+				if (char_height <= height && y_offset > lineno &&
+					y_offset < lineno + height &&
+					y_offset + char_height > lineno + height)
+				{
+					height = y_offset - lineno;
+				}
+				break;
+	
+			case HYP_ESC_DATA0:
+			case HYP_ESC_DATA1:
+			case HYP_ESC_DATA2:
+			case HYP_ESC_DATA3:
+			case HYP_ESC_DATA4:
+			case HYP_ESC_DATA5:
+			case HYP_ESC_DATA6:
+			case HYP_ESC_DATA7:
+			case HYP_ESC_EXTERNAL_REFS:
+				/* BUG: sign-extended */
+				data += data[2];
+				break;
+			
+			case HYP_ESC_WINDOWTITLE:
+				data += 2;
+				data += strlen(data) + 1;
+				break;
+	
+			case HYP_ESC_OBJTABLE:
+				data += 10;
+				break;
+			
+			case HYP_ESC_LINK:
+			case HYP_ESC_LINK_LINE:
+			case HYP_ESC_ALINK:
+			case HYP_ESC_ALINK_LINE:
+			default:
+				data = end;
+				break;
+			}
+		}
+	}
+	return height;
+}
+
+/* ---------------------------------------------------------------------- */
+
 #ifdef __PUREC__
 static void nothing1(void) 0x4a6f;
 static void nothing2(void) 0x000a;
@@ -71,15 +338,15 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 {
 	struct vdi *vdi;
 	char *data;
-	struct fontinfo *fonts; /* 24 */
-	char *end; /* 20 */
-	GRECT a5; /* 12 */
-	short attributes; /* 10 */
-	short y_offset; /* 8 */
-	short x_offset; /* 6 */
-	short char_width; /* 4 */
-	short char_height; /* 2 */
-	short o0;
+	struct fontinfo *fonts;
+	char *end;
+	GRECT gr;
+	short attributes;
+	short y_offset;
+	short x_offset;
+	short char_width;
+	short char_height;
+	short rnode;
 	
 	fonts = printinfo->fonts;
 	vdi = printinfo->vdi;
@@ -93,9 +360,9 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 		{
 		case HYP_ESC_PIC:
 			{
-				char *picdata; /* 38 */
-				short picnode; /* 36 */
-				struct node *pic; /* 32 */
+				char *picdata;
+				short picnode;
+				struct node *pic;
 
 				dec_255_decode(data + 2, &picnode);
 				pic = page->node->picdata;
@@ -107,57 +374,57 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 					char_height = 1;
 					if (page->hyp->flags & SCALE_IMAGES)
 					{
-						a5.g_w = char_width * printinfo->cell_width;
-						a5.g_h = char_height * printinfo->line_height;
+						gr.g_w = char_width * printinfo->cell_width;
+						gr.g_h = char_height * printinfo->line_height;
 					} else
 					{
-						a5.g_w = char_width * HYP_PIC_FONTW;
-						a5.g_h = char_height * HYP_PIC_FONTH;
+						gr.g_w = char_width * HYP_PIC_FONTW;
+						gr.g_h = char_height * HYP_PIC_FONTH;
 					}
 				} else
 				{
 					picdata = pic->data;
 					if (page->hyp->flags & SCALE_IMAGES)
 					{
-						a5.g_w = (*((short *)picdata) / HYP_PIC_FONTW) * printinfo->cell_width +
+						gr.g_w = (*((short *)picdata) / HYP_PIC_FONTW) * printinfo->cell_width +
 							*((short *)picdata) % HYP_PIC_FONTW;
-						a5.g_h = (*((short *)(picdata + 2)) / HYP_PIC_FONTH) * printinfo->line_height +
+						gr.g_h = (*((short *)(picdata + 2)) / HYP_PIC_FONTH) * printinfo->line_height +
 							*((short *)(picdata + 2)) % HYP_PIC_FONTH;
 					} else
 					{
-						a5.g_w = *((short *)picdata);
-						a5.g_h = *((short *)(picdata + 2));
+						gr.g_w = *((short *)picdata);
+						gr.g_h = *((short *)(picdata + 2));
 					}
 				}
-				char_width = (a5.g_w + printinfo->cell_width - 1) / printinfo->cell_width;
-				char_height = (a5.g_h + printinfo->line_height - 1) / printinfo->line_height;
+				char_width = (gr.g_w + printinfo->cell_width - 1) / printinfo->cell_width;
+				char_height = (gr.g_h + printinfo->line_height - 1) / printinfo->line_height;
 				decode_char(data + 4, &x_offset);
 				if (x_offset < 0)
 				{
-					long w = (page->hyp->width * printinfo->cell_width - a5.g_w) / 2;
+					long w = (page->hyp->width * printinfo->cell_width - gr.g_w) / 2;
 					if (w < 0)
 						w = 0;
-					a5.g_x = (printinfo->text_area.g_x + (int)w) - (_WORD)(column * printinfo->cell_width);
+					gr.g_x = (printinfo->text_area.g_x + (int)w) - (_WORD)(column * printinfo->cell_width);
 				} else
 				{
-					a5.g_x = (_WORD)((x_offset - column) * printinfo->cell_width) + printinfo->text_area.g_x;
+					gr.g_x = (_WORD)((x_offset - column) * printinfo->cell_width) + printinfo->text_area.g_x;
 				}
 				dec_255_decode(data + 5, &y_offset);
-				a5.g_y = (_WORD)((y_offset - lineno) * printinfo->line_height) + printinfo->text_area.g_y;
+				gr.g_y = (_WORD)((y_offset - lineno) * printinfo->line_height) + printinfo->text_area.g_y;
 				if (y_offset < lineno + numlines && y_offset + char_height >= lineno)
 				{
 					if (pic == NULL)
 					{
 						vdi_line_attributes(vdi, G_BLACK, S_OR_D, LT_SOLID, 1);
-						vdi_draw_rect(vdi, &a5);
+						vdi_draw_rect(vdi, &gr);
 					} else
 					{
 						if (picdata[4] == 1) /* planes */
 						{
-							vdi_draw_bitmap(vdi, picdata + 8, a5.g_x, a5.g_y, a5.g_w, a5.g_h, *((short *)picdata), *((short *)(picdata + 2)), 1, S_OR_D, 1, 0);
+							vdi_draw_bitmap(vdi, picdata + 8, gr.g_x, gr.g_y, gr.g_w, gr.g_h, *((short *)picdata), *((short *)(picdata + 2)), 1, S_OR_D, 1, 0);
 						} else
 						{
-							vdi_draw_image(vdi, picdata + 8, a5.g_x, a5.g_y, a5.g_w, a5.g_h, *((short *)picdata), *((short *)(picdata + 2)), picdata[4], S_OR_D, 1, 0,
+							vdi_draw_image(vdi, picdata + 8, gr.g_x, gr.g_y, gr.g_w, gr.g_h, *((short *)picdata), *((short *)(picdata + 2)), picdata[4], S_OR_D, 1, 0,
 								pic->dither_params != NULL ? pic->dither_params : page->hyp->dither_params);
 						}
 					}
@@ -172,11 +439,11 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 				_WORD color;
 				_WORD effects;
 				
-				dec_255_decode(data + 4, &o0);
-				rc_shrink(&a5, -2, -2);
-				fonts->p_get_effects(page->hyp, o0, &color, &effects);
+				dec_255_decode(data + 4, &rnode);
+				rc_shrink(&gr, -2, -2);
+				fonts->p_get_effects(page->hyp, rnode, &color, &effects);
 				vdi_line_attributes(vdi, color, S_OR_D, LT_SOLID, 1);
-				/* vdi_draw_rect(vdi, &a5); */
+				/* vdi_draw_rect(vdi, &gr); */
 				goto draw_rect; /* FIXME */
 			}
 			break;
@@ -191,20 +458,20 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 				data = decode_char(data, &char_width);
 				data = decode_char(data, &char_height);
 				data = decode_char(data, &attributes);
-				a5.g_x = x_offset - (_WORD)column;
-				a5.g_y = y_offset - (_WORD)lineno;
-				a5.g_w = char_width - 127;
-				a5.g_h = char_height;
-				a5.g_x = a5.g_x * printinfo->cell_width;
-				a5.g_y = a5.g_y * printinfo->line_height;
-				a5.g_w = a5.g_w * printinfo->cell_width;
-				a5.g_h = a5.g_h * printinfo->line_height;
-				a5.g_x += printinfo->text_area.g_x;
-				a5.g_y += printinfo->text_area.g_y;
-				pxy[0] = a5.g_x;
-				pxy[1] = a5.g_y;
-				pxy[2] = a5.g_x + a5.g_w /* - 1 */; /* BUG */
-				pxy[3] = a5.g_y + a5.g_h /* - 1 */; /* BUG */
+				gr.g_x = x_offset - (_WORD)column;
+				gr.g_y = y_offset - (_WORD)lineno;
+				gr.g_w = char_width - 127;
+				gr.g_h = char_height;
+				gr.g_x = gr.g_x * printinfo->cell_width;
+				gr.g_y = gr.g_y * printinfo->line_height;
+				gr.g_w = gr.g_w * printinfo->cell_width;
+				gr.g_h = gr.g_h * printinfo->line_height;
+				gr.g_x += printinfo->text_area.g_x;
+				gr.g_y += printinfo->text_area.g_y;
+				pxy[0] = gr.g_x;
+				pxy[1] = gr.g_y;
+				pxy[2] = gr.g_x + gr.g_w /* - 1 */; /* BUG */
+				pxy[3] = gr.g_y + gr.g_h /* - 1 */; /* BUG */
 				ends = attributes & 3;
 				attributes = (attributes >> 3);
 				attributes += 1;
@@ -223,29 +490,29 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 				data = decode_char(data, &char_width);
 				data = decode_char(data, &char_height);
 				data = decode_char(data, &attributes);
-				a5.g_x = x_offset;
-				a5.g_y = y_offset - (_WORD)lineno;
-				a5.g_w = char_width + 1;
-				a5.g_h = char_height + 1;
-				if (a5.g_y + a5.g_h >= 0)
+				gr.g_x = x_offset;
+				gr.g_y = y_offset - (_WORD)lineno;
+				gr.g_w = char_width + 1;
+				gr.g_h = char_height + 1;
+				if (gr.g_y + gr.g_h >= 0)
 				{
-					if (a5.g_h == 1)
+					if (gr.g_h == 1)
 					{
-						x136da(page, printinfo, y_offset, a5.g_x, &x1);
-						x136da(page, printinfo, y_offset, a5.g_x + a5.g_w, &x2);
-						a5.g_x = x1;
-						a5.g_w = x2 - x1;
-						a5.g_y = a5.g_y * printinfo->line_height;
-						a5.g_h = printinfo->line_height;
+						x136da(page, printinfo, y_offset, gr.g_x, &x1);
+						x136da(page, printinfo, y_offset, gr.g_x + gr.g_w, &x2);
+						gr.g_x = x1;
+						gr.g_w = x2 - x1;
+						gr.g_y = gr.g_y * printinfo->line_height;
+						gr.g_h = printinfo->line_height;
 					} else
 					{
-						a5.g_x = a5.g_x * printinfo->cell_width;
-						a5.g_y = a5.g_y * printinfo->line_height;
-						a5.g_w = a5.g_w * printinfo->cell_width;
-						a5.g_h = a5.g_h * printinfo->line_height;
+						gr.g_x = gr.g_x * printinfo->cell_width;
+						gr.g_y = gr.g_y * printinfo->line_height;
+						gr.g_w = gr.g_w * printinfo->cell_width;
+						gr.g_h = gr.g_h * printinfo->line_height;
 					}
-					a5.g_x += printinfo->text_area.g_x - (_WORD)column * printinfo->cell_width;
-					a5.g_y += printinfo->text_area.g_y;
+					gr.g_x += printinfo->text_area.g_x - (_WORD)column * printinfo->cell_width;
+					gr.g_y += printinfo->text_area.g_y;
 					if (attributes >= 7)
 					{
 						attributes = attributes == 7 ? 8 : 7;
@@ -258,10 +525,10 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 #endif
 					}
 					vdi_fill_attributes(vdi, G_BLACK, S_OR_D, attributes);
-					vdi_draw_bar(vdi, &a5);
+					vdi_draw_bar(vdi, &gr);
 					vdi_line_attributes(vdi, G_BLACK, S_OR_D, LT_SOLID, 1);
 				draw_rect:
-					vdi_draw_rect(vdi, &a5);
+					vdi_draw_rect(vdi, &gr);
 				}
 			}
 			break;
@@ -273,18 +540,18 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 				data = decode_char(data, &char_width);
 				data = decode_char(data, &char_height);
 				data = decode_char(data, &attributes);
-				a5.g_x = x_offset - (_WORD)column;
-				a5.g_y = y_offset - (_WORD)lineno;
-				a5.g_w = char_width + 1;
-				a5.g_h = char_height + 1;
-				if (a5.g_y + a5.g_h >= 0)
+				gr.g_x = x_offset - (_WORD)column;
+				gr.g_y = y_offset - (_WORD)lineno;
+				gr.g_w = char_width + 1;
+				gr.g_h = char_height + 1;
+				if (gr.g_y + gr.g_h >= 0)
 				{
-					a5.g_x = a5.g_x * printinfo->cell_width;
-					a5.g_y = a5.g_y * printinfo->line_height;
-					a5.g_w = a5.g_w * printinfo->cell_width;
-					a5.g_h = a5.g_h * printinfo->line_height;
-					a5.g_x += printinfo->text_area.g_x;
-					a5.g_y += printinfo->text_area.g_y;
+					gr.g_x = gr.g_x * printinfo->cell_width;
+					gr.g_y = gr.g_y * printinfo->line_height;
+					gr.g_w = gr.g_w * printinfo->cell_width;
+					gr.g_h = gr.g_h * printinfo->line_height;
+					gr.g_x += printinfo->text_area.g_x;
+					gr.g_y += printinfo->text_area.g_y;
 					if (attributes >= 7)
 					{
 						attributes = attributes == 7 ? 8 : 7;
@@ -297,9 +564,9 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 #endif
 					}
 					vdi_fill_attributes(vdi, G_BLACK, S_OR_D, attributes);
-					vdi_draw_rounded_box(vdi, &a5, 10);
+					vdi_draw_rounded_box(vdi, &gr, 10);
 					vdi_line_attributes(vdi, G_BLACK, S_OR_D, LT_SOLID, 1);
-					vdi_draw_rounded_rect(vdi, &a5, 10);
+					vdi_draw_rounded_rect(vdi, &gr, 10);
 				}
 			}
 			break;
@@ -675,7 +942,7 @@ static void print_text(struct printinfo *printinfo, struct pageinfo *page, long 
 	vdi = printinfo->vdi;
 	fonts = printinfo->fonts;
 	numlines = a5->text_area.g_h / printinfo->line_height;
-	numlines = x13a2a(*lineno, 0, numlines);
+	numlines = calc_text_height(printinfo, page, *lineno, 0, numlines);
 	if (numlines > lastline - *lineno)
 		numlines = lastline - *lineno;
 	if (!printinfo->layout->skip)
