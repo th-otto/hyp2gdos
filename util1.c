@@ -25,7 +25,6 @@ static int mystrcasecmp(const char *_s1, const char *_s2)
 		if (c1 == 0)
 			return 0;
 	}
-	/* BUG: zero-extended before subtraction; will never be negative */
 	return c1 - c2;
 }
 
