@@ -9,7 +9,7 @@ struct printinfo {
 	/* 20 */ struct fontinfo *fonts;
 };
 
-struct x40 {
+struct area {
 	/*  0 */ GRECT pagearea;
 	/*  8 */ GRECT outputarea;
 	/* 16 */ _WORD border_left;
@@ -20,27 +20,7 @@ struct x40 {
 	/* 32 */ GRECT text_area;
 };
 
-void x13332(struct printinfo *printinfo);
-void x136da(struct pageinfo *page, struct printinfo *printinfo, long y, long x, _WORD *x1);
-char *print_link(struct hypfile *hyp, struct printinfo *printinfo, _WORD *x, _WORD *y, char *text, short *column);
-void x132c8(struct vdi *vdi, _WORD x, _WORD x1, _WORD x2);
 
-
-#ifdef __GNUC__
-void x13332(struct printinfo *printinfo)
-{
-	printinfo->line_height = 0;
-	printinfo->cell_width = 0;
-}
-void x136da(struct pageinfo *page, struct printinfo *printinfo, long y, long x, _WORD *x1)
-{
-	(void) printinfo;
-	(void) page;
-	(void) x;
-	(void) y;
-	*x1 = 0;
-}
-#endif
 
 static char udodatabase[LINEMAX];
 static char udotitle[LINEMAX];
@@ -49,11 +29,280 @@ static char udotitle[LINEMAX];
 /* ---------------------------------------------------------------------- */
 /**************************************************************************/
 
+static void underlines_spaces(struct vdi *vdi, _WORD y, _WORD x1, _WORD x2)
+{
+	static char const spaces[80] = "                                                                                ";
+	static char const space[] = " ";
+	_WORD w;
+	_WORD drawlen;
+	_WORD len;
+	
+	w = vdi_get_textwidth(vdi, space, 1);
+	while (x1 + w <= x2)
+	{
+		len = x2 - x1;
+		drawlen = len / w;
+		if (drawlen > 80)
+			drawlen = 80;
+		vdi_draw_text(vdi, x1, y, spaces, drawlen);
+		x1 += drawlen * w;
+	}
+	if (x1 < x2)
+		vdi_draw_text(vdi, x2 - w, y, spaces, 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static void init_font_sizes(struct printinfo *printinfo)
+{
+	struct fontinfo *fonts;
+	_WORD cw;
+	_WORD ch;
+	_WORD cw2;
+	_WORD ch2;
+	int len;
+	
+	fonts = printinfo->fonts;
+	vdi_ref(printinfo->vdi);
+	vdi_text_attributes(printinfo->vdi, fonts->text_color, S_OR_D, 0, fonts->typewriter_font_id);
+	vdi_get_fontwidth(printinfo->vdi, &cw, &ch);
+	
+	len = (int)strlen(fonts->sample);
+	if (len > 0)
+	{
+		/* BUG: fonts->sample is const char * */
+		cw = vdi_get_textwidth(printinfo->vdi, (char *)fonts->sample, len) / len;
+	}
+	vdi_text_attributes(printinfo->vdi, fonts->text_color, S_OR_D, 0, fonts->standard_font_id);
+	vdi_get_fontwidth(printinfo->vdi, &cw2, &ch2);
+	if (ch2 > ch)
+		ch = ch2;
+	vdi_unref(printinfo->vdi);
+	printinfo->cell_width = cw;
+	printinfo->line_height = ch;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static char *link_width(struct hypfile *hyp, struct printinfo *printinfo, long x, long *offset, char *text, short *width)
+{
+	short linknr;
+	_WORD color;
+	_WORD effects;
+	int len;
+	char *name;
+	int i;
+	
+	text = dec_255_decode(text, &linknr);
+	printinfo->fonts->p_get_effects(hyp, linknr, &color, &effects);
+	
+	vdi_text_attributes(printinfo->vdi, color, -1, effects, -1);
+	/* BUG: sign-extended */
+	len = *text++ - HYP_STRLEN_OFFSET;
+	if (len <= 0)
+	{
+		name = hyp->indextable[linknr]->name;
+		len = (int)strlen(name);
+	} else
+	{
+		name = text;
+		text += len;
+	}
+	
+	*width = 0;
+	for (i = 0; i < len; i++)
+	{
+		*width += vdi_get_textwidth(printinfo->vdi, name, 1);
+		*offset += 1;
+		if (*offset >= x)
+			break;
+		name++;
+	}
+	vdi_text_attributes(printinfo->vdi, printinfo->fonts->text_color, -1, 0, -1);
+		
+	return text;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static int calc_box_offset(struct pageinfo *page, struct printinfo *printinfo, char *text, long x, _WORD *x1)
+{
+	_WORD effects;
+	_WORD fontid;
+	struct fontinfo *fonts;
+	long column;
+	long old_offset;
+	short line;
+	short linkwidth;
+	long offset;
+	
+	fonts = printinfo->fonts;
+	vdi_ref(printinfo->vdi);
+	effects = 0;
+	if (page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard)
+		fontid = fonts->standard_font_id;
+	else
+		fontid = fonts->typewriter_font_id;
+	vdi_text_attributes(printinfo->vdi, fonts->text_color, S_OR_D, 0, fontid);
+	*x1 = 0;
+	column = 0;
+	offset = 0;
+	while (*text != 0 && offset < x)
+	{
+		if (*text != HYP_ESC)
+		{
+			if (fonts->expand_spaces)
+			{
+				if (*text == '\t')
+				{
+					text++;
+					column = ((column + fonts->tabsize) / fonts->tabsize) * fonts->tabsize;
+					offset++;
+					*x1 = (_WORD)(column * printinfo->cell_width);
+				} else
+				{
+					if (*text == ' ' && text[1] == ' ')
+					{
+						while (*text == ' ' && offset < x)
+						{
+							text++;
+							column++;
+							offset++;
+						}
+						*x1 = (_WORD)(column * printinfo->cell_width);
+					} else
+					{
+						*x1 += vdi_get_textwidth(printinfo->vdi, text, 1);
+						text++;
+						column += 1;
+						offset += 1;
+					}
+				}
+			} else
+			{
+				*x1 += vdi_get_textwidth(printinfo->vdi, text, 1);
+				text++;
+				column += 1;
+				offset += 1;
+			}
+		} else
+		{
+			if (page->hyp->header.magic != HYP_MAGIC_HYP)
+			{
+				/* BUG: should be *x1 */
+				x1 += vdi_get_textwidth(printinfo->vdi, text, 1);
+				text++;
+				column += 1;
+				offset += 1;
+			} else
+			{
+				text++;
+				switch (*text)
+				{
+				case HYP_ESC_ESC:
+					/* BUG: should be *x1 */
+					x1 += vdi_get_textwidth(printinfo->vdi, text, 1);
+					text++;
+					column += 1;
+					offset += 1;
+					break;
+				
+				case HYP_ESC_LINK:
+				case HYP_ESC_ALINK:
+					old_offset = offset;
+					text = link_width(page->hyp, printinfo, x, &offset, text + 1, &linkwidth);
+					column += offset - old_offset;
+					*x1 += linkwidth;
+					vdi_text_attributes(printinfo->vdi, fonts->text_color, -1, effects, fontid);
+					break;
+
+				case HYP_ESC_LINK_LINE:
+				case HYP_ESC_ALINK_LINE:
+					old_offset = offset;
+					text = dec_255_decode(text + 1, &line);
+					text = link_width(page->hyp, printinfo, x, &offset, text, &linkwidth);
+					column += offset - old_offset;
+					*x1 += linkwidth;
+					vdi_text_attributes(printinfo->vdi, fonts->text_color, -1, effects, fontid);
+					break;
+				
+				default:
+					/*
+					 * BUG: should check for upper limit, too.
+					 */
+					if ((unsigned char) *text >= HYP_ESC_TEXTATTR_FIRST)
+					{
+						effects = (unsigned char) *text - HYP_ESC_TEXTATTR_FIRST;
+						if (effects & 0x40)
+							fontid = fonts->typewriter_font_id;
+						else
+							fontid = fonts->standard_font_id;
+						vdi_text_attributes(printinfo->vdi, fonts->text_color, -1, effects, fontid);
+					}
+					text++;
+					break;
+				}
+			}
+		}
+	}
+	
+	if (offset < x)
+	{
+		*x1 = (_WORD)((column - offset + x) * printinfo->cell_width);
+	}
+
+	vdi_text_attributes(printinfo->vdi, -1, -1, 0, page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard ? fonts->standard_font_id : fonts->typewriter_font_id);
+	vdi_unref(printinfo->vdi);
+	return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static void calc_box_width(struct pageinfo *page, struct printinfo *printinfo, long y, long x, _WORD *x1)
+{
+	calc_box_offset(page, printinfo, page->text[y], x, x1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static char *print_link(struct hypfile *hyp, struct printinfo *printinfo, _WORD *x, _WORD *y, char *text, short *column)
+{
+	short linknr;
+	_WORD color;
+	_WORD effects;
+	int len;
+	char *name;
+	_WORD width;
+	
+	text = dec_255_decode(text, &linknr);
+	printinfo->fonts->p_get_effects(hyp, linknr, &color, &effects);
+	vdi_text_attributes(printinfo->vdi, color, -1, effects, -1);
+	/* BUG: sign-extended */
+	len = *text++ - HYP_STRLEN_OFFSET;
+	if (len <= 0)
+	{
+		name = hyp->indextable[linknr]->name;
+		len = (int)strlen(name);
+		vdi_draw_text(printinfo->vdi, *x, *y, name, len);
+		width = vdi_get_textwidth(printinfo->vdi, name, len);
+	} else
+	{
+		vdi_draw_text(printinfo->vdi, *x, *y, text, len);
+		width = vdi_get_textwidth(printinfo->vdi, text, len);
+		text += len;
+	}
+	*x += width;
+	*column += len;
+	return text;
+}
+
+/* ---------------------------------------------------------------------- */
+
 static void print_line(struct printinfo *printinfo, struct pageinfo *page, long lineno, _WORD x, _WORD y)
 {
 	struct fontinfo *fonts;
 	struct vdi *vdi;
-	_WORD d3;
+	_WORD left;
 	_WORD effects;
 	_WORD fontid;
 	char *text;
@@ -62,7 +311,7 @@ static void print_line(struct printinfo *printinfo, struct pageinfo *page, long 
 	
 	fonts = printinfo->fonts;
 	vdi = printinfo->vdi;
-	d3 = x;
+	left = x;
 	effects = 0;
 	if (page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard)
 		fontid = fonts->standard_font_id;
@@ -93,10 +342,10 @@ static void print_line(struct printinfo *printinfo, struct pageinfo *page, long 
 							text++;
 						while (*text == ' ');
 						column += text - start;
-				x13870:
-						x2 = printinfo->cell_width * column + d3;
+					x13870:
+						x2 = printinfo->cell_width * column + left;
 						if (effects != 0)
-							x132c8(vdi, y, x, x2);
+							underlines_spaces(vdi, y, x, x2);
 						x = x2;
 					} else
 					{
@@ -434,7 +683,7 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 			/*
 			 * ??? Maybe Hyperion extension?
 			 */
-			if (*data == HYP_ESC && data[1] == HYP_ESC_DATA0 && fonts->x18b5c)
+			if (*data == HYP_ESC && data[1] == HYP_ESC_DATA0 && fonts->image_borders)
 			{
 				_WORD color;
 				_WORD effects;
@@ -498,8 +747,8 @@ static void print_graphics(struct printinfo *printinfo, struct pageinfo *page, l
 				{
 					if (gr.g_h == 1)
 					{
-						x136da(page, printinfo, y_offset, gr.g_x, &x1);
-						x136da(page, printinfo, y_offset, gr.g_x + gr.g_w, &x2);
+						calc_box_width(page, printinfo, y_offset, gr.g_x, &x1);
+						calc_box_width(page, printinfo, y_offset, gr.g_x + gr.g_w, &x2);
 						gr.g_x = x1;
 						gr.g_w = x2 - x1;
 						gr.g_y = gr.g_y * printinfo->line_height;
@@ -795,7 +1044,7 @@ static long skip_udo_header(struct pageinfo *page)
 
 /* ---------------------------------------------------------------------- */
 
-static void calc_text_area(struct printinfo *printinfo, struct x40 *a5, short line_height)
+static void calc_text_area(struct printinfo *printinfo, struct area *a5, short line_height)
 {
 	_WORD hdpi;
 	_WORD vdpi;
@@ -827,7 +1076,7 @@ static void calc_text_area(struct printinfo *printinfo, struct x40 *a5, short li
 
 /* ---------------------------------------------------------------------- */
 
-static void calc_border_area(struct printinfo *printinfo, struct x40 *a5, _BOOL swap)
+static void calc_border_area(struct printinfo *printinfo, struct area *a5, _BOOL swap)
 {
 	if (!layout.swap_layout)
 		return;
@@ -841,7 +1090,7 @@ static void calc_border_area(struct printinfo *printinfo, struct x40 *a5, _BOOL 
 
 /* ---------------------------------------------------------------------- */
 
-static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct x40 *a5)
+static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *a5)
 {
 	struct vdi *vdi;
 	struct fontinfo *fonts;
@@ -886,7 +1135,7 @@ static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WO
 
 /* ---------------------------------------------------------------------- */
 
-static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct x40 *a5)
+static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *a5)
 {
 	struct vdi *vdi;
 	struct fontinfo *fonts;
@@ -930,7 +1179,7 @@ static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WO
 
 /* ---------------------------------------------------------------------- */
 
-static void print_text(struct printinfo *printinfo, struct pageinfo *page, long *lineno, long lastline, struct x40 *a5)
+static void print_text(struct printinfo *printinfo, struct pageinfo *page, long *lineno, long lastline, struct area *a5)
 {
 	GRECT gr;
 	struct vdi *vdi;
@@ -975,7 +1224,7 @@ static void print_text(struct printinfo *printinfo, struct pageinfo *page, long 
 
 /* ---------------------------------------------------------------------- */
 
-static void print_borders(struct printinfo *printinfo, struct x40 *a5)
+static void print_borders(struct printinfo *printinfo, struct area *a5)
 {
 	struct vdi *vdi;
 	
@@ -998,9 +1247,9 @@ static _BOOL start_page(struct printinfo *printinfo)
 {
 	if (!printinfo->layout->skip)
 	{
-		if (x19d24)
+		if (did_print_already)
 			v_clrwk(vdi_get_handle(printinfo->vdi));
-		x19d24 = TRUE;
+		did_print_already = TRUE;
 	}
 	should_abort();
 	vdi_ref(printinfo->vdi);
@@ -1031,7 +1280,7 @@ int print_page(struct pageinfo *page, _WORD *page_num, struct fontinfo *fonts)
 {
 	struct vdi *v;
 	struct printinfo printinfo;
-	struct x40 a5;
+	struct area a5;
 	long lineno;
 	long lastline;
 	_BOOL swap;
@@ -1043,7 +1292,7 @@ int print_page(struct pageinfo *page, _WORD *page_num, struct fontinfo *fonts)
 	printinfo.vdi = v;
 	printinfo.fonts = fonts;
 	printinfo.layout = &layout;
-	x13332(&printinfo);
+	init_font_sizes(&printinfo);
 	calc_text_area(&printinfo, &a5, printinfo.line_height);
 	lineno = skip_udo_header(page);
 	if (layout.first_line != 0 && lineno < layout.first_line - 1)

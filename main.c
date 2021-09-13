@@ -2,21 +2,18 @@
 #include <ctype.h>
 
 
-
-
-
-char standard_font[LINEMAX];
-char typewriter_font[LINEMAX];
-char pagename[LINEMAX];
-_BOOL pagename_is_title;
-_BOOL case_insensitive;
-_WORD vdihandle;
-_BOOL abort_flag;
-_BOOL scale_flag;
+static char standard_font[LINEMAX];
+static char typewriter_font[LINEMAX];
+static char pagename[LINEMAX];
+static _BOOL pagename_is_title;
+static _BOOL case_insensitive;
+static _WORD vdihandle;
+static _BOOL abort_flag;
+static _BOOL scale_flag;
 char x19c22[258];
-_BOOL x19d24;
+_BOOL did_print_already;
 _WORD num_loaded_fonts;
-_WORD x19d28;
+static _BOOL fonts_ok;
 
 char head_left[LINEMAX];
 char head_center[LINEMAX];
@@ -44,15 +41,15 @@ static char const usage[] =
 	"-hLINE   last LINE to print\n"
 	"Press & hold SHIFT+SHIFT to cancel printing.\n";
 
-_WORD gdos_device = 21;
-long reserve_memory = 102400L;
-int dither_method = 1;
-_WORD standard_font_size = 10;
-_WORD typewriter_font_size = 10;
-_BOOL scale_images = TRUE;
-_WORD nref_effects = TXT_THICKENED | TXT_UNDERLINED;
-_WORD pref_effects = TXT_THICKENED | TXT_UNDERLINED;
-_WORD xref_effects = TXT_THICKENED | TXT_UNDERLINED;
+static _WORD gdos_device = 21;
+static long reserve_memory = 102400L;
+static int dither_method = 1;
+static _WORD standard_font_size = 10;
+static _WORD typewriter_font_size = 10;
+static _BOOL scale_images = TRUE;
+static _WORD nref_effects = TXT_THICKENED | TXT_UNDERLINED;
+static _WORD pref_effects = TXT_THICKENED | TXT_UNDERLINED;
+static _WORD xref_effects = TXT_THICKENED | TXT_UNDERLINED;
 int verbose = 1;
 static long magicmac = 0;
 static unsigned char const macroman_cset[256] = {
@@ -349,13 +346,13 @@ _BOOL should_abort(void)
 	{
 		abort_flag = interrupted();
 		if (abort_flag)
+			/* FIXME: typo */
 			fprintf(stderr, "Hyp2GDOS: Printing will be canceled!\n");
 	}
 	return abort_flag;
 }
 
 struct fontinfo fontinfo = { 12, 12, 0, G_BLACK, TRUE, TRUE, TRUE, 4, "n", get_effects };
-_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -441,10 +438,10 @@ static int printfile(const Path *filename)
 				retcode = 1;
 			} else
 			{
-				x19d24 = FALSE;
+				did_print_already = FALSE;
 				num_loaded_fonts = workout[10];
 				num_loaded_fonts += vst_load_fonts(vdihandle, 0);
-				if (x19d28 == 0 && num_loaded_fonts == 0)
+				if (fonts_ok == 0 && num_loaded_fonts == 0)
 				{
 					fprintf(stderr, "No fonts!\n");
 					retcode = 2;
@@ -455,7 +452,7 @@ static int printfile(const Path *filename)
 					set_font(fontinfo.standard_font_id, find_font(standard_font), standard_font_size);
 					set_font(fontinfo.typewriter_font_id, find_font(typewriter_font), typewriter_font_size);
 					scale_flag = vdi_can_scale_bitmaps(vdihandle);
-					/* BUG: interrupted() only checks for shift */
+					/* FIXME: wrong message; interrupted() only checks for shift */
 					verboseout("Hyp2GDOS: Hold %s to cancel printing.\n", magicmac && (((long *)magicmac)[1] & 2) == 0 ? "Command-B" : "SHIFT+SHIFT");
 					wk_info();
 					verboseout("print document \"%s\"\n", pathbuf.buf);

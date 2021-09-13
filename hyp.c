@@ -4,7 +4,11 @@
 
 int hyp_errno;
 char hypfold[MAXPATH];
+char unused_path1[MAXPATH];
+char unused_path2[MAXPATH];
 char all_ref[MAXPATH];
+
+static char emptystr[] = "";
 
 /**************************************************************************/
 /* ---------------------------------------------------------------------- */
@@ -645,8 +649,6 @@ static void add_history(struct history *hist, struct pageinfo *page)
 }
 
 /* ---------------------------------------------------------------------- */
-
-static char emptystr[] = "";
 
 static long get_real_lineno(struct pageinfo *page, long y)
 {

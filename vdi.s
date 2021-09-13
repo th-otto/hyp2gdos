@@ -53,13 +53,23 @@ _VdiParBSize	equ		(*)
 
     .MODULE VDI_pb
 
-	.DC.L  _VDIParBlk
-	.DC.L  _VDIParBlk+VDI_CNTRLMAX*2
-	.dc.l  _VDIParBlk+VDI_CNTRLMAX*2+VDI_INTINMAX*2
-	.dc.l  _VDIParBlk+VDI_CNTRLMAX*2+VDI_INTINMAX*2+VDI_PTSINMAX*2
-	.dc.l  _VDIParBlk+VDI_CNTRLMAX*2+VDI_INTINMAX*2+VDI_PTSINMAX*2+VDI_INTOUTMAX*2
+	.dc.l  _VDIParBlk+vdi_control
+	.dc.l  _VDIParBlk+vdi_intin
+	.dc.l  _VDIParBlk+vdi_ptsin
+	.dc.l  _VDIParBlk+vdi_intout
+	.dc.l  _VDIParBlk+vdi_ptsout
 	
-          .ENDMOD
+     .ENDMOD
+
+    .MODULE VDI_pb2
+
+	.dc.l  _VDIParBlk+vdi_control
+	.dc.l  _VDIParBlk+vdi_intin
+	.dc.l  _VDIParBlk+vdi_intout
+	.dc.l  _VDIParBlk+vdi_ptsin
+	.dc.l  _VDIParBlk+vdi_ptsout
+	
+     .ENDMOD
 
 	.text
 
@@ -132,7 +142,7 @@ _VdiParBSize	equ		(*)
 
 	PEA.L     (A2)
 	PEA.L     (A1)
-	LEA.L     VDI_pb,A1
+	LEA.L     VDI_pb2,A1
 	MOVE.L    A1,D1
 	MOVE.L    A0,v_intin(A1)
 	MOVEA.L   12(A7),A0

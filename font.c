@@ -45,6 +45,7 @@ struct vdi {
 
 struct font fonttable[MAX_FONTS];
 _WORD print_handle;
+_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 
 /**************************************************************************/

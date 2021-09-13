@@ -4740,7 +4740,7 @@ J4:
 [000132be] 4fef 0300                 lea.l      768(a7),a7
 [000132c2] 4cdf 3c38                 movem.l    (a7)+,d3-d5/a2-a5
 [000132c6] 4e75                      rts
-
+underlines_spaces:
 [000132c8] 48e7 1f30                 movem.l    d3-d7/a2-a3,-(a7)
 [000132cc] 2448                      movea.l    a0,a2
 [000132ce] 3e00                      move.w     d0,d7
@@ -4784,7 +4784,7 @@ J4:
 [00013328] 6100 4454                 bsr        vdi_draw_text
 [0001332c] 4cdf 0cf8                 movem.l    (a7)+,d3-d7/a2-a3
 [00013330] 4e75                      rts
-
+init_font_sizes:
 [00013332] 48e7 1030                 movem.l    d3/a2-a3,-(a7)
 [00013336] 514f                      subq.w     #8,a7
 [00013338] 2448                      movea.l    a0,a2
@@ -4838,7 +4838,7 @@ J4:
 [000133c8] 504f                      addq.w     #8,a7
 [000133ca] 4cdf 0c08                 movem.l    (a7)+,d3/a2-a3
 [000133ce] 4e75                      rts
-
+link_width:
 [000133d0] 48e7 1c3c                 movem.l    d3-d5/a2-a5,-(a7)
 [000133d4] 4fef fff6                 lea.l      -10(a7),a7
 [000133d8] 2f48 0006                 move.l     a0,6(a7)
@@ -4914,7 +4914,7 @@ J4:
 [00013498] 4fef 000a                 lea.l      10(a7),a7
 [0001349c] 4cdf 3c38                 movem.l    (a7)+,d3-d5/a2-a5
 [000134a0] 4e75                      rts
-
+calc_box_offset:
 [000134a2] 48e7 1f3c                 movem.l    d3-d7/a2-a5,-(a7)
 [000134a6] 4fef fff4                 lea.l      -12(a7),a7
 [000134aa] 2f48 0008                 move.l     a0,8(a7)
@@ -5035,7 +5035,7 @@ J5:
 [000135e8] 224a                      movea.l    a2,a1
 [000135ea] 206f 0014                 movea.l    20(a7),a0
 [000135ee] 2050                      movea.l    (a0),a0
-[000135f0] 6100 fdde                 bsr        $000133D0
+[000135f0] 6100 fdde                 bsr        link_width
 [000135f4] 4fef 000c                 lea.l      12(a7),a7
 [000135f8] 2848                      movea.l    a0,a4
 [000135fa] 602e                      bra.s      $0001362A
@@ -5051,7 +5051,7 @@ J5:
 [00013618] 224a                      movea.l    a2,a1
 [0001361a] 206f 0014                 movea.l    20(a7),a0
 [0001361e] 2050                      movea.l    (a0),a0
-[00013620] 6100 fdae                 bsr        $000133D0
+[00013620] 6100 fdae                 bsr        link_width
 [00013624] 4fef 000c                 lea.l      12(a7),a7
 [00013628] 2848                      movea.l    a0,a4
 [0001362a] 2017                      move.l     (a7),d0
@@ -5121,7 +5121,7 @@ J5:
 [000136d0] 4fef 000c                 lea.l      12(a7),a7
 [000136d4] 4cdf 3cf8                 movem.l    (a7)+,d3-d7/a2-a5
 [000136d8] 4e75                      rts
-
+calc_box_width:
 [000136da] 2f0a                      move.l     a2,-(a7)
 [000136dc] 2448                      movea.l    a0,a2
 [000136de] 2f2f 0008                 move.l     8(a7),-(a7)
@@ -5278,7 +5278,7 @@ print_line:
 [00013882] 322f 0004                 move.w     4(a7),d1
 [00013886] 302f 0002                 move.w     2(a7),d0
 [0001388a] 204c                      movea.l    a4,a0
-[0001388c] 6100 fa3a                 bsr        $000132C8
+[0001388c] 6100 fa3a                 bsr        x132c8
 [00013890] 3f46 0004                 move.w     d6,4(a7)
 [00013894] 6000 0156                 bra        $000139EC
 [00013898] 1012                      move.b     (a2),d0
@@ -12549,7 +12549,7 @@ data:
 [00018a4c]                           dc.w $0001
 [00018a4e]                           dc.w $0000
 [00018a50]                           dc.w $0000
-macroman_cset
+macroman_cset:
 [00018a52]                           dc.w $007f
 [00018a54]                           dc.w $7f7f
 [00018a56]                           dc.w $7f7f
@@ -12809,7 +12809,7 @@ emptystr:
 [00019250]                           dc.w $0009
 [00019252]                           dc.w $0001
 [00019254]                           dc.w $000a
-plane2mask:
+plane2_params:
 [00019256]                           dc.w $0000
 [00019258]                           dc.w $0000
 [0001925a]                           dc.w $0000
@@ -12828,7 +12828,7 @@ plane2mask:
 [00019274]                           dc.w $0000
 [00019276]                           dc.w $0000
 [00019278]                           dc.w $0000
-plane3mask:
+plane3_params:
 [0001927a]                           dc.w $0000
 [0001927c]                           dc.w $0000
 [0001927e]                           dc.w $0000
@@ -12859,14 +12859,13 @@ plane3mask:
 [000192b0]                           dc.w $0000
 [000192b2]                           dc.w $0000
 [000192b4]                           dc.w $0000
-plane4mask:
+plane4_params:
 [000192b6]                           dc.w $0000
 [000192b8]                           dc.w $0000
 [000192ba]                           dc.w $0000
 [000192bc]                           dc.w $0000
 [000192be]                           dc.w $ffff
 [000192c0]                           dc.w $0010
-
 [000192c2]                           dc.w $ffff
 [000192c4]                           dc.w $ffff
 [000192c6]                           dc.w $ffff
@@ -12891,9 +12890,7 @@ plane4mask:
 [000192ec]                           dc.w $aaaa
 [000192ee]                           dc.w $aaaa
 [000192f0]                           dc.w $aaaa
-[000192f2]                           dc.w $5555
-[000192f4]                           dc.w $5555
-[000192f6]                           dc.w $5555
+[000192f2]                           dc.b 'UUUUUU'
 [000192f8]                           dc.w $aaaa
 [000192fa]                           dc.w $0000
 [000192fc]                           dc.w $0000
@@ -12909,15 +12906,12 @@ plane4mask:
 [00019310]                           dc.w $aaaa
 [00019312]                           dc.w $0000
 [00019314]                           dc.w $aaaa
-
 [00019316]                           dc.w $0000
 [00019318]                           dc.w $aaaa
 [0001931a]                           dc.w $aaaa
-
 [0001931c]                           dc.w $0000
 [0001931e]                           dc.w $0000
 [00019320]                           dc.w $0000
-
 [00019322]                           dc.w $7262
 [00019324]                           dc.w $0000
 [00019326]                           dc.b 'HOME',0

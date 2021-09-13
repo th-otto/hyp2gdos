@@ -14,8 +14,6 @@ vdi.s
 
 main.c
 
-hg1.s
-
 print.c
 hyp.c
 

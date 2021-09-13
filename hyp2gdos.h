@@ -160,18 +160,18 @@ extern int hyp_errno;
 extern char hypfold[MAXPATH];
 extern char all_ref[MAXPATH];
 extern _WORD fonts[];
-extern _BOOL x19d24;
+extern _BOOL did_print_already;
 
 struct fontinfo {
 	int standard_font_id;
 	int typewriter_font_id;
-	int x18b56;
+	int unknown;
 	_WORD text_color;
 	_BOOL expand_spaces;
-	_BOOL x18b5c;
+	_BOOL image_borders;
 	_BOOL use_standard;
 	int tabsize;
-	const char *x18b62;
+	const char *sample;
 	int (*p_get_effects)(struct hypfile *hyp, hyp_nodenr node, _WORD *color, _WORD *effects);
 };
 
