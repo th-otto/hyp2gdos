@@ -343,7 +343,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsl_type
           .MODULE vsl_type
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$0F,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl
@@ -354,7 +354,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsl_ends
           .MODULE vsl_ends
 
-	MOVEM.W   D1-D2,_VDIParBlk+vdi_ptsin
+	MOVEM.W   D1-D2,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$6C,D1
 	MOVEQ.L   #$02,D2
 	BRA       _VdiCtrl
@@ -365,7 +365,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsl_color
           .MODULE vsl_color
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$11,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl
@@ -376,7 +376,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsf_style
           .MODULE vsf_style
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$18,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl
@@ -387,7 +387,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsf_perimeter
           .MODULE vsf_perimeter
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$68,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl
@@ -398,7 +398,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsf_interior
           .MODULE vsf_interior
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$17,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl
@@ -409,7 +409,7 @@ _VdiParBSize	equ		(*)
           .GLOBL vsf_color
           .MODULE vsf_color
 
-	MOVE.W    D1,_VDIParBlk+vdi_ptsin
+	MOVE.W    D1,_VDIParBlk+vdi_intin
 	MOVEQ.L   #$19,D1
 	MOVEQ.L   #$01,D2
 	BRA       _VdiCtrl

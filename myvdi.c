@@ -37,15 +37,15 @@ struct vdi {
 	/* 46 */ _WORD last_text_color;
 	/* 48 */ _WORD fontid;
 	/* 50 */ _WORD fontsize;
-	/* 52 */ _WORD o52;
-	/* 54 */ _WORD o54;
-	/* 56 */ _WORD o56;
-	/* 58 */ _WORD o58;
+	/* 52 */ _WORD o52; /* unused */
+	/* 54 */ _WORD o54; /* unused */
+	/* 56 */ _WORD o56; /* unused */
+	/* 58 */ _WORD o58; /* unused */
 };
 
-struct font fonttable[MAX_FONTS];
+static struct font fonttable[MAX_FONTS];
 _WORD print_handle;
-_WORD fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
+static _WORD const standard_fonts[] = { 1, 9, 1, 10, 1, 9, 1, 10 };
 
 
 /**************************************************************************/
@@ -90,12 +90,12 @@ static void select_font(struct vdi *v, int idx)
 	v->last_fontidx = idx;
 	if (idx == 2)
 	{
-		v->fontid = vst_font(v->handle, fonts[0]);
-		v->fontsize = vst_point(v->handle, fonts[1], &dummy, &dummy, &v->cell_width, &v->cell_height);
+		v->fontid = vst_font(v->handle, standard_fonts[0]);
+		v->fontsize = vst_point(v->handle, standard_fonts[1], &dummy, &dummy, &v->cell_width, &v->cell_height);
 	} else if (idx == 1)
 	{
-		v->fontid = vst_font(v->handle, fonts[2]);
-		v->fontsize = vst_point(v->handle, fonts[3], &dummy, &dummy, &v->cell_width, &v->cell_height);
+		v->fontid = vst_font(v->handle, standard_fonts[2]);
+		v->fontsize = vst_point(v->handle, standard_fonts[3], &dummy, &dummy, &v->cell_width, &v->cell_height);
 	} else if (idx >= IDX_OFFSET && idx < IDX_OFFSET + MAX_FONTS)
 	{
 		idx -= IDX_OFFSET;
@@ -106,12 +106,12 @@ static void select_font(struct vdi *v, int idx)
 		}
 	} else if (idx == 9)
 	{
-		v->fontid = vst_font(v->handle, fonts[4]);
-		v->fontsize = vst_point(v->handle, fonts[5], &dummy, &dummy, &v->cell_width, &v->cell_height);
+		v->fontid = vst_font(v->handle, standard_fonts[4]);
+		v->fontsize = vst_point(v->handle, standard_fonts[5], &dummy, &dummy, &v->cell_width, &v->cell_height);
 	} else if (idx == 12)
 	{
-		v->fontid = vst_font(v->handle, fonts[6]);
-		v->fontsize = vst_point(v->handle, fonts[7], &dummy, &dummy, &v->cell_width, &v->cell_height);
+		v->fontid = vst_font(v->handle, standard_fonts[6]);
+		v->fontsize = vst_point(v->handle, standard_fonts[7], &dummy, &dummy, &v->cell_width, &v->cell_height);
 	}
 }
 
@@ -322,10 +322,10 @@ void vdi_draw_rect(struct vdi *v, const GRECT *gr)
 	
 	pxy[0] = gr->g_x;
 	pxy[1] = gr->g_y;
-	pxy[2] = gr->g_x + gr->g_w - 1;
+	pxy[2] = pxy[0] + gr->g_w - 1;
 	pxy[3] = pxy[1];
 	pxy[4] = pxy[2];
-	pxy[5] = gr->g_y + gr->g_h - 1;
+	pxy[5] = pxy[3] + gr->g_h - 1;
 	pxy[6] = pxy[0];
 	pxy[7] = pxy[5];
 	pxy[8] = pxy[0];
@@ -377,7 +377,7 @@ void vdi_fill_attributes(struct vdi *v, _WORD color, _WORD mode, _WORD pattern)
 	if (mode >= -1)
 		v->fill_mode = mode;
 	if (pattern >= -1)
-		v->last_pattern = pattern;
+		v->fill_pattern = pattern;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -691,7 +691,7 @@ static int dither_image(const void *data, _WORD width, _WORD height, _WORD plane
 	unsigned char *dstptr;
 
 /*
- * temporary hack to get reigster assignments mostly right
+ * XXX temporary hack to get register assignments mostly right
  */
 #ifdef __PUREC__
 	(void)params;
@@ -878,17 +878,17 @@ static int draw_image(struct vdi *v, void *data,
 static int convert_image(const unsigned char *inputptr, _WORD width, _WORD height, _WORD planes, const unsigned short params[][3], void *color)
 {
 	long words;
-	long bytes_per_line; /* 8 */
-	long planesize; /* d6 */
-	unsigned char *outputline; /* 4 */
+	long bytes_per_line;
+	long planesize;
+	unsigned char *outputline;
 	_WORD x;
-	_WORD y; /* 0 */
-	const unsigned char *srcptr; /* a5 */
-	unsigned char *dstptr; /* a4 */
-	short inputmask; /* d5 */
+	_WORD y;
+	const unsigned char *srcptr;
+	unsigned char *dstptr;
+	short inputmask;
 	
 /*
- * temporary hack to get reigster assignments mostly right
+ * temporary hack to get register assignments mostly right
  */
 #ifdef __PUREC__
 	(void) params;

@@ -13,6 +13,10 @@
 #include <gem.h>
 #endif
 
+/*
+ * Things that should be defined in header files,
+ * but aren't always
+ */
 #ifndef FALSE
 #  define FALSE 0
 #  define TRUE  1
@@ -32,8 +36,37 @@
 #  endif
 #endif
 
+#ifndef __attribute__
+#  ifndef __GNUC__
+#    define __attribute__(x)
+#  endif
+#endif
+
 #ifndef UNUSED
 # define UNUSED(x) (void)(x)
+#endif
+
+/* text effects */
+#ifndef TXT_THICKENED
+#define TXT_NORMAL       0x0000
+#define TXT_THICKENED    0x0001
+#define TXT_LIGHT        0x0002
+#define TXT_SKEWED       0x0004
+#define TXT_UNDERLINED   0x0008
+#define TXT_OUTLINED     0x0010
+#define TXT_SHADOWED     0x0020
+#endif
+#ifndef LT_SOLID
+#define LT_SOLID		SOLID
+#define LT_DOTTED		DOT
+#endif
+#ifndef TA_LEFT
+#  define TA_LEFT         	0 /* horizontal */
+#  define TA_TOP          	5
+#endif
+#ifndef G_BLACK
+#  define G_WHITE 0
+#  define G_BLACK 1
 #endif
 
 #include "hyp.h"
@@ -61,10 +94,10 @@ struct hypfile {
 	/*   0 */ unsigned short flags;
 #define IGNORE_IMAGES	0x01
 #define SCALE_IMAGES 	0x02
-#define FLAG_04      0x04
-#define FLAG_20      0x20
-#define FLAG_40      0x40
-#define FLAG_80      0x80
+#define FLAG_04         0x04
+#define FORCE_RELOAD    0x20
+#define KEEP_OPEN       0x40
+#define INDEX_LOADED    0x80
 
 	/*   2 */ Path filename;
 	/* 258 */ FILE *fp;
@@ -159,7 +192,6 @@ extern struct layout layout;
 extern int hyp_errno;
 extern char hypfold[MAXPATH];
 extern char all_ref[MAXPATH];
-extern _WORD fonts[];
 extern _BOOL did_print_already;
 
 struct fontinfo {
@@ -199,7 +231,7 @@ long readline(struct file *fp, char *line, size_t len);
 
 
 /*
- * font.c
+ * myvdi.c
  */
 extern _WORD print_handle;
 

@@ -3485,7 +3485,7 @@ getcookie:
 [00012452] 245f                      movea.l    (a7)+,a2
 [00012454] 261f                      move.l     (a7)+,d3
 [00012456] 4e75                      rts
-make_sbsolute:
+make_absolute:
 [00012458] 2f0a                      move.l     a2,-(a7)
 [0001245a] 2f0c                      move.l     a4,-(a7)
 [0001245c] 4fef fe00                 lea.l      -512(a7),a7

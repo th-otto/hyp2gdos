@@ -31,13 +31,15 @@ static char udotitle[LINEMAX];
 
 static void underlines_spaces(struct vdi *vdi, _WORD y, _WORD x1, _WORD x2)
 {
-	static char const spaces[80] = "                                                                                ";
-	static char const space[] = " ";
 	_WORD w;
 	_WORD drawlen;
 	_WORD len;
+	static char _spaces[80] = "                                                                                ";
+	static char space[] = " ";
+	char *spaces;
 	
 	w = vdi_get_textwidth(vdi, space, 1);
+	spaces = _spaces;
 	while (x1 + w <= x2)
 	{
 		len = x2 - x1;
@@ -1044,53 +1046,53 @@ static long skip_udo_header(struct pageinfo *page)
 
 /* ---------------------------------------------------------------------- */
 
-static void calc_text_area(struct printinfo *printinfo, struct area *a5, short line_height)
+static void calc_text_area(struct printinfo *printinfo, struct area *areas, short line_height)
 {
 	_WORD hdpi;
 	_WORD vdpi;
 	
-	vdi_get_pagesize(vdi_get_handle(printinfo->vdi), &a5->pagearea);
-	vdi_get_outputsize(vdi_get_handle(printinfo->vdi), &a5->outputarea);
+	vdi_get_pagesize(vdi_get_handle(printinfo->vdi), &areas->pagearea);
+	vdi_get_outputsize(vdi_get_handle(printinfo->vdi), &areas->outputarea);
 	vdi_get_dpi(vdi_get_handle(printinfo->vdi), &hdpi, &vdpi);
-	a5->border_left = (_WORD)((layout.border_left * hdpi) / 25400L);
-	a5->border_top = (_WORD)((layout.border_top * vdpi) / 25400L);
-	a5->border_right = (_WORD)((layout.border_right * hdpi) / 25400L);
-	a5->border_bottom = (_WORD)((layout.border_bottom * vdpi) / 25400L);
-	a5->border_area.g_x = a5->pagearea.g_x + a5->border_left;
-	a5->border_area.g_y = a5->pagearea.g_y + a5->border_top;
-	a5->border_area.g_w = a5->pagearea.g_w - (a5->border_left + a5->border_right);
-	a5->border_area.g_h = a5->pagearea.g_h - (a5->border_top + a5->border_bottom);
-	rc_intersect(&a5->outputarea, &a5->border_area);
-	a5->text_area = a5->border_area;
+	areas->border_left = (_WORD)((layout.border_left * hdpi) / 25400L);
+	areas->border_top = (_WORD)((layout.border_top * vdpi) / 25400L);
+	areas->border_right = (_WORD)((layout.border_right * hdpi) / 25400L);
+	areas->border_bottom = (_WORD)((layout.border_bottom * vdpi) / 25400L);
+	areas->border_area.g_x = areas->pagearea.g_x + areas->border_left;
+	areas->border_area.g_y = areas->pagearea.g_y + areas->border_top;
+	areas->border_area.g_w = areas->pagearea.g_w - (areas->border_left + areas->border_right);
+	areas->border_area.g_h = areas->pagearea.g_h - (areas->border_top + areas->border_bottom);
+	rc_intersect(&areas->outputarea, &areas->border_area);
+	areas->text_area = areas->border_area;
 	if (layout.add_head)
 	{
-		a5->text_area.g_y += 2 * line_height;
-		a5->text_area.g_h -= 2 * line_height;
+		areas->text_area.g_y += 2 * line_height;
+		areas->text_area.g_h -= 2 * line_height;
 	}
 	if (layout.add_foot)
 	{
-		a5->text_area.g_h -= 2 * line_height;
+		areas->text_area.g_h -= 2 * line_height;
 	}
-	printinfo->text_area = a5->text_area;
+	printinfo->text_area = areas->text_area;
 }
 
 /* ---------------------------------------------------------------------- */
 
-static void calc_border_area(struct printinfo *printinfo, struct area *a5, _BOOL swap)
+static void calc_border_area(struct printinfo *printinfo, struct area *areas, _BOOL swap)
 {
 	if (!layout.swap_layout)
 		return;
-	a5->border_area.g_x = a5->pagearea.g_x + (swap ? a5->border_right : a5->border_left);
-	a5->border_area.g_w = a5->pagearea.g_w - (a5->border_left + a5->border_right);
-	rc_intersect(&a5->outputarea, &a5->border_area);
-	a5->text_area.g_x = a5->border_area.g_x;
+	areas->border_area.g_x = areas->pagearea.g_x + (swap ? areas->border_right : areas->border_left);
+	areas->border_area.g_w = areas->pagearea.g_w - (areas->border_left + areas->border_right);
+	rc_intersect(&areas->outputarea, &areas->border_area);
+	areas->text_area.g_x = areas->border_area.g_x;
 	/* text_area.g_w does not change when swapping layouts */
-	printinfo->text_area = a5->text_area;
+	printinfo->text_area = areas->text_area;
 }
 
 /* ---------------------------------------------------------------------- */
 
-static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *a5)
+static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *areas)
 {
 	struct vdi *vdi;
 	struct fontinfo *fonts;
@@ -1112,20 +1114,20 @@ static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WO
 		subst_vars(left, swap ? layout.head_right_str : layout.head_left_str, page, pagenum);
 		subst_vars(center, layout.head_center_str, page, pagenum);
 		subst_vars(right, swap ? layout.head_left_str : layout.head_right_str, page, pagenum);
-		vdi_clip(vdi, &a5->border_area);
-		y = a5->border_area.g_y;
+		vdi_clip(vdi, &areas->border_area);
+		y = areas->border_area.g_y;
 		vdi_text_attributes(vdi, fonts->text_color, S_ONLY, 0, fonts->standard_font_id);
-		vdi_draw_text(vdi, a5->border_area.g_x, y, left, (int)strlen(left));
+		vdi_draw_text(vdi, areas->border_area.g_x, y, left, (int)strlen(left));
 		w = vdi_get_textwidth(vdi, right, (int)strlen(right));
-		vdi_draw_text(vdi, a5->border_area.g_w - w + a5->border_area.g_x, y, right, (int)strlen(right));
+		vdi_draw_text(vdi, areas->border_area.g_w - w + areas->border_area.g_x, y, right, (int)strlen(right));
 		w = vdi_get_textwidth(vdi, center, (int)strlen(center));
-		vdi_draw_text(vdi, (a5->border_area.g_w - w) / 2 + a5->border_area.g_x, y, center, (int)strlen(center));
+		vdi_draw_text(vdi, (areas->border_area.g_w - w) / 2 + areas->border_area.g_x, y, center, (int)strlen(center));
 		y += line_height;
 		if (layout.head_sep != 0)
 		{
-			pxy[0] = a5->border_area.g_x;
+			pxy[0] = areas->border_area.g_x;
 			pxy[1] = y + line_height / 2 - 1;
-			pxy[2] = a5->border_area.g_x + a5->border_area.g_w /* - 1 */; /* BUG */
+			pxy[2] = areas->border_area.g_x + areas->border_area.g_w /* - 1 */; /* BUG */
 			pxy[3] = pxy[1];
 			vdi_line_attributes(vdi, fonts->text_color, S_OR_D, layout.head_sep, 1);
 			vdi_draw_line(vdi, pxy);
@@ -1135,7 +1137,7 @@ static void print_header(struct printinfo *printinfo, struct pageinfo *page, _WO
 
 /* ---------------------------------------------------------------------- */
 
-static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *a5)
+static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WORD pagenum, _BOOL swap, struct area *areas)
 {
 	struct vdi *vdi;
 	struct fontinfo *fonts;
@@ -1157,19 +1159,19 @@ static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WO
 		subst_vars(left, swap ? layout.foot_right_str : layout.foot_left_str, page, pagenum);
 		subst_vars(center, layout.foot_center_str, page, pagenum);
 		subst_vars(right, swap ? layout.foot_left_str : layout.foot_right_str, page, pagenum);
-		vdi_clip(vdi, &a5->border_area);
-		y = a5->border_area.g_y + a5->border_area.g_h - line_height;
+		vdi_clip(vdi, &areas->border_area);
+		y = areas->border_area.g_y + areas->border_area.g_h - line_height;
 		vdi_text_attributes(vdi, fonts->text_color, S_ONLY, 0, fonts->standard_font_id);
-		vdi_draw_text(vdi, a5->border_area.g_x, y, left, (int)strlen(left));
+		vdi_draw_text(vdi, areas->border_area.g_x, y, left, (int)strlen(left));
 		w = vdi_get_textwidth(vdi, right, (int)strlen(right));
-		vdi_draw_text(vdi, a5->border_area.g_w - w + a5->border_area.g_x, y, right, (int)strlen(right));
+		vdi_draw_text(vdi, areas->border_area.g_w - w + areas->border_area.g_x, y, right, (int)strlen(right));
 		w = vdi_get_textwidth(vdi, center, (int)strlen(center));
-		vdi_draw_text(vdi, (a5->border_area.g_w - w) / 2 + a5->border_area.g_x, y, center, (int)strlen(center));
+		vdi_draw_text(vdi, (areas->border_area.g_w - w) / 2 + areas->border_area.g_x, y, center, (int)strlen(center));
 		if (layout.foot_sep != 0)
 		{
-			pxy[0] = a5->border_area.g_x;
+			pxy[0] = areas->border_area.g_x;
 			pxy[1] = y - line_height / 2;
-			pxy[2] = a5->border_area.g_x + a5->border_area.g_w /* - 1 */; /* BUG */
+			pxy[2] = areas->border_area.g_x + areas->border_area.g_w /* - 1 */; /* BUG */
 			pxy[3] = pxy[1];
 			vdi_line_attributes(vdi, fonts->text_color, S_OR_D, layout.foot_sep, 1);
 			vdi_draw_line(vdi, pxy);
@@ -1179,7 +1181,7 @@ static void print_footer(struct printinfo *printinfo, struct pageinfo *page, _WO
 
 /* ---------------------------------------------------------------------- */
 
-static void print_text(struct printinfo *printinfo, struct pageinfo *page, long *lineno, long lastline, struct area *a5)
+static void print_text(struct printinfo *printinfo, struct pageinfo *page, long *lineno, long lastline, struct area *areas)
 {
 	GRECT gr;
 	struct vdi *vdi;
@@ -1190,23 +1192,23 @@ static void print_text(struct printinfo *printinfo, struct pageinfo *page, long 
 	
 	vdi = printinfo->vdi;
 	fonts = printinfo->fonts;
-	numlines = a5->text_area.g_h / printinfo->line_height;
+	numlines = areas->text_area.g_h / printinfo->line_height;
 	numlines = calc_text_height(printinfo, page, *lineno, 0, numlines);
 	if (numlines > lastline - *lineno)
 		numlines = lastline - *lineno;
 	if (!printinfo->layout->skip)
 	{
-		gr = a5->text_area;
+		gr = areas->text_area;
 		gr.g_h = (_WORD)(numlines * printinfo->line_height);
 		vdi_clip(vdi, &gr);
 		print_graphics(printinfo, page, *lineno, 0, numlines);
 		if (should_abort())
 			return;
 	}
-	vdi_clip(vdi, &a5->text_area);
+	vdi_clip(vdi, &areas->text_area);
 	vdi_text_attributes(vdi, fonts->text_color, S_OR_D, 0, page->hyp->header.magic == HYP_MAGIC_HYP || fonts->use_standard ? fonts->standard_font_id : fonts->typewriter_font_id);
-	x = a5->text_area.g_x;
-	y = a5->text_area.g_y;
+	x = areas->text_area.g_x;
+	y = areas->text_area.g_y;
 	line = 0;
 	while (line < numlines)
 	{
@@ -1224,7 +1226,7 @@ static void print_text(struct printinfo *printinfo, struct pageinfo *page, long 
 
 /* ---------------------------------------------------------------------- */
 
-static void print_borders(struct printinfo *printinfo, struct area *a5)
+static void print_borders(struct printinfo *printinfo, struct area *areas)
 {
 	struct vdi *vdi;
 	
@@ -1233,12 +1235,12 @@ static void print_borders(struct printinfo *printinfo, struct area *a5)
 		return;
 	if (!layout.show_borders)
 		return;
-	vdi_clip(vdi, &a5->outputarea);
+	vdi_clip(vdi, &areas->outputarea);
 	vdi_line_attributes(vdi, G_BLACK, S_ONLY, LT_DOTTED, 1);
 	if (layout.show_borders & 1)
-		vdi_draw_rect(vdi, &a5->outputarea);
+		vdi_draw_rect(vdi, &areas->outputarea);
 	if (layout.show_borders & 2)
-		vdi_draw_rect(vdi, &a5->border_area);
+		vdi_draw_rect(vdi, &areas->border_area);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1280,7 +1282,7 @@ int print_page(struct pageinfo *page, _WORD *page_num, struct fontinfo *fonts)
 {
 	struct vdi *v;
 	struct printinfo printinfo;
-	struct area a5;
+	struct area areas;
 	long lineno;
 	long lastline;
 	_BOOL swap;
@@ -1293,7 +1295,7 @@ int print_page(struct pageinfo *page, _WORD *page_num, struct fontinfo *fonts)
 	printinfo.fonts = fonts;
 	printinfo.layout = &layout;
 	init_font_sizes(&printinfo);
-	calc_text_area(&printinfo, &a5, printinfo.line_height);
+	calc_text_area(&printinfo, &areas, printinfo.line_height);
 	lineno = skip_udo_header(page);
 	if (layout.first_line != 0 && lineno < layout.first_line - 1)
 		lineno = layout.first_line - 1;
@@ -1310,20 +1312,20 @@ int print_page(struct pageinfo *page, _WORD *page_num, struct fontinfo *fonts)
 			swap = TRUE;
 		else
 			swap = FALSE;
-		calc_border_area(&printinfo, &a5, swap);
+		calc_border_area(&printinfo, &areas, swap);
 		start_page(&printinfo);
 		if (!should_abort())
 		{
-			print_borders(&printinfo, &a5);
+			print_borders(&printinfo, &areas);
 			if (!should_abort())
 			{
-				print_header(&printinfo, page, *page_num, swap, &a5);
+				print_header(&printinfo, page, *page_num, swap, &areas);
 				if (!should_abort())
 				{
-					print_footer(&printinfo, page, *page_num, swap, &a5);
+					print_footer(&printinfo, page, *page_num, swap, &areas);
 					if (!should_abort())
 					{
-						print_text(&printinfo, page, &lineno, lastline, &a5);
+						print_text(&printinfo, page, &lineno, lastline, &areas);
 						should_abort();
 					}
 				}

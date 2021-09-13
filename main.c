@@ -10,17 +10,17 @@ static _BOOL case_insensitive;
 static _WORD vdihandle;
 static _BOOL abort_flag;
 static _BOOL scale_flag;
-char x19c22[258];
+char x19c22[258]; /* unused */
 _BOOL did_print_already;
-_WORD num_loaded_fonts;
+static _WORD num_loaded_fonts;
 static _BOOL fonts_ok;
 
-char head_left[LINEMAX];
-char head_center[LINEMAX];
-char head_right[LINEMAX];
-char foot_left[LINEMAX];
-char foot_center[LINEMAX];
-char foot_right[LINEMAX];
+static char head_left[LINEMAX];
+static char head_center[LINEMAX];
+static char head_right[LINEMAX];
+static char foot_left[LINEMAX];
+static char foot_center[LINEMAX];
+static char foot_right[LINEMAX];
 struct layout layout;
 static _BOOL mint_domain;
 
@@ -50,7 +50,7 @@ static _BOOL scale_images = TRUE;
 static _WORD nref_effects = TXT_THICKENED | TXT_UNDERLINED;
 static _WORD pref_effects = TXT_THICKENED | TXT_UNDERLINED;
 static _WORD xref_effects = TXT_THICKENED | TXT_UNDERLINED;
-int verbose = 1;
+static int verbose = 1;
 static long magicmac = 0;
 static unsigned char const macroman_cset[256] = {
 	0x00, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x09, 0x0a, 0x7f, 0x7f, 0x0d, 0x7f, 0x7f,
@@ -87,6 +87,7 @@ static _BOOL getcookie(long id, long *value)
 	long *jar;
 	long *ptr;
 	
+	/* XXX registers different */
 	jar = (long *)Supexec(get_jar);
 	ptr = jar;
 	if (ptr != 0)
@@ -285,6 +286,7 @@ int conv_macroman(const char *src, char *dst)
 	char *start;
 	const unsigned char (*table)[256];
 	
+	/* XXX uses .w to index table */
 	start = dst;
 	table = &macroman_cset;
 	while (*src != '\0')
@@ -398,6 +400,7 @@ void unused2(void)
 
 static int printfile(const Path *filename)
 {
+	/* XXX registers different */
 	_WORD workin[11] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2 };
 	_WORD workout[57];
 	struct pageinfo page;

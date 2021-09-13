@@ -234,7 +234,7 @@ again:
 			hyp_errno = errno;
 			goto reterror;
 		}
-		if (hyp->flags & FLAG_40)
+		if (hyp->flags & KEEP_OPEN)
 			hyp->fp = fp;
 	}
 	if (fseek(fp, offset, SEEK_SET) != 0 ||
@@ -330,7 +330,7 @@ void hyp_free(struct hypfile *hyp)
 {
 	if (hyp == NULL)
 		return;
-	hyp->flags &= ~FLAG_80;
+	hyp->flags &= ~INDEX_LOADED;
 	if (hyp->dither_params != NULL)
 	{
 		hyp->dither_params = NULL;
@@ -377,7 +377,7 @@ int hyp_load(struct hypfile *hyp, const Path *filename)
 	
 	if (filename == NULL)
 		return 0;
-	if (!(hyp->flags & FLAG_20) && pathequal(&hyp->filename, filename))
+	if (!(hyp->flags & FORCE_RELOAD) && pathequal(&hyp->filename, filename))
 		return 0;
 	if (hyp->fp != NULL)
 	{
@@ -394,9 +394,9 @@ int hyp_load(struct hypfile *hyp, const Path *filename)
 	{
 		size_t readlen;
 		
-		if (!(hyp->flags & FLAG_20) && pathequal(&hyp->filename, &pathbuf))
+		if (!(hyp->flags & FORCE_RELOAD) && pathequal(&hyp->filename, &pathbuf))
 		{
-			if (hyp->flags & FLAG_40)
+			if (hyp->flags & KEEP_OPEN)
 			{
 				hyp->fp = fp;
 			} else
@@ -406,7 +406,7 @@ int hyp_load(struct hypfile *hyp, const Path *filename)
 			return 0;
 		}
 		hyp_free(hyp);
-		hyp->flags &= ~FLAG_20;
+		hyp->flags &= ~FORCE_RELOAD;
 		pathcopy(&hyp->filename, &pathbuf);
 		get_basename(pathbuf.buf, basename);
 		len = (int)strlen(basename) + 1;
@@ -538,16 +538,15 @@ int hyp_load(struct hypfile *hyp, const Path *filename)
 		}
 	}
 	
-	/* 1569e */
 	if ((exth = hyp_find_extheader(hyp, HYP_EXTH_WIDTH)) != NULL)
 		hyp->width = *((unsigned char *)exth);
 	else
 		hyp->width = 75;
 	if ((exth = hyp_find_extheader(hyp, HYP_EXTH_HELP)) != NULL)
 		hyp->help_page = hyp_find_pagename(hyp, exth);
-	hyp->flags |= FLAG_80;
+	hyp->flags |= INDEX_LOADED;
 	hyp_errno = 0;
-	if (hyp->flags & FLAG_40)
+	if (hyp->flags & KEEP_OPEN)
 	{
 		hyp->fp = fp;
 	} else
@@ -1623,9 +1622,12 @@ char *hyp_get_window_title(struct pageinfo *page, hyp_nodenr nodenr)
 		return NULL;
 	if (tree_has_title(page->hyp, hyp_find_extheader(page->hyp, HYP_EXTH_TREEHEADER), nodenr) == 0)
 		return page->hyp->indextable[nodenr]->name;
-	/* BUG: will leak page->node if same node already loaded */
-	if (page->node != NULL && page->node->nodenr != nodenr)
+	if (page->node != NULL)
+	{
+		if (page->node->nodenr == nodenr)
+			return page->window_title;
 		free_pageinfo(page);
+	}
 	if (reset_pageinfo(page, nodenr) != 0)
 		return NULL;
 	return page->window_title;

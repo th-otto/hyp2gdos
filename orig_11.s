@@ -2647,8 +2647,8 @@ J1:
 [00011bec] 5381                      subq.l     #1,d1
 [00011bee] 6500 00ac                 bcs        $00011C9C
 [00011bf2] 1100                      move.b     d0,-(a0)
-[00011bf4] 1f00                      move.b     d0,-(a7)
-[00011bf6] 341f                      move.w     (a7)+,d2
+[00011bf4] 1400                      move.b     d0,d2
+[00011bf6] e14a                      lsl.w      #8,d2
 [00011bf8] 1400                      move.b     d0,d2
 [00011bfa] 3002                      move.w     d2,d0
 [00011bfc] 4842                      swap       d2

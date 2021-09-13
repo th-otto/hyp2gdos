@@ -11,17 +11,18 @@ pcstart.s
 pcstdlib.lib
 tos.s
 vdi.s
+;pctoslib.lib
+;pcgemlib.lib
 
 main.c
 
 print.c
 hyp.c
 
-;hg2.s
 lh5d.c [-G]
 
 file.c [-P]
-font.c
+myvdi.c
 
 util1.c
 util2.c [-P]
