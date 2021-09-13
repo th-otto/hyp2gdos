@@ -1036,24 +1036,24 @@ static int prepare_page(struct pageinfo *page)
 	char *end;
 	int ypos;
 	int num_lines;
-	struct node *a0;
-	struct node *a5;
+	struct node *tmpnode;
+	struct node *node;
 	char *picdata;
-	char *starttext; /* o14 */
-	hyp_nodenr picnode; /* o12 */
-	short y_offset; /* o10 */
-	char *o6;
+	char *starttext;
+	hyp_nodenr picnode;
+	short y_offset;
+	char *gfx;
 	short y;
 	short h;
-	short dithermask; /* o0 */
+	short dithermask;
 	int i;
 	
-	a0 = page->node;
-	page->window_title = page->hyp->indextable[a0->nodenr]->name;
+	tmpnode = page->node;
+	page->window_title = page->hyp->indextable[tmpnode->nodenr]->name;
 	ypos = 0;
-	data = a0->data;
-	end = data + a0->datalen;
-	a5 = a0;
+	data = tmpnode->data;
+	end = data + tmpnode->datalen;
+	node = tmpnode;
 	dithermask = 0xfefe;
 	
 	if (page->hyp->header.magic == HYP_MAGIC_HYP)
@@ -1080,21 +1080,21 @@ static int prepare_page(struct pageinfo *page)
 					short height;
 					
 					dec_255_decode(data + 2, &picnode);
-					if (hyp_load_node(page->hyp, &a5->picdata, picnode) != 0)
+					if (hyp_load_node(page->hyp, &node->picdata, picnode) != 0)
 						return 1;
-					picdata = a5->picdata->data;
+					picdata = node->picdata->data;
 					planesize = ((*((short *)picdata) + 15) / 16) * 2; /* width */
 					planesize *= *((short *)(picdata + 2)); /* height */
 					picsize = planesize * picdata[4]; /* planes */
 					endoffset = picsize + 8;
-					diff = a5->picdata->datalen - endoffset;
-					picend = a5->picdata->data + endoffset;
+					diff = node->picdata->datalen - endoffset;
+					picend = node->picdata->data + endoffset;
 					if (diff < 8 || *((long *)picend) != 0x4849434CL) /* 'HICL' */
 						picend = NULL;
 					if (picdata[4] > 1)
-						a5->picdata->dither_params = picend;
-					a5 = a5->picdata;
-					picdata = a5->data;
+						node->picdata->dither_params = picend;
+					node = node->picdata;
+					picdata = node->data;
 					if (picdata[4] > 1)
 					{
 						if (x18118(picdata + 8, *((short *)picdata), *((short *)(picdata + 2)), picdata[4]) != 0)
@@ -1181,7 +1181,7 @@ static int prepare_page(struct pageinfo *page)
 	page->max_text_width = 0;
 	if (ypos != 0)
 	{
-		o6 = skip_gfx_cmds(page, NULL, &y, &h);
+		gfx = skip_gfx_cmds(page, NULL, &y, &h);
 		data = starttext;
 		for (i = 0; i < num_lines; i++)
 		{
@@ -1194,7 +1194,7 @@ static int prepare_page(struct pageinfo *page)
 				}
 				if (i >= num_lines)
 					return 0;
-				o6 = skip_gfx_cmds(page, o6, &y, &h);
+				gfx = skip_gfx_cmds(page, gfx, &y, &h);
 			}
 			page->text[i] = data;
 			while (*data != HYP_EOL)
